@@ -12,6 +12,7 @@
  * - Carga los resultados reales de la Fecha 1 (incluye el partido aplazado por lluvia).
  * - Crea el usuario admin.
  */
+require('dotenv').config();
 const bcrypt = require('bcryptjs');
 const db = require('./db');
 const { generarRoundRobin } = require('./fixtureGenerator');
