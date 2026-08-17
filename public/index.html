@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campeonato nocturno 2026 "Francisco Moraga Gallegos"</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            background:
+                radial-gradient(ellipse at top, #3d1656 0%, #2a0e3c 35%, #0d0614 75%, #08050c 100%) fixed;
+        }
+        .tab-btn.active { border-bottom: 4px solid #e8952a; color: #f0d285; font-weight: bold; }
+        .badge { display:inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .badge-jugado { background:rgba(34,197,94,0.15); color:#4ade80; border:1px solid rgba(74,222,128,0.35); }
+        .badge-programado { background:rgba(232,149,42,0.15); color:#f0d285; border:1px solid rgba(240,210,133,0.35); }
+        .badge-aplazado { background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(248,113,113,0.35); }
+        .escudo { width: 2rem; height: 2rem; object-fit: contain; flex-shrink: 0; border-radius: 0.25rem; background: rgba(255,255,255,0.9); padding: 2px; }
+        .escudo-lg { width: 3rem; height: 3rem; }
+        .fila-clasifica { background: linear-gradient(to right, rgba(34,197,94,0.38), rgba(34,197,94,0.06)); border-left: 4px solid #22c55e; }
+    </style>
+</head>
+<body class="text-white font-sans min-h-screen">
+    <!-- Encabezado -->
+    <header class="bg-gradient-to-b from-noc-purple2 to-noc-black text-white shadow-md p-6 text-center relative border-b-2 border-noc-gold">
+        <h1 class="text-3xl font-extrabold uppercase tracking-wide">Campeonato nocturno 2026</h1>
+        <h2 class="text-xl mt-2 italic text-noc-goldlight">"Francisco Moraga Gallegos"</h2>
+        <div id="auth-box" class="absolute right-4 top-4 text-sm"></div>
+    </header>
+
+    <!-- Navegación por Pestañas -->
+    <nav class="bg-noc-dark shadow flex justify-center flex-wrap gap-1 px-4 py-2 sticky top-0 z-10 border-b border-noc-purple2">
+        <button onclick="showTab('tab-equipos')" id="btn-equipos" class="tab-btn active px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Equipos</button>
+        <button onclick="showTab('tab-partidos')" id="btn-partidos" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Partidos</button>
+        <button onclick="showTab('tab-posiciones')" id="btn-posiciones" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Posiciones</button>
+        <button onclick="showTab('tab-usuarios')" id="btn-usuarios" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition hidden">Usuarios</button>
+    </nav>
+
+    <main class="container mx-auto p-4 max-w-5xl">
+
+        <!-- Pestaña: Equipos -->
+        <section id="tab-equipos" class="block bg-noc-dark/80 p-6 rounded-lg shadow-md border border-noc-purple2">
+            <h3 class="text-2xl font-bold mb-4 border-b border-noc-purple2 pb-2 text-noc-goldlight">Gestión de Equipos</h3>
+            <p class="text-sm text-white/60 mb-4">Grupo A: 7 equipos (1 queda libre por fecha). Grupo B: 6 equipos.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-bold text-lg text-noc-gold mb-2">Grupo A</h4>
+                    <div id="lista-grupo-a" class="space-y-2"></div>
+                </div>
+                <div>
+                    <h4 class="font-bold text-lg text-noc-gold mb-2">Grupo B</h4>
+                    <div id="lista-grupo-b" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <div id="acciones-admin-equipos" class="mt-6 border-t border-noc-purple2 pt-4 flex flex-wrap gap-3 hidden">
+                <button onclick="generarFixture('A')" class="bg-green-700 text-white px-4 py-2 rounded shadow hover:bg-green-600 transition">Regenerar Fixture Grupo A</button>
+                <button onclick="generarFixture('B')" class="bg-green-700 text-white px-4 py-2 rounded shadow hover:bg-green-600 transition">Regenerar Fixture Grupo B</button>
+                <button onclick="reiniciarResultados('A')" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition">Reiniciar Resultados A</button>
+                <button onclick="reiniciarResultados('B')" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition">Reiniciar Resultados B</button>
+            </div>
+            <p id="nota-solo-lectura-equipos" class="text-xs text-white/40 mt-4 hidden">Inicia sesión como administrador para editar nombres de equipos o regenerar el fixture.</p>
+        </section>
+
+        <!-- Pestaña: Partidos -->
+        <section id="tab-partidos" class="hidden bg-noc-dark/80 p-6 rounded-lg shadow-md border border-noc-purple2">
+            <h3 class="text-2xl font-bold mb-4 border-b border-noc-purple2 pb-2 text-noc-goldlight">Resultados de Partidos</h3>
+            <div id="fixture-container" class="space-y-6">
+                <p class="text-white/50 italic">Cargando...</p>
+            </div>
+        </section>
+
+        <!-- Pestaña: Posiciones -->
+        <section id="tab-posiciones" class="hidden space-y-6">
+            <div class="bg-noc-dark/80 p-6 rounded-lg shadow-md overflow-x-auto border border-noc-purple2">
+                <h3 class="text-2xl font-bold mb-4 text-noc-goldlight border-b border-noc-purple2 pb-2">Tabla de Posiciones - Grupo A</h3>
+                <table class="w-full text-left border-collapse min-w-[700px]">
+                    <thead>
+                        <tr class="bg-noc-purple text-noc-goldlight text-sm uppercase tracking-wider">
+                            <th class="p-3 font-semibold text-center w-8">#</th>
+                            <th class="p-3 font-semibold">Equipo</th>
+                            <th class="p-3 font-semibold text-center" title="Puntos">PTS</th>
+                            <th class="p-3 font-semibold text-center" title="Partidos Jugados">PJ</th>
+                            <th class="p-3 font-semibold text-center" title="Partidos Ganados">PG</th>
+                            <th class="p-3 font-semibold text-center" title="Partidos Empatados">PE</th>
+                            <th class="p-3 font-semibold text-center" title="Partidos Perdidos">PP</th>
+                            <th class="p-3 font-semibold text-center" title="Goles a Favor">GF</th>
+                            <th class="p-3 font-semibold text-center" title="Goles en Contra">GC</th>
+                            <th class="p-3 font-semibold text-center" title="Diferencia de Gol">DG</th>
+                            <th class="p-3 font-semibold text-center" title="Partidos Aplazados pendientes">PA</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-pos-a" class="text-sm"></tbody>
+                </table>
+            </div>
+            <div class="bg-noc-dark/80 p-6 rounded-lg shadow-md overflow-x-auto border border-noc-purple2">
+                <h3 class="text-2xl font-bold mb-4 text-noc-goldlight border-b border-noc-purple2 pb-2">Tabla de Posiciones - Grupo B</h3>
+                <table class="w-full text-left border-collapse min-w-[700px]">
+                    <thead>
+                        <tr class="bg-noc-purple text-noc-goldlight text-sm uppercase tracking-wider">
+                            <th class="p-3 font-semibold text-center w-8">#</th>
+                            <th class="p-3 font-semibold">Equipo</th>
+                            <th class="p-3 font-semibold text-center" title="Puntos">PTS</th>
+                            <th class="p-3 font-semibold text-center" title="Partidos Jugados">PJ</th>
+                            <th class="p-3 font-semibold text-center" title="Partidos Ganados">PG</th>
+                            <th class="p-3 font-semibold text-center" title="Partidos Empatados">PE</th>
+                            <th class="p-3 font-semibold text-center" title="Partidos Perdidos">PP</th>
+                            <th class="p-3 font-semibold text-center" title="Goles a Favor">GF</th>
+                            <th class="p-3 font-semibold text-center" title="Goles en Contra">GC</th>
+                            <th class="p-3 font-semibold text-center" title="Diferencia de Gol">DG</th>
+                            <th class="p-3 font-semibold text-center" title="Partidos Aplazados pendientes">PA</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-pos-b" class="text-sm"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Pestaña: Usuarios (solo admin) -->
+        <section id="tab-usuarios" class="hidden bg-noc-dark/80 p-6 rounded-lg shadow-md border border-noc-purple2">
+            <h3 class="text-2xl font-bold mb-4 border-b border-noc-purple2 pb-2 text-noc-goldlight">Usuarios que pueden cargar resultados</h3>
+
+            <form id="form-nuevo-usuario" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end mb-6 border-b border-noc-purple2 pb-6" onsubmit="crearUsuario(event)">
+                <div>
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Nombre</label>
+                    <input required id="nu-nombre" type="text" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full" placeholder="Nombre completo">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Usuario</label>
+                    <input required id="nu-username" type="text" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full" placeholder="usuario">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Clave</label>
+                    <input required id="nu-password" type="text" minlength="6" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full" placeholder="mín. 6 caracteres">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Rol</label>
+                    <select id="nu-rol" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                        <option value="encargado">Encargado (carga resultados)</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition h-10">Crear usuario</button>
+            </form>
+
+            <div id="lista-usuarios" class="space-y-2"></div>
+        </section>
+    </main>
+
+    <!-- Modal de Login -->
+    <div id="modal-login" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div class="bg-noc-dark border border-noc-purple2 rounded-lg shadow-lg p-6 w-full max-w-sm">
+            <h3 class="text-xl font-bold mb-4 text-noc-goldlight">Iniciar sesión</h3>
+            <form onsubmit="hacerLogin(event)">
+                <div class="mb-3">
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Usuario</label>
+                    <input required id="login-username" type="text" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Clave</label>
+                    <input required id="login-password" type="password" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                </div>
+                <p id="login-error" class="text-red-400 text-sm mb-3 hidden"></p>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="cerrarModalLogin()" class="px-4 py-2 rounded border border-noc-purple2 text-white/70 hover:text-white">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 rounded bg-noc-gold text-noc-black font-semibold hover:bg-noc-goldlight">Entrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- 0. ESTADO GLOBAL Y HELPERS DE API ---
+        let TOKEN = localStorage.getItem('cn_token') || null;
+        let USUARIO = JSON.parse(localStorage.getItem('cn_usuario') || 'null');
+
+        async function api(path, options = {}) {
+            const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+            if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
+            const res = await fetch('/api' + path, Object.assign({}, options, { headers }));
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || 'Error inesperado');
+            return data;
+        }
+
+        function estaLogueado() { return !!TOKEN; }
+        function esAdmin() { return USUARIO && USUARIO.rol === 'admin'; }
+
+        // --- ESCUDOS ---
+        function slugEscudo(nombre) {
+            return String(nombre)
+                .toLowerCase()
+                .normalize('NFD').replace(/[̀-ͯ]/g, '')
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+        function escudoImg(nombre, extraClass) {
+            const slug = slugEscudo(nombre);
+            return `<img src="/escudos/${slug}.png" alt="" class="escudo ${extraClass || ''}" onerror="this.style.display='none'">`;
+        }
+
+        // --- 1. AUTENTICACIÓN ---
+        function renderAuthBox() {
+            const box = document.getElementById('auth-box');
+            if (estaLogueado()) {
+                box.innerHTML = `
+                    <span class="mr-3">${USUARIO.nombre} <span class="opacity-70">(${USUARIO.rol})</span></span>
+                    <button onclick="hacerLogout()" class="bg-noc-gold text-noc-black px-3 py-1 rounded font-semibold hover:bg-noc-goldlight">Salir</button>
+                `;
+            } else {
+                box.innerHTML = `<button onclick="abrirModalLogin()" class="bg-noc-gold text-noc-black px-3 py-1 rounded font-semibold hover:bg-noc-goldlight">Iniciar sesión</button>`;
+            }
+            document.getElementById('btn-usuarios').classList.toggle('hidden', !esAdmin());
+            document.getElementById('acciones-admin-equipos').classList.toggle('hidden', !esAdmin());
+            document.getElementById('nota-solo-lectura-equipos').classList.toggle('hidden', esAdmin());
+        }
+
+        function abrirModalLogin() {
+            document.getElementById('login-error').classList.add('hidden');
+            document.getElementById('modal-login').classList.remove('hidden');
+        }
+        function cerrarModalLogin() {
+            document.getElementById('modal-login').classList.add('hidden');
+        }
+
+        async function hacerLogin(ev) {
+            ev.preventDefault();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            try {
+                const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+                TOKEN = data.token;
+                USUARIO = data.usuario;
+                localStorage.setItem('cn_token', TOKEN);
+                localStorage.setItem('cn_usuario', JSON.stringify(USUARIO));
+                cerrarModalLogin();
+                renderAuthBox();
+                mostrarTabActual();
+            } catch (e) {
+                const err = document.getElementById('login-error');
+                err.textContent = e.message;
+                err.classList.remove('hidden');
+            }
+        }
+
+        function hacerLogout() {
+            TOKEN = null; USUARIO = null;
+            localStorage.removeItem('cn_token'); localStorage.removeItem('cn_usuario');
+            renderAuthBox();
+            mostrarTabActual();
+        }
+
+        // --- 2. NAVEGACIÓN ---
+        let tabActual = 'tab-equipos';
+        function showTab(tabId) {
+            tabActual = tabId;
+            document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.remove('hidden');
+            const btnId = 'btn-' + tabId.split('-')[1];
+            document.getElementById(btnId).classList.add('active');
+            mostrarTabActual();
+        }
+        function mostrarTabActual() {
+            if (tabActual === 'tab-equipos') renderEquipos();
+            if (tabActual === 'tab-partidos') renderPartidos();
+            if (tabActual === 'tab-posiciones') renderTablas();
+            if (tabActual === 'tab-usuarios') { if (esAdmin()) renderUsuarios(); else showTab('tab-equipos'); }
+        }
+
+        // --- 3. EQUIPOS ---
+        async function renderEquipos() {
+            const [equiposA, equiposB] = await Promise.all([
+                api('/equipos?grupo=A'), api('/equipos?grupo=B')
+            ]);
+            pintarListaEquipos('lista-grupo-a', equiposA);
+            pintarListaEquipos('lista-grupo-b', equiposB);
+        }
+        function pintarListaEquipos(contId, equipos) {
+            const cont = document.getElementById(contId);
+            cont.innerHTML = '';
+            equipos.forEach((eq, index) => {
+                const editable = esAdmin();
+                cont.innerHTML += `
+                    <div class="flex items-center space-x-2">
+                        <span class="w-6 text-white/50 font-bold">${index + 1}.</span>
+                        ${escudoImg(eq.nombre)}
+                        <input type="text" value="${escapeHtml(eq.nombre)}" ${editable ? '' : 'disabled'}
+                               onchange="actualizarNombreEquipo(${eq.id}, this.value)"
+                               class="border border-noc-purple2 p-1 w-full rounded focus:outline-none focus:border-noc-gold bg-noc-black/50 text-white ${editable ? '' : 'text-white/50'}">
+                    </div>`;
+            });
+        }
+        async function actualizarNombreEquipo(id, nuevoNombre) {
+            try {
+                await api('/equipos/' + id, { method: 'PATCH', body: JSON.stringify({ nombre: nuevoNombre }) });
+            } catch (e) { alert(e.message); renderEquipos(); }
+        }
+
+        async function generarFixture(grupo) {
+            if (!confirm(`Esto va a BORRAR todos los partidos y resultados actuales del Grupo ${grupo} y generar un fixture nuevo. ¿Continuar?`)) return;
+            try {
+                await api('/fixture/generar', { method: 'POST', body: JSON.stringify({ grupo }) });
+                alert('Fixture regenerado.');
+                showTab('tab-partidos');
+            } catch (e) { alert(e.message); }
+        }
+        async function reiniciarResultados(grupo) {
+            if (!confirm(`Esto va a borrar TODOS los resultados cargados del Grupo ${grupo} (sin tocar el fixture). ¿Continuar?`)) return;
+            try {
+                await api('/fixture/reiniciar-resultados', { method: 'POST', body: JSON.stringify({ grupo }) });
+                alert('Resultados reiniciados.');
+                showTab('tab-partidos');
+            } catch (e) { alert(e.message); }
+        }
+
+        // --- 4. PARTIDOS ---
+        async function renderPartidos() {
+            const container = document.getElementById('fixture-container');
+            const [partidosA, partidosB, libresA, libresB] = await Promise.all([
+                api('/partidos?grupo=A'), api('/partidos?grupo=B'),
+                api('/partidos/libres?grupo=A'), api('/partidos/libres?grupo=B')
+            ]);
+            let html = '';
+            html += pintarGrupoPartidos('A', partidosA, libresA);
+            html += pintarGrupoPartidos('B', partidosB, libresB);
+            container.innerHTML = html;
+        }
+
+        function pintarGrupoPartidos(grupo, partidos, libres) {
+            const numFechas = Math.max(...partidos.map(p => p.fecha), ...libres.map(l => l.fecha));
+            let html = `<h4 class="text-xl font-bold bg-noc-purple text-noc-goldlight p-2 mt-6 rounded">Grupo ${grupo}</h4>`;
+            for (let f = 1; f <= numFechas; f++) {
+                const cruces = partidos.filter(p => p.fecha === f);
+                const libre = libres.find(l => l.fecha === f);
+                if (cruces.length === 0 && !libre) continue;
+                html += `<div class="mt-4 mb-2 font-bold text-noc-goldlight flex items-center gap-3">Fecha ${f}`;
+                if (libre) html += `<span class="text-xs font-normal text-white/50">(Libre: ${escapeHtml(libre.nombre)})</span>`;
+                html += `</div><div class="space-y-2">`;
+                cruces.forEach(p => { html += pintarFilaPartido(p); });
+                html += `</div>`;
+            }
+            return html;
+        }
+
+        function pintarFilaPartido(p) {
+            const logueado = estaLogueado();
+            const badgeClass = p.estado === 'jugado' ? 'badge-jugado' : (p.estado === 'aplazado' ? 'badge-aplazado' : 'badge-programado');
+            const badgeTexto = p.estado === 'jugado' ? 'Jugado' : (p.estado === 'aplazado' ? 'Aplazado' : 'Pendiente');
+            return `
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between bg-noc-dark/80 p-3 border-l-4 border-noc-gold rounded gap-2">
+                    <div class="md:w-1/4 flex items-center md:justify-end gap-2 font-semibold">
+                        <span class="md:order-2">${escapeHtml(p.local)}</span>
+                        <span class="md:order-1">${escudoImg(p.local)}</span>
+                    </div>
+                    <div class="md:w-1/2 flex flex-wrap justify-center items-center gap-2">
+                        <input type="number" min="0" value="${p.golesLocal !== null ? p.golesLocal : ''}" id="gl_${p.id}"
+                               ${logueado ? '' : 'disabled'} class="w-14 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded disabled:opacity-50">
+                        <span class="font-bold text-white/60">-</span>
+                        <input type="number" min="0" value="${p.golesVisita !== null ? p.golesVisita : ''}" id="gv_${p.id}"
+                               ${logueado ? '' : 'disabled'} class="w-14 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded disabled:opacity-50">
+                        <select id="es_${p.id}" ${logueado ? '' : 'disabled'} class="border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs disabled:opacity-50">
+                            <option value="programado" ${p.estado === 'programado' ? 'selected' : ''}>Pendiente</option>
+                            <option value="jugado" ${p.estado === 'jugado' ? 'selected' : ''}>Jugado</option>
+                            <option value="aplazado" ${p.estado === 'aplazado' ? 'selected' : ''}>Aplazado</option>
+                        </select>
+                        ${logueado ? `<button onclick="guardarResultado(${p.id})" class="bg-noc-gold text-noc-black font-semibold px-2 py-1 text-xs rounded hover:bg-noc-goldlight">Guardar</button>` : ''}
+                        <span class="badge ${badgeClass}">${badgeTexto}</span>
+                    </div>
+                    <div class="md:w-1/4 flex items-center gap-2 font-semibold">
+                        ${escudoImg(p.visita)}
+                        <span>${escapeHtml(p.visita)}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function guardarResultado(idPartido) {
+            const estado = document.getElementById(`es_${idPartido}`).value;
+            const golesLocal = document.getElementById(`gl_${idPartido}`).value;
+            const golesVisita = document.getElementById(`gv_${idPartido}`).value;
+            const body = { estado };
+            if (estado === 'jugado') {
+                if (golesLocal === '' || golesVisita === '') { alert('Ingresa ambos marcadores para guardar como Jugado.'); return; }
+                body.golesLocal = Number(golesLocal);
+                body.golesVisita = Number(golesVisita);
+            }
+            try {
+                await api('/partidos/' + idPartido, { method: 'PATCH', body: JSON.stringify(body) });
+                renderPartidos();
+            } catch (e) { alert(e.message); }
+        }
+
+        // --- 5. POSICIONES ---
+        async function renderTablas() {
+            const [tablaA, tablaB] = await Promise.all([api('/posiciones?grupo=A'), api('/posiciones?grupo=B')]);
+            pintarTabla('tabla-pos-a', tablaA);
+            pintarTabla('tabla-pos-b', tablaB);
+        }
+        function pintarTabla(idTbody, datos) {
+            const tbody = document.getElementById(idTbody);
+            tbody.innerHTML = '';
+            datos.forEach((eq, index) => {
+                const rowColor = index < 4 ? 'fila-clasifica font-semibold' : 'bg-noc-dark/60';
+                tbody.innerHTML += `
+                    <tr class="${rowColor} border-b border-noc-purple2 hover:bg-noc-purple2/40 transition">
+                        <td class="p-3 text-center">${index + 1}</td>
+                        <td class="p-3 font-bold"><div class="flex items-center gap-2">${escudoImg(eq.nombre)}<span>${escapeHtml(eq.nombre)}</span></div></td>
+                        <td class="p-3 text-center text-noc-goldlight font-bold">${eq.pts}</td>
+                        <td class="p-3 text-center">${eq.pj}</td>
+                        <td class="p-3 text-center text-green-400">${eq.pg}</td>
+                        <td class="p-3 text-center text-white/50">${eq.pe}</td>
+                        <td class="p-3 text-center text-red-400">${eq.pp}</td>
+                        <td class="p-3 text-center">${eq.gf}</td>
+                        <td class="p-3 text-center">${eq.gc}</td>
+                        <td class="p-3 text-center font-bold ${eq.dg > 0 ? 'text-green-400' : eq.dg < 0 ? 'text-red-400' : ''}">${eq.dg > 0 ? '+' + eq.dg : eq.dg}</td>
+                        <td class="p-3 text-center ${eq.pa > 0 ? 'text-noc-gold font-semibold' : 'text-white/20'}">${eq.pa}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- 6. USUARIOS (solo admin) ---
+        async function renderUsuarios() {
+            const usuarios = await api('/usuarios');
+            const cont = document.getElementById('lista-usuarios');
+            cont.innerHTML = usuarios.map(u => `
+                <div class="flex items-center justify-between border border-noc-purple2 rounded p-3">
+                    <div>
+                        <span class="font-semibold">${escapeHtml(u.nombre)}</span>
+                        <span class="text-white/50 text-sm"> — usuario: ${escapeHtml(u.username)} — rol: ${u.rol}</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="resetearClave(${u.id})" class="text-xs bg-noc-purple2 text-white px-3 py-1 rounded hover:bg-noc-purple">Cambiar clave</button>
+                        <button onclick="eliminarUsuario(${u.id})" class="text-xs bg-red-900/40 text-red-300 px-3 py-1 rounded hover:bg-red-900/60">Eliminar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function crearUsuario(ev) {
+            ev.preventDefault();
+            const nombre = document.getElementById('nu-nombre').value.trim();
+            const username = document.getElementById('nu-username').value.trim();
+            const password = document.getElementById('nu-password').value;
+            const rol = document.getElementById('nu-rol').value;
+            try {
+                await api('/usuarios', { method: 'POST', body: JSON.stringify({ nombre, username, password, rol }) });
+                document.getElementById('form-nuevo-usuario').reset();
+                renderUsuarios();
+            } catch (e) { alert(e.message); }
+        }
+
+        async function resetearClave(id) {
+            const nueva = prompt('Nueva clave para este usuario (mínimo 6 caracteres):');
+            if (!nueva) return;
+            try {
+                await api('/usuarios/' + id, { method: 'PATCH', body: JSON.stringify({ password: nueva }) });
+                alert('Clave actualizada.');
+            } catch (e) { alert(e.message); }
+        }
+
+        async function eliminarUsuario(id) {
+            if (!confirm('¿Eliminar este usuario? No podrá volver a iniciar sesión.')) return;
+            try {
+                await api('/usuarios/' + id, { method: 'DELETE' });
+                renderUsuarios();
+            } catch (e) { alert(e.message); }
+        }
+
+        // --- 7. UTILIDADES ---
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        window.onload = () => { renderAuthBox(); showTab('tab-equipos'); };
+    </script>
+</body>
+</html>

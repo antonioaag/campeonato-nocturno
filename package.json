@@ -1,0 +1,20 @@
+{
+  "name": "campeonato-nocturno",
+  "version": "1.0.0",
+  "description": "API + frontend para el Campeonato nocturno 2026 \"Francisco Moraga Gallegos\"",
+  "main": "server/server.js",
+  "scripts": {
+    "build:css": "tailwindcss -i ./public/tailwind-input.css -o ./public/styles.css --minify",
+    "start": "node server/server.js",
+    "seed": "node server/seed.js"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.14.0",
+    "bcryptjs": "^2.4.3",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  }
+}
