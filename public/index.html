@@ -300,7 +300,7 @@
             const box = document.getElementById('auth-box');
             if (estaLogueado()) {
                 box.innerHTML = `
-                    <span class="mr-3">${USUARIO.nombre} <span class="opacity-70">(${USUARIO.rol})</span></span>
+                    <span class="mr-3">${escapeHtml(USUARIO.nombre)} <span class="opacity-70">(${escapeHtml(USUARIO.rol)})</span></span>
                     <button onclick="hacerLogout()" class="bg-noc-gold text-noc-black px-3 py-1 rounded font-semibold hover:bg-noc-goldlight">Salir</button>
                 `;
             } else {
@@ -716,7 +716,7 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Error al procesar el CSV');
                 resultadoEl.innerHTML = `<span class="text-green-400">${data.agregados} agregados, ${data.actualizados} actualizados.</span>` +
-                    (data.errores.length ? `<br><span class="text-red-400">${data.errores.join('<br>')}</span>` : '');
+                    (data.errores.length ? `<br><span class="text-red-400">${data.errores.map(escapeHtml).join('<br>')}</span>` : '');
                 input.value = '';
                 renderJugadores();
             } catch (e) { resultadoEl.innerHTML = `<span class="text-red-400">${escapeHtml(e.message)}</span>`; }

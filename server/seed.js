@@ -15,12 +15,18 @@
  * fecha, y fue elegido a propósito para que la Fecha 1 generada coincida
  * exactamente con los partidos que ya se jugaron en la vida real.
  */
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const db = require('./db');
 const { generarRoundRobin } = require('./fixtureGenerator');
 
-const ADMIN_USERNAME = 'Squale0001';
-const ADMIN_PASSWORD = 'Squale.0608';
+// El usuario/clave del admin NUNCA se hardcodean: se toman de variables de
+// entorno (ADMIN_USERNAME / ADMIN_PASSWORD). Si no están definidas (primer
+// arranque sin configurarlas), se genera una clave aleatoria segura y se
+// imprime UNA sola vez en el log del servidor para que se pueda copiar y
+// guardar de inmediato.
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || crypto.randomBytes(9).toString('base64url');
 
 // --- Serie ADULTO: 13 equipos, Grupo A (7, uno libre por fecha) y B (6) ---
 const ADULTO_GRUPO_A = ['PICHANGA', 'VECINAL', 'PLATENSE', 'CARDENAL CARO', '10 DE MARZO', 'CAUPOLICAN PEÑA', 'FLAMENGO'];
@@ -154,7 +160,13 @@ async function seed() {
   await crearAdminSiNoExiste();
 
   console.log('Seed completado (Adulto + Senior).');
-  console.log(`Usuario admin: ${ADMIN_USERNAME} / ${ADMIN_PASSWORD}`);
+  if (process.env.ADMIN_PASSWORD) {
+    console.log(`Usuario admin creado: ${ADMIN_USERNAME} (clave: la que pusiste en ADMIN_PASSWORD)`);
+  } else {
+    console.log('⚠️  No definiste ADMIN_PASSWORD: se generó una clave aleatoria. GUÁRDALA AHORA, no se vuelve a mostrar:');
+    console.log(`   Usuario: ${ADMIN_USERNAME}`);
+    console.log(`   Clave:   ${ADMIN_PASSWORD}`);
+  }
 }
 
 if (require.main === module) {

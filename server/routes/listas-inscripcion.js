@@ -17,6 +17,34 @@ const upload = multer({
   },
 });
 
+// El mimetype que manda el navegador en el multipart es solo una declaración
+// (se puede falsear renombrando un archivo). Esto confirma que el contenido
+// real empieza con la "firma" de bytes esperada para ese tipo de archivo,
+// para que no se pueda subir, por ejemplo, un HTML disfrazado de imagen.
+function tipoRealCoincide(buffer, mimetype) {
+  const firmas = {
+    'application/pdf': [[0x25, 0x50, 0x44, 0x46]], // %PDF
+    'image/jpeg': [[0xFF, 0xD8, 0xFF]],
+    'image/png': [[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]],
+    'image/webp': [[0x52, 0x49, 0x46, 0x46]], // 'RIFF' (WEBP se confirma en offset 8, se chequea abajo)
+  };
+  const candidatos = firmas[mimetype];
+  if (!candidatos) return false;
+  const coincideAlgunaFirma = candidatos.some(firma => firma.every((byte, i) => buffer[i] === byte));
+  if (!coincideAlgunaFirma) return false;
+  if (mimetype === 'image/webp') {
+    return buffer.slice(8, 12).toString('ascii') === 'WEBP';
+  }
+  return true;
+}
+
+// Deja el nombre de archivo seguro para usarlo en la cabecera Content-Disposition
+// (sin comillas ni caracteres de control que permitirían inyectar otra cabecera).
+function nombreArchivoSeguro(nombre) {
+  // eslint-disable-next-line no-control-regex
+  return String(nombre).replace(/["\r\n\x00-\x1f]/g, '').slice(0, 200) || 'archivo';
+}
+
 // Metadata del documento (sin el contenido) para saber si existe y mostrarlo en la UI.
 router.get('/:equipoId/info', asyncHandler(async (req, res) => {
   const equipoId = Number(req.params.equipoId);
@@ -37,7 +65,7 @@ router.get('/:equipoId', asyncHandler(async (req, res) => {
   if (!doc) return res.status(404).json({ error: 'Este equipo no tiene un documento de inscripción cargado' });
 
   res.setHeader('Content-Type', doc.tipoMime);
-  res.setHeader('Content-Disposition', `inline; filename="${doc.nombreArchivo.replace(/"/g, '')}"`);
+  res.setHeader('Content-Disposition', `inline; filename="${nombreArchivoSeguro(doc.nombreArchivo)}"`);
   res.send(Buffer.from(doc.contenido));
 }));
 
@@ -47,6 +75,9 @@ router.post('/:equipoId', requireAuth, requireAdmin, upload.single('archivo'), a
   const equipo = await db.get('SELECT id FROM equipos WHERE id = ?', [equipoId]);
   if (!equipo) return res.status(400).json({ error: 'Equipo no encontrado' });
   if (!req.file) return res.status(400).json({ error: 'Falta el archivo' });
+  if (!tipoRealCoincide(req.file.buffer, req.file.mimetype)) {
+    return res.status(400).json({ error: 'El contenido del archivo no coincide con su tipo (¿está corrupto o mal renombrado?)' });
+  }
 
   await db.run(`
     INSERT INTO listas_inscripcion (equipo_id, nombre_archivo, tipo_mime, tamano_bytes, contenido, subido_por, subido_at)
@@ -58,7 +89,7 @@ router.post('/:equipoId', requireAuth, requireAdmin, upload.single('archivo'), a
       contenido = excluded.contenido,
       subido_por = excluded.subido_por,
       subido_at = excluded.subido_at
-  `, [equipoId, req.file.originalname, req.file.mimetype, req.file.size, req.file.buffer, req.usuario.id]);
+  `, [equipoId, nombreArchivoSeguro(req.file.originalname), req.file.mimetype, req.file.size, req.file.buffer, req.usuario.id]);
 
   res.json({ ok: true });
 }));

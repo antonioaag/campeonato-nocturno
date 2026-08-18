@@ -14,23 +14,28 @@ actualizada, y solo quienes tengan una cuenta pueden cargar resultados.
 
 ```bash
 npm install
-npm run seed      # crea la base de datos con los 13 equipos reales, el fixture completo
-                   # y los resultados de la Fecha 1 ya cargados
+set ADMIN_USERNAME=tu_usuario_admin
+set ADMIN_PASSWORD=una_clave_segura_y_unica
+npm run seed      # crea la base de datos con los 13 equipos reales, el fixture completo,
+                   # los resultados de la Fecha 1 ya cargados, y el usuario admin de arriba
 npm start          # levanta el servidor en http://localhost:3000
 ```
 
+**Importante:** el usuario y la clave del administrador nunca se escriben en el código.
+Se toman de las variables de entorno `ADMIN_USERNAME` y `ADMIN_PASSWORD` (poné ahí lo que
+tú quieras, no reutilices claves de otras cuentas). Si arrancás el servidor sin definir
+`ADMIN_PASSWORD`, se genera una clave aleatoria segura automáticamente y se imprime **una
+sola vez** en la consola al momento del seed — cópiala de inmediato, no queda guardada en
+ningún archivo.
+
 Si por algún motivo no corres `npm run seed` a mano, el servidor lo hace automáticamente
-la primera vez que detecta que la base de datos está vacía.
+la primera vez que detecta que la base de datos está vacía (usando esas mismas variables
+de entorno si están definidas en ese momento).
 
 Abre `http://localhost:3000` en el navegador. Ahí puedes ver equipos, partidos y posiciones
 sin necesidad de iniciar sesión. Para cargar resultados hace falta una cuenta.
 
 ## Cuenta de administrador
-
-```
-Usuario: Squale0001
-Clave:   Squale.0608
-```
 
 El administrador puede, desde la pestaña **Usuarios** dentro de la aplicación (no hace
 falta tocar la base de datos a mano):
@@ -40,8 +45,9 @@ falta tocar la base de datos a mano):
 - Cambiar la clave de cualquier usuario.
 - Eliminar usuarios.
 
-Recomendación: cambia la clave del admin apenas la app esté funcionando, desde la pestaña
-Usuarios ("Cambiar clave").
+Si en algún momento la clave del admin quedó expuesta (por ejemplo, compartida por chat o
+visible en una captura de pantalla), cámbiala de inmediato desde la pestaña Usuarios
+("Cambiar clave").
 
 ## Qué cambia respecto al archivo HTML original
 

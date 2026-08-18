@@ -2,9 +2,43 @@ require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const multer = require('multer');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const db = require('./db');
 
 const app = express();
+
+// Cabeceras de seguridad HTTP (HSTS, X-Content-Type-Options, X-Frame-Options,
+// Referrer-Policy, oculta X-Powered-By, etc). El CSP permite 'unsafe-inline'
+// en script/style porque el frontend es una sola página con <script>/<style>
+// inline (sin dependencias externas) — sigue bloqueando que el sitio sea
+// embebido en un iframe ajeno y que cargue recursos de otros orígenes.
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:'],
+      connectSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+    },
+  },
+}));
+
+// Limita intentos de login: máximo 10 por IP cada 15 minutos, para dificultar
+// ataques de fuerza bruta contra las cuentas de admin/encargado.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiados intentos de inicio de sesión. Espera unos minutos e intenta de nuevo.' },
+});
+
 app.use(express.json());
 
 async function start() {
@@ -18,6 +52,7 @@ async function start() {
     await require('./seed').seed();
   }
 
+  app.use('/api/auth/login', loginLimiter);
   app.use('/api/auth', require('./routes/auth'));
   app.use('/api/usuarios', require('./routes/usuarios'));
   app.use('/api/equipos', require('./routes/equipos'));
