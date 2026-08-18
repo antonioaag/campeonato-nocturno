@@ -42,6 +42,8 @@
         <button onclick="showTab('tab-equipos')" id="btn-equipos" class="tab-btn active px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Equipos</button>
         <button onclick="showTab('tab-partidos')" id="btn-partidos" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Partidos</button>
         <button onclick="showTab('tab-posiciones')" id="btn-posiciones" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Posiciones</button>
+        <button onclick="showTab('tab-jugadores')" id="btn-jugadores" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Jugadores</button>
+        <button onclick="showTab('tab-castigados')" id="btn-castigados" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Castigados</button>
         <button onclick="showTab('tab-usuarios')" id="btn-usuarios" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition hidden">Usuarios</button>
     </nav>
 
@@ -69,6 +71,135 @@
         <!-- Pestaña: Posiciones -->
         <section id="tab-posiciones" class="hidden space-y-6">
             <div id="posiciones-container" class="space-y-6"></div>
+        </section>
+
+        <!-- Pestaña: Jugadores -->
+        <section id="tab-jugadores" class="hidden bg-noc-dark/80 p-6 rounded-lg shadow-md border border-noc-purple2">
+            <h3 class="text-2xl font-bold mb-4 border-b border-noc-purple2 pb-2 text-noc-goldlight">Jugadores Inscritos</h3>
+
+            <div class="flex flex-wrap items-end gap-3 mb-4">
+                <div>
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Equipo</label>
+                    <select id="jugadores-filtro-equipo" onchange="renderJugadores()" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded"></select>
+                </div>
+            </div>
+
+            <div id="jugadores-documento-box" class="mb-6"></div>
+
+            <div id="jugadores-admin-form" class="hidden mb-6 border border-noc-purple2 rounded p-4 space-y-4">
+                <div>
+                    <h4 class="font-bold text-noc-gold mb-3">Agregar jugador</h4>
+                    <form onsubmit="crearJugador(event)" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-semibold text-white/50 mb-1">Nombre</label>
+                            <input required id="nj-nombre" type="text" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-white/50 mb-1">RUT</label>
+                            <input required id="nj-rut" type="text" placeholder="12345678-9" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-white/50 mb-1">Fecha Nacimiento</label>
+                            <input required id="nj-fecha" type="date" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                        </div>
+                        <button type="submit" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition h-10 whitespace-nowrap">Agregar</button>
+                    </form>
+                </div>
+
+                <div class="pt-4 border-t border-noc-purple2">
+                    <h4 class="font-bold text-noc-gold mb-2">Carga masiva (CSV)</h4>
+                    <p class="text-xs text-white/50 mb-2">Columnas: Nombre, RUT, Fecha Nacimiento. <a href="/plantilla-jugadores.csv" download class="text-noc-goldlight underline">Descargar plantilla</a></p>
+                    <form onsubmit="subirCsvJugadores(event)" class="flex flex-wrap items-end gap-3">
+                        <input required id="csv-archivo" type="file" accept=".csv" class="text-sm text-white/80">
+                        <button type="submit" class="bg-green-700 text-white px-4 py-2 rounded shadow hover:bg-green-600 transition">Subir CSV</button>
+                    </form>
+                    <div id="csv-resultado" class="text-sm mt-2"></div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead>
+                        <tr class="bg-noc-purple text-noc-goldlight text-sm uppercase tracking-wider">
+                            <th class="p-3 font-semibold">Nombre</th>
+                            <th class="p-3 font-semibold">RUT</th>
+                            <th class="p-3 font-semibold">Fecha Nacimiento</th>
+                            <th id="jugadores-th-equipo" class="p-3 font-semibold hidden">Equipo</th>
+                            <th id="jugadores-th-acciones" class="p-3 font-semibold text-center hidden">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-jugadores" class="text-sm"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Pestaña: Castigados -->
+        <section id="tab-castigados" class="hidden bg-noc-dark/80 p-6 rounded-lg shadow-md border border-noc-purple2">
+            <h3 class="text-2xl font-bold mb-4 border-b border-noc-purple2 pb-2 text-noc-goldlight">Jugadores Castigados</h3>
+
+            <div class="flex flex-wrap items-end gap-3 mb-4">
+                <div>
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Equipo</label>
+                    <select id="castigos-filtro-equipo" onchange="renderCastigados()" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Estado</label>
+                    <select id="castigos-filtro-estado" onchange="renderCastigados()" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded">
+                        <option value="">Todos</option>
+                        <option value="vigente">Vigente</option>
+                        <option value="cumplido">Cumplido</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="castigos-admin-form" class="hidden mb-6 border border-noc-purple2 rounded p-4">
+                <h4 class="font-bold text-noc-gold mb-3">Agregar castigo</h4>
+                <form onsubmit="crearCastigo(event)" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                    <div>
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Equipo</label>
+                        <select required id="nc-equipo" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Nombre</label>
+                        <input required id="nc-nombre" type="text" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-white/50 mb-1">RUT</label>
+                        <input required id="nc-rut" type="text" placeholder="12345678-9" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Infracción</label>
+                        <input required id="nc-infraccion" type="text" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Castigo</label>
+                        <input required id="nc-castigo" type="text" placeholder="Ej: 3 fechas" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Fecha Castigo</label>
+                        <input required id="nc-fecha" type="date" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                    </div>
+                    <button type="submit" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition h-10 whitespace-nowrap">Agregar</button>
+                </form>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[800px]">
+                    <thead>
+                        <tr class="bg-noc-purple text-noc-goldlight text-sm uppercase tracking-wider">
+                            <th class="p-3 font-semibold">Nombre</th>
+                            <th class="p-3 font-semibold">RUT</th>
+                            <th class="p-3 font-semibold">Equipo</th>
+                            <th class="p-3 font-semibold">Infracción</th>
+                            <th class="p-3 font-semibold">Castigo</th>
+                            <th class="p-3 font-semibold">Fecha</th>
+                            <th class="p-3 font-semibold text-center">Estado</th>
+                            <th id="castigos-th-acciones" class="p-3 font-semibold text-center hidden">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-castigos" class="text-sm"></tbody>
+                </table>
+            </div>
         </section>
 
         <!-- Pestaña: Usuarios (solo admin) -->
@@ -230,6 +361,8 @@
             if (tabActual === 'tab-equipos') renderEquipos();
             if (tabActual === 'tab-partidos') renderPartidos();
             if (tabActual === 'tab-posiciones') renderTablas();
+            if (tabActual === 'tab-jugadores') renderJugadores();
+            if (tabActual === 'tab-castigados') renderCastigados();
             if (tabActual === 'tab-usuarios') { if (esAdmin()) renderUsuarios(); else showTab('tab-equipos'); }
         }
 
@@ -437,7 +570,231 @@
             });
         }
 
-        // --- 6. USUARIOS (solo admin) ---
+        // --- 6. JUGADORES ---
+        async function poblarSelectEquipos(selectEl, incluirTodos) {
+            const grupos = SERIES_GRUPOS[serieActual];
+            const listas = await Promise.all(grupos.map(g => api(`/equipos?serie=${serieActual}&grupo=${g}`)));
+            const equipos = listas.flat();
+            const valorPrevio = selectEl.value;
+            selectEl.innerHTML =
+                (incluirTodos ? '<option value="">Todos los equipos</option>' : '') +
+                equipos.map(e => `<option value="${e.id}">${escapeHtml(e.nombre)} (Grupo ${e.grupo})</option>`).join('');
+            if ([...selectEl.options].some(o => o.value === valorPrevio)) selectEl.value = valorPrevio;
+            return equipos;
+        }
+
+        async function renderJugadores() {
+            const filtroEquipo = document.getElementById('jugadores-filtro-equipo');
+            await poblarSelectEquipos(filtroEquipo, true);
+            const equipoId = filtroEquipo.value;
+
+            document.getElementById('jugadores-admin-form').classList.toggle('hidden', !esAdmin());
+            document.getElementById('jugadores-th-acciones').classList.toggle('hidden', !esAdmin());
+            document.getElementById('jugadores-th-equipo').classList.toggle('hidden', !!equipoId);
+
+            await renderDocumentoInscripcion(equipoId);
+
+            const jugadores = await api('/jugadores' + (equipoId ? `?equipoId=${equipoId}` : `?serie=${serieActual}`));
+            const tbody = document.getElementById('tabla-jugadores');
+            const editable = esAdmin();
+            tbody.innerHTML = jugadores.map(j => `
+                <tr class="bg-noc-dark/60 border-b border-noc-purple2 hover:bg-noc-purple2/40 transition">
+                    <td class="p-2">
+                        <input type="text" value="${escapeHtml(j.nombre)}" ${editable ? '' : 'disabled'}
+                               onchange="actualizarJugador(${j.id}, 'nombre', this.value)"
+                               class="border border-noc-purple2 p-1 rounded bg-noc-black/50 text-white w-full ${editable ? '' : 'text-white/70 border-transparent bg-transparent'}">
+                    </td>
+                    <td class="p-2">
+                        <input type="text" value="${escapeHtml(j.rut)}" ${editable ? '' : 'disabled'}
+                               onchange="actualizarJugador(${j.id}, 'rut', this.value)"
+                               class="border border-noc-purple2 p-1 rounded bg-noc-black/50 text-white w-32 ${editable ? '' : 'text-white/70 border-transparent bg-transparent'}">
+                    </td>
+                    <td class="p-2">
+                        <input type="date" value="${j.fechaNacimiento}" ${editable ? '' : 'disabled'}
+                               onchange="actualizarJugador(${j.id}, 'fechaNacimiento', this.value)"
+                               class="border border-noc-purple2 p-1 rounded bg-noc-black/50 text-white ${editable ? '' : 'text-white/70 border-transparent bg-transparent'}">
+                    </td>
+                    <td class="p-2 ${equipoId ? 'hidden' : ''}">${escapeHtml(j.equipo)}</td>
+                    <td class="p-2 text-center ${editable ? '' : 'hidden'}">
+                        <button onclick="eliminarJugador(${j.id})" class="text-xs bg-red-900/40 text-red-300 px-3 py-1 rounded hover:bg-red-900/60">Eliminar</button>
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="5" class="p-4 text-center text-white/40 italic">No hay jugadores cargados.</td></tr>`;
+        }
+
+        async function renderDocumentoInscripcion(equipoId) {
+            const box = document.getElementById('jugadores-documento-box');
+            if (!equipoId) { box.innerHTML = ''; return; }
+
+            const info = await api('/listas-inscripcion/' + equipoId + '/info');
+            const admin = esAdmin();
+            let html = `<div class="border border-noc-purple2 rounded p-4 bg-noc-black/30">
+                <h4 class="font-bold text-noc-gold mb-2">Documento de inscripción</h4>`;
+            if (info) {
+                html += `<p class="text-sm mb-2">📄 <a href="/api/listas-inscripcion/${equipoId}" target="_blank" class="text-noc-goldlight underline">${escapeHtml(info.nombreArchivo)}</a>
+                    <span class="text-white/40 text-xs"> (${(info.tamanoBytes / 1024).toFixed(0)} KB, subido ${info.subidoAt})</span></p>`;
+                if (admin) html += `<button onclick="eliminarDocumento(${equipoId})" class="text-xs bg-red-900/40 text-red-300 px-3 py-1 rounded hover:bg-red-900/60">Eliminar documento</button>`;
+            } else {
+                html += `<p class="text-sm text-white/50 italic mb-2">Este equipo todavía no tiene un documento de inscripción cargado.</p>`;
+            }
+            if (admin) {
+                html += `<form onsubmit="subirDocumento(event, ${equipoId})" class="flex flex-wrap items-end gap-3 mt-3 pt-3 border-t border-noc-purple2">
+                    <input required type="file" id="doc-archivo" accept=".pdf,.jpg,.jpeg,.png,.webp" class="text-sm text-white/80">
+                    <button type="submit" class="bg-noc-gold text-noc-black font-semibold px-3 py-1 rounded text-sm hover:bg-noc-goldlight">${info ? 'Reemplazar' : 'Subir'}</button>
+                </form>`;
+            }
+            html += `</div>`;
+            box.innerHTML = html;
+        }
+
+        async function subirDocumento(ev, equipoId) {
+            ev.preventDefault();
+            const input = document.getElementById('doc-archivo');
+            if (!input.files[0]) return;
+            const fd = new FormData();
+            fd.append('archivo', input.files[0]);
+            try {
+                const headers = TOKEN ? { 'Authorization': 'Bearer ' + TOKEN } : {};
+                const res = await fetch('/api/listas-inscripcion/' + equipoId, { method: 'POST', headers, body: fd });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || 'Error al subir el documento');
+                renderJugadores();
+            } catch (e) { alert(e.message); }
+        }
+
+        async function eliminarDocumento(equipoId) {
+            if (!confirm('¿Eliminar el documento de inscripción de este equipo?')) return;
+            try {
+                await api('/listas-inscripcion/' + equipoId, { method: 'DELETE' });
+                renderJugadores();
+            } catch (e) { alert(e.message); }
+        }
+
+        async function crearJugador(ev) {
+            ev.preventDefault();
+            const equipoId = document.getElementById('jugadores-filtro-equipo').value;
+            if (!equipoId) { alert('Elige un equipo en el filtro de arriba antes de agregar un jugador.'); return; }
+            const nombre = document.getElementById('nj-nombre').value.trim();
+            const rut = document.getElementById('nj-rut').value.trim();
+            const fechaNacimiento = document.getElementById('nj-fecha').value;
+            try {
+                await api('/jugadores', { method: 'POST', body: JSON.stringify({ equipoId, nombre, rut, fechaNacimiento }) });
+                document.getElementById('nj-nombre').value = '';
+                document.getElementById('nj-rut').value = '';
+                document.getElementById('nj-fecha').value = '';
+                renderJugadores();
+            } catch (e) { alert(e.message); }
+        }
+
+        async function actualizarJugador(id, campo, valor) {
+            try {
+                await api('/jugadores/' + id, { method: 'PATCH', body: JSON.stringify({ [campo]: valor }) });
+            } catch (e) { alert(e.message); renderJugadores(); }
+        }
+
+        async function eliminarJugador(id) {
+            if (!confirm('¿Eliminar este jugador?')) return;
+            try {
+                await api('/jugadores/' + id, { method: 'DELETE' });
+                renderJugadores();
+            } catch (e) { alert(e.message); }
+        }
+
+        async function subirCsvJugadores(ev) {
+            ev.preventDefault();
+            const equipoId = document.getElementById('jugadores-filtro-equipo').value;
+            if (!equipoId) { alert('Elige un equipo en el filtro de arriba antes de subir el CSV.'); return; }
+            const input = document.getElementById('csv-archivo');
+            if (!input.files[0]) return;
+            const fd = new FormData();
+            fd.append('equipoId', equipoId);
+            fd.append('archivo', input.files[0]);
+            const resultadoEl = document.getElementById('csv-resultado');
+            resultadoEl.textContent = 'Procesando...';
+            try {
+                const res = await fetch('/api/jugadores/bulk', { method: 'POST', headers: { 'Authorization': 'Bearer ' + TOKEN }, body: fd });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Error al procesar el CSV');
+                resultadoEl.innerHTML = `<span class="text-green-400">${data.agregados} agregados, ${data.actualizados} actualizados.</span>` +
+                    (data.errores.length ? `<br><span class="text-red-400">${data.errores.join('<br>')}</span>` : '');
+                input.value = '';
+                renderJugadores();
+            } catch (e) { resultadoEl.innerHTML = `<span class="text-red-400">${escapeHtml(e.message)}</span>`; }
+        }
+
+        // --- 7. CASTIGADOS ---
+        async function renderCastigados() {
+            const filtroEquipo = document.getElementById('castigos-filtro-equipo');
+            await poblarSelectEquipos(filtroEquipo, true);
+            const equipoId = filtroEquipo.value;
+            const estado = document.getElementById('castigos-filtro-estado').value;
+
+            const adminForm = document.getElementById('castigos-admin-form');
+            adminForm.classList.toggle('hidden', !esAdmin());
+            document.getElementById('castigos-th-acciones').classList.toggle('hidden', !esAdmin());
+            if (esAdmin()) await poblarSelectEquipos(document.getElementById('nc-equipo'), false);
+
+            const params = new URLSearchParams({ serie: serieActual });
+            if (equipoId) params.set('equipoId', equipoId);
+            if (estado) params.set('estado', estado);
+            const castigos = await api('/castigos?' + params.toString());
+
+            const tbody = document.getElementById('tabla-castigos');
+            const admin = esAdmin();
+            tbody.innerHTML = castigos.map(c => `
+                <tr class="${c.estado === 'vigente' ? 'fila-mejor-tercero' : 'bg-noc-dark/60'} border-b border-noc-purple2 hover:bg-noc-purple2/40 transition">
+                    <td class="p-3 font-semibold">${escapeHtml(c.nombre)}</td>
+                    <td class="p-3">${escapeHtml(c.rut)}</td>
+                    <td class="p-3">${escapeHtml(c.equipo)}</td>
+                    <td class="p-3">${escapeHtml(c.infraccion)}</td>
+                    <td class="p-3">${escapeHtml(c.castigo)}</td>
+                    <td class="p-3">${c.fechaCastigo}</td>
+                    <td class="p-3 text-center">
+                        ${admin
+                            ? `<select onchange="actualizarCastigo(${c.id}, 'estado', this.value)" class="border border-noc-purple2 bg-noc-black/50 text-white text-xs p-1 rounded">
+                                <option value="vigente" ${c.estado === 'vigente' ? 'selected' : ''}>Vigente</option>
+                                <option value="cumplido" ${c.estado === 'cumplido' ? 'selected' : ''}>Cumplido</option>
+                               </select>`
+                            : `<span class="badge ${c.estado === 'vigente' ? 'badge-aplazado' : 'badge-jugado'}">${c.estado === 'vigente' ? 'Vigente' : 'Cumplido'}</span>`}
+                    </td>
+                    <td class="p-3 text-center ${admin ? '' : 'hidden'}">
+                        <button onclick="eliminarCastigo(${c.id})" class="text-xs bg-red-900/40 text-red-300 px-3 py-1 rounded hover:bg-red-900/60">Eliminar</button>
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="8" class="p-4 text-center text-white/40 italic">No hay castigos registrados.</td></tr>`;
+        }
+
+        async function crearCastigo(ev) {
+            ev.preventDefault();
+            const equipoId = document.getElementById('nc-equipo').value;
+            const nombre = document.getElementById('nc-nombre').value.trim();
+            const rut = document.getElementById('nc-rut').value.trim();
+            const infraccion = document.getElementById('nc-infraccion').value.trim();
+            const castigo = document.getElementById('nc-castigo').value.trim();
+            const fechaCastigo = document.getElementById('nc-fecha').value;
+            try {
+                await api('/castigos', { method: 'POST', body: JSON.stringify({ equipoId, nombre, rut, infraccion, castigo, fechaCastigo }) });
+                ev.target.reset();
+                renderCastigados();
+            } catch (e) { alert(e.message); }
+        }
+
+        async function actualizarCastigo(id, campo, valor) {
+            try {
+                await api('/castigos/' + id, { method: 'PATCH', body: JSON.stringify({ [campo]: valor }) });
+                renderCastigados();
+            } catch (e) { alert(e.message); renderCastigados(); }
+        }
+
+        async function eliminarCastigo(id) {
+            if (!confirm('¿Eliminar este castigo?')) return;
+            try {
+                await api('/castigos/' + id, { method: 'DELETE' });
+                renderCastigados();
+            } catch (e) { alert(e.message); }
+        }
+
+        // --- 8. USUARIOS (solo admin) ---
         async function renderUsuarios() {
             const usuarios = await api('/usuarios');
             const cont = document.getElementById('lista-usuarios');

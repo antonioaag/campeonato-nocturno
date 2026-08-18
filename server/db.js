@@ -161,6 +161,40 @@ function init() {
           fecha INTEGER NOT NULL,
           equipo_id INTEGER NOT NULL REFERENCES equipos(id)
         );
+
+        CREATE TABLE IF NOT EXISTS jugadores (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          equipo_id INTEGER NOT NULL REFERENCES equipos(id),
+          nombre TEXT NOT NULL,
+          rut TEXT NOT NULL,
+          fecha_nacimiento TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS listas_inscripcion (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          equipo_id INTEGER UNIQUE NOT NULL REFERENCES equipos(id),
+          nombre_archivo TEXT NOT NULL,
+          tipo_mime TEXT NOT NULL,
+          tamano_bytes INTEGER NOT NULL,
+          contenido BLOB NOT NULL,
+          subido_por INTEGER REFERENCES usuarios(id),
+          subido_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS castigos (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          nombre TEXT NOT NULL,
+          rut TEXT NOT NULL,
+          equipo_id INTEGER NOT NULL REFERENCES equipos(id),
+          infraccion TEXT NOT NULL,
+          castigo TEXT NOT NULL,
+          fecha_castigo TEXT NOT NULL,
+          estado TEXT NOT NULL DEFAULT 'vigente' CHECK(estado IN ('vigente','cumplido')),
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT
+        );
       `);
       await migrarSerie();
     })();

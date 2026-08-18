@@ -1,6 +1,7 @@
 require('dotenv').config();
 const path = require('path');
 const express = require('express');
+const multer = require('multer');
 const db = require('./db');
 
 const app = express();
@@ -23,6 +24,9 @@ async function start() {
   app.use('/api/partidos', require('./routes/partidos'));
   app.use('/api/posiciones', require('./routes/posiciones'));
   app.use('/api/fixture', require('./routes/fixture'));
+  app.use('/api/jugadores', require('./routes/jugadores'));
+  app.use('/api/listas-inscripcion', require('./routes/listas-inscripcion'));
+  app.use('/api/castigos', require('./routes/castigos'));
 
   // Frontend estático
   app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -33,6 +37,13 @@ async function start() {
 
   // Manejador de errores genérico
   app.use((err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+      const mensaje = err.code === 'LIMIT_FILE_SIZE' ? 'El archivo es demasiado grande' : err.message;
+      return res.status(400).json({ error: mensaje });
+    }
+    if (err && /Solo se permiten archivos/.test(err.message || '')) {
+      return res.status(400).json({ error: err.message });
+    }
     console.error(err);
     res.status(500).json({ error: 'Error interno del servidor' });
   });
