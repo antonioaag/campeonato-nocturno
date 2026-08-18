@@ -98,12 +98,19 @@ async function marcarAplazado(serie, idsPorNombre, local, visita) {
 }
 
 async function crearAdminSiNoExiste() {
-  const existe = await db.get('SELECT id FROM usuarios WHERE username = ?', [ADMIN_USERNAME]);
-  if (existe) return;
   const hash = bcrypt.hashSync(ADMIN_PASSWORD, 10);
-  await db.run(`
-    INSERT INTO usuarios (username, password_hash, nombre, rol) VALUES (?, ?, ?, 'admin')
-  `, [ADMIN_USERNAME, hash, 'Administrador']);
+  const existe = await db.get('SELECT id FROM usuarios WHERE rol = ?', ['admin']);
+
+  if (existe) {
+    // Si admin existe, actualiza su contraseña
+    await db.run('UPDATE usuarios SET username = ?, password_hash = ? WHERE rol = ?',
+      [ADMIN_USERNAME, hash, 'admin']);
+  } else {
+    // Si no existe, crea uno nuevo
+    await db.run(`
+      INSERT INTO usuarios (username, password_hash, nombre, rol) VALUES (?, ?, ?, 'admin')
+    `, [ADMIN_USERNAME, hash, 'Administrador']);
+  }
 }
 
 async function seedSerieAdulto() {
