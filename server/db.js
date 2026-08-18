@@ -228,7 +228,7 @@ async function migrar2FAYPasswordReset() {
   }
 
   try {
-    const hasPasswordResets = await all('SELECT name FROM sqlite_master WHERE type="table" AND name="password_resets"').then(r => r.length > 0);
+    const hasPasswordResets = await all("SELECT name FROM sqlite_master WHERE type='table' AND name='password_resets'").then(r => r.length > 0);
     if (!hasPasswordResets) {
       await exec(`
         CREATE TABLE IF NOT EXISTS password_resets (
