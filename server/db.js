@@ -129,7 +129,17 @@ function init() {
           password_hash TEXT NOT NULL,
           nombre TEXT NOT NULL,
           rol TEXT NOT NULL CHECK(rol IN ('admin','encargado')),
-          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          secret_2fa TEXT,
+          totp_enabled INTEGER DEFAULT 0
+        );
+
+        CREATE TABLE IF NOT EXISTS password_resets (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+          token TEXT NOT NULL UNIQUE,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          expires_at TEXT NOT NULL
         );
 
         CREATE TABLE IF NOT EXISTS equipos (
@@ -197,9 +207,42 @@ function init() {
         );
       `);
       await migrarSerie();
+      await migrar2FAYPasswordReset();
     })();
   }
   return readyPromise;
+}
+
+// Migra usuarios para agregar 2FA y password_resets si no existen
+async function migrar2FAYPasswordReset() {
+  try {
+    const has2FA = await columnExists('usuarios', 'secret_2fa');
+    if (!has2FA) {
+      await exec(`
+        ALTER TABLE usuarios ADD COLUMN secret_2fa TEXT;
+        ALTER TABLE usuarios ADD COLUMN totp_enabled INTEGER DEFAULT 0;
+      `);
+    }
+  } catch (e) {
+    console.log('2FA columns already exist or error:', e.message);
+  }
+
+  try {
+    const hasPasswordResets = await all('SELECT name FROM sqlite_master WHERE type="table" AND name="password_resets"').then(r => r.length > 0);
+    if (!hasPasswordResets) {
+      await exec(`
+        CREATE TABLE IF NOT EXISTS password_resets (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+          token TEXT NOT NULL UNIQUE,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          expires_at TEXT NOT NULL
+        );
+      `);
+    }
+  } catch (e) {
+    console.log('password_resets table already exists or error:', e.message);
+  }
 }
 
 module.exports = { get, all, run, exec, batch, init };

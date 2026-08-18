@@ -54,6 +54,8 @@ async function start() {
 
   app.use('/api/auth/login', loginLimiter);
   app.use('/api/auth', require('./routes/auth'));
+  app.use('/api/2fa', require('./routes/totp'));
+  app.use('/api/password-reset', require('./routes/password-reset'));
   app.use('/api/usuarios', require('./routes/usuarios'));
   app.use('/api/equipos', require('./routes/equipos'));
   app.use('/api/partidos', require('./routes/partidos'));

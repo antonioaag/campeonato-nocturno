@@ -46,7 +46,8 @@ function nombreArchivoSeguro(nombre) {
 }
 
 // Metadata del documento (sin el contenido) para saber si existe y mostrarlo en la UI.
-router.get('/:equipoId/info', asyncHandler(async (req, res) => {
+// Solo usuarios logueados pueden ver metadatos
+router.get('/:equipoId/info', requireAuth, asyncHandler(async (req, res) => {
   const equipoId = Number(req.params.equipoId);
   const doc = await db.get(
     'SELECT nombre_archivo AS nombreArchivo, tipo_mime AS tipoMime, tamano_bytes AS tamanoBytes, subido_at AS subidoAt FROM listas_inscripcion WHERE equipo_id = ?',
@@ -56,7 +57,8 @@ router.get('/:equipoId/info', asyncHandler(async (req, res) => {
 }));
 
 // Descarga el documento tal cual fue subido.
-router.get('/:equipoId', asyncHandler(async (req, res) => {
+// Solo usuarios logueados pueden descargar
+router.get('/:equipoId', requireAuth, asyncHandler(async (req, res) => {
   const equipoId = Number(req.params.equipoId);
   const doc = await db.get(
     'SELECT nombre_archivo AS nombreArchivo, tipo_mime AS tipoMime, contenido FROM listas_inscripcion WHERE equipo_id = ?',

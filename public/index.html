@@ -21,6 +21,64 @@
         .fila-mejor-tercero { background: linear-gradient(to right, rgba(232,149,42,0.38), rgba(232,149,42,0.06)); border-left: 4px solid #e8952a; }
         .serie-btn { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.65); }
         .serie-btn.active { background: #e8952a; color: #08050c; }
+
+        /* Logo de la asociación */
+        .logo-asociacion {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 1;
+        }
+        @media (max-width: 640px) {
+            .logo-asociacion {
+                width: 60px;
+                height: 60px;
+                bottom: 12px;
+                right: 12px;
+            }
+        }
+
+        /* Modal overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 20px;
+        }
+        .modal-content {
+            background: linear-gradient(to bottom, #2a0e3c, #1a0626);
+            border: 2px solid #e8952a;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+        }
+        .modal-close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            color: #e8952a;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 0;
+        }
+        .modal-close:hover { color: #f0d285; }
+        .modal-hidden { display: none; }
     </style>
 </head>
 <body class="text-white font-sans min-h-screen">
@@ -233,6 +291,18 @@
         </section>
     </main>
 
+    <!-- Logo de la Asociación (watermark discreto) -->
+    <svg class="logo-asociacion" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="100" cy="100" r="95" fill="none" stroke="#e8952a" stroke-width="2"/>
+        <circle cx="100" cy="100" r="80" fill="none" stroke="#e8952a" stroke-width="1" opacity="0.5"/>
+        <g text-anchor="middle" fill="#e8952a" font-family="Arial, sans-serif">
+            <text x="100" y="90" font-size="14" font-weight="bold">ÁGUILA</text>
+            <text x="100" y="110" font-size="11">CARSON</text>
+        </g>
+        <circle cx="100" cy="55" r="6" fill="#e8952a" opacity="0.7"/>
+        <path d="M 75 130 Q 100 145 125 130" stroke="#e8952a" stroke-width="1.5" fill="none" opacity="0.6"/>
+    </svg>
+
     <!-- Modal de Login -->
     <div id="modal-login" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
         <div class="bg-noc-dark border border-noc-purple2 rounded-lg shadow-lg p-6 w-full max-w-sm">
@@ -251,6 +321,7 @@
                     <button type="button" onclick="cerrarModalLogin()" class="px-4 py-2 rounded border border-noc-purple2 text-white/70 hover:text-white">Cancelar</button>
                     <button type="submit" class="px-4 py-2 rounded bg-noc-gold text-noc-black font-semibold hover:bg-noc-goldlight">Entrar</button>
                 </div>
+                <button type="button" onclick="cerrarModalLogin(); abrirModalReset();" class="w-full mt-3 text-xs text-noc-gold hover:text-noc-goldlight">¿Olvidé mi contraseña?</button>
             </form>
         </div>
     </div>
@@ -301,6 +372,7 @@
             if (estaLogueado()) {
                 box.innerHTML = `
                     <span class="mr-3">${escapeHtml(USUARIO.nombre)} <span class="opacity-70">(${escapeHtml(USUARIO.rol)})</span></span>
+                    <button onclick="abrirModal2FA()" class="bg-noc-purple2 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-noc-purple mr-2">2FA</button>
                     <button onclick="hacerLogout()" class="bg-noc-gold text-noc-black px-3 py-1 rounded font-semibold hover:bg-noc-goldlight">Salir</button>
                 `;
             } else {
@@ -845,6 +917,148 @@
         // --- 7. UTILIDADES ---
         function escapeHtml(str) {
             return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        // --- 8. MODALES: 2FA, RESET DE CONTRASEÑA ---
+        let temp2FAToken = null;
+
+        function abrirModal2FA() {
+            if (!estaLogueado()) { alert('Debes iniciar sesión'); return; }
+            document.getElementById('modal-setup-2fa').classList.remove('modal-hidden');
+            generarQR2FA();
+        }
+
+        function cerrarModal2FA() {
+            document.getElementById('modal-setup-2fa').classList.add('modal-hidden');
+            document.getElementById('totp-step-1').classList.remove('hidden');
+            document.getElementById('totp-step-2').classList.add('hidden');
+            document.getElementById('totp-code').value = '';
+        }
+
+        async function generarQR2FA() {
+            try {
+                const res = await api('/2fa/setup', { method: 'POST', body: '{}' });
+                document.getElementById('secret-code').textContent = res.secret;
+                document.getElementById('qr-container').innerHTML = res.qrCode
+                    ? `<img src="${res.qrCode}" style="width:200px;height:200px;">`
+                    : '<p class="text-white/50">Error generando QR</p>';
+            } catch (e) { alert('Error: ' + e.message); }
+        }
+
+        async function verificarTOTP(ev) {
+            ev.preventDefault();
+            const code = document.getElementById('totp-code').value;
+            try {
+                await api('/2fa/verify', { method: 'POST', body: JSON.stringify({ token: code }) });
+                document.getElementById('totp-step-1').classList.add('hidden');
+                document.getElementById('totp-step-2').classList.remove('hidden');
+                setTimeout(() => cerrarModal2FA(), 2000);
+            } catch (e) { alert('Error: ' + e.message); }
+        }
+
+        function abrirModalReset() {
+            document.getElementById('modal-reset-password').classList.remove('modal-hidden');
+            document.getElementById('reset-step-1').classList.remove('hidden');
+            document.getElementById('reset-step-2').classList.add('hidden');
+        }
+
+        function cerrarModalReset() {
+            document.getElementById('modal-reset-password').classList.add('modal-hidden');
+            document.getElementById('reset-username').value = '';
+            document.getElementById('reset-token').value = '';
+            document.getElementById('reset-nueva-clave').value = '';
+        }
+
+        async function solicitarReset(ev) {
+            ev.preventDefault();
+            const username = document.getElementById('reset-username').value;
+            try {
+                const res = await fetch('/api/password-reset/request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                }).then(r => r.json());
+                if (res.token) {
+                    document.getElementById('reset-token').value = res.token;
+                    document.getElementById('reset-step-1').classList.add('hidden');
+                    document.getElementById('reset-step-2').classList.remove('hidden');
+                } else {
+                    alert('Si el usuario existe, recibirá un email con el link para resetear');
+                }
+            } catch (e) { alert('Error: ' + e.message); }
+        }
+
+        async function confirmarReset(ev) {
+            ev.preventDefault();
+            const token = document.getElementById('reset-token').value;
+            const newPassword = document.getElementById('reset-nueva-clave').value;
+            try {
+                await fetch('/api/password-reset/confirm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, newPassword })
+                }).then(r => r.json());
+                alert('Contraseña cambiada. Ahora puedes iniciar sesión con la nueva clave.');
+                cerrarModalReset();
+            } catch (e) { alert('Error: ' + e.message); }
+        }
+
+        // Modificar hacerLogin para soportar 2FA
+        let loginPendiente2FA = null;
+
+        async function hacerLogin(ev) {
+            ev.preventDefault();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            try {
+                const loginData = { username, password };
+                if (loginPendiente2FA) loginData.totp_code = loginPendiente2FA;
+
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(loginData)
+                }).then(r => r.json());
+
+                if (res.needs_totp) {
+                    loginPendiente2FA = null;
+                    temp2FAToken = res.temp_token;
+                    document.getElementById('modal-login').classList.add('hidden');
+                    document.getElementById('modal-totp-login').classList.remove('modal-hidden');
+                    return;
+                }
+
+                if (!res.token) throw new Error(res.error || 'Login fallido');
+                localStorage.setItem('token', res.token);
+                localStorage.setItem('usuario', JSON.stringify(res.usuario));
+                USUARIO = res.usuario;
+                TOKEN = res.token;
+                loginPendiente2FA = null;
+                temp2FAToken = null;
+                document.getElementById('modal-login').classList.add('hidden');
+                document.getElementById('modal-totp-login').classList.add('modal-hidden');
+                document.getElementById('login-username').value = '';
+                document.getElementById('login-password').value = '';
+                renderAuthBox();
+                renderUsuarios();
+                location.reload();
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        function completarLoginWith2FA(ev) {
+            ev.preventDefault();
+            const code = document.getElementById('totp-login-code').value;
+            loginPendiente2FA = code;
+            hacerLogin({ preventDefault: () => {} });
+        }
+
+        function cerrarModal2FALogin() {
+            document.getElementById('modal-totp-login').classList.add('modal-hidden');
+            document.getElementById('totp-login-code').value = '';
+            loginPendiente2FA = null;
+            temp2FAToken = null;
         }
 
         window.onload = () => {
