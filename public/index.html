@@ -343,13 +343,18 @@
         function estaLogueado() { return !!TOKEN; }
         function esAdmin() { return USUARIO && USUARIO.rol === 'admin'; }
 
+        // Helper para acceder a elementos de forma segura
+        function safeId(id) { return document.getElementById(id); }
+        function safeClass(elem) { return elem?.classList; }
+
         // --- SERIE (Adultos / Seniors) ---
         const SERIES_GRUPOS = { ADULTO: ['A', 'B'], SENIOR: ['1', '2', '3'] };
         let serieActual = 'ADULTO';
         function cambiarSerie(serie) {
             serieActual = serie;
             document.querySelectorAll('.serie-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('serie-btn-' + serie).classList.add('active');
+            const btnSerie = safeId('serie-btn-' + serie);
+            if (btnSerie) btnSerie.classList.add('active');
             mostrarTabActual();
         }
 
@@ -388,11 +393,14 @@
         }
 
         function abrirModalLogin() {
-            document.getElementById('login-error').classList.add('hidden');
-            document.getElementById('modal-login').classList.remove('hidden');
+            const err = safeId('login-error');
+            if (err) err.classList.add('hidden');
+            const modal = safeId('modal-login');
+            if (modal) modal.classList.remove('hidden');
         }
         function cerrarModalLogin() {
-            document.getElementById('modal-login').classList.add('hidden');
+            const modal = safeId('modal-login');
+            if (modal) modal.classList.add('hidden');
         }
 
         async function hacerLogin(ev) {
@@ -428,9 +436,11 @@
             tabActual = tabId;
             document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabId).classList.remove('hidden');
+            const tab = safeId(tabId);
+            if (tab) tab.classList.remove('hidden');
             const btnId = 'btn-' + tabId.split('-')[1];
-            document.getElementById(btnId).classList.add('active');
+            const btn = safeId(btnId);
+            if (btn) btn.classList.add('active');
             mostrarTabActual();
         }
         function mostrarTabActual() {
