@@ -378,9 +378,13 @@
             } else {
                 box.innerHTML = `<button onclick="abrirModalLogin()" class="bg-noc-gold text-noc-black px-3 py-1 rounded font-semibold hover:bg-noc-goldlight">Iniciar sesión</button>`;
             }
-            document.getElementById('btn-usuarios').classList.toggle('hidden', !esAdmin());
-            document.getElementById('acciones-admin-equipos').classList.toggle('hidden', !esAdmin());
-            document.getElementById('nota-solo-lectura-equipos').classList.toggle('hidden', esAdmin());
+            // Actualiza visibilidad de elementos solo si existen
+            const btnUsuarios = document.getElementById('btn-usuarios');
+            if (btnUsuarios) btnUsuarios.classList.toggle('hidden', !esAdmin());
+            const accionesAdmin = document.getElementById('acciones-admin-equipos');
+            if (accionesAdmin) accionesAdmin.classList.toggle('hidden', !esAdmin());
+            const notaSoloLectura = document.getElementById('nota-solo-lectura-equipos');
+            if (notaSoloLectura) notaSoloLectura.classList.toggle('hidden', esAdmin());
         }
 
         function abrirModalLogin() {
