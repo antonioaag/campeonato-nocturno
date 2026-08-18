@@ -18,6 +18,9 @@
         .escudo { width: 2rem; height: 2rem; object-fit: contain; flex-shrink: 0; border-radius: 0.25rem; background: rgba(255,255,255,0.9); padding: 2px; }
         .escudo-lg { width: 3rem; height: 3rem; }
         .fila-clasifica { background: linear-gradient(to right, rgba(34,197,94,0.38), rgba(34,197,94,0.06)); border-left: 4px solid #22c55e; }
+        .fila-mejor-tercero { background: linear-gradient(to right, rgba(232,149,42,0.38), rgba(232,149,42,0.06)); border-left: 4px solid #e8952a; }
+        .serie-btn { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.65); }
+        .serie-btn.active { background: #e8952a; color: #08050c; }
     </style>
 </head>
 <body class="text-white font-sans min-h-screen">
@@ -28,8 +31,14 @@
         <h2 class="text-lg sm:text-xl mt-2 italic text-noc-goldlight">"Francisco Moraga Gallegos"</h2>
     </header>
 
+    <!-- Selector de Serie -->
+    <div class="bg-noc-black/60 border-b border-noc-purple2 flex justify-center gap-2 py-3 px-4 sticky top-0 z-20">
+        <button onclick="cambiarSerie('ADULTO')" id="serie-btn-ADULTO" class="serie-btn px-6 py-2 rounded-full font-bold uppercase tracking-wide text-sm transition">Adultos</button>
+        <button onclick="cambiarSerie('SENIOR')" id="serie-btn-SENIOR" class="serie-btn px-6 py-2 rounded-full font-bold uppercase tracking-wide text-sm transition">Seniors</button>
+    </div>
+
     <!-- Navegación por Pestañas -->
-    <nav class="bg-noc-dark shadow flex justify-center flex-wrap gap-1 px-4 py-2 sticky top-0 z-10 border-b border-noc-purple2">
+    <nav class="bg-noc-dark shadow flex justify-center flex-wrap gap-1 px-4 py-2 sticky top-[52px] z-10 border-b border-noc-purple2">
         <button onclick="showTab('tab-equipos')" id="btn-equipos" class="tab-btn active px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Equipos</button>
         <button onclick="showTab('tab-partidos')" id="btn-partidos" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Partidos</button>
         <button onclick="showTab('tab-posiciones')" id="btn-posiciones" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Posiciones</button>
@@ -41,25 +50,11 @@
         <!-- Pestaña: Equipos -->
         <section id="tab-equipos" class="block bg-noc-dark/80 p-6 rounded-lg shadow-md border border-noc-purple2">
             <h3 class="text-2xl font-bold mb-4 border-b border-noc-purple2 pb-2 text-noc-goldlight">Gestión de Equipos</h3>
-            <p class="text-sm text-white/60 mb-4">Grupo A: 7 equipos (1 queda libre por fecha). Grupo B: 6 equipos.</p>
+            <p id="equipos-descripcion" class="text-sm text-white/60 mb-4"></p>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <h4 class="font-bold text-lg text-noc-gold mb-2">Grupo A</h4>
-                    <div id="lista-grupo-a" class="space-y-2"></div>
-                </div>
-                <div>
-                    <h4 class="font-bold text-lg text-noc-gold mb-2">Grupo B</h4>
-                    <div id="lista-grupo-b" class="space-y-2"></div>
-                </div>
-            </div>
+            <div id="equipos-grupos-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
 
-            <div id="acciones-admin-equipos" class="mt-6 border-t border-noc-purple2 pt-4 flex flex-wrap gap-3 hidden">
-                <button onclick="generarFixture('A')" class="bg-green-700 text-white px-4 py-2 rounded shadow hover:bg-green-600 transition">Regenerar Fixture Grupo A</button>
-                <button onclick="generarFixture('B')" class="bg-green-700 text-white px-4 py-2 rounded shadow hover:bg-green-600 transition">Regenerar Fixture Grupo B</button>
-                <button onclick="reiniciarResultados('A')" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition">Reiniciar Resultados A</button>
-                <button onclick="reiniciarResultados('B')" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition">Reiniciar Resultados B</button>
-            </div>
+            <div id="acciones-admin-equipos" class="mt-6 border-t border-noc-purple2 pt-4 flex flex-wrap gap-3 hidden"></div>
             <p id="nota-solo-lectura-equipos" class="text-xs text-white/40 mt-4 hidden">Inicia sesión como administrador para editar nombres de equipos o regenerar el fixture.</p>
         </section>
 
@@ -73,48 +68,7 @@
 
         <!-- Pestaña: Posiciones -->
         <section id="tab-posiciones" class="hidden space-y-6">
-            <div class="bg-noc-dark/80 p-6 rounded-lg shadow-md overflow-x-auto border border-noc-purple2">
-                <h3 class="text-2xl font-bold mb-4 text-noc-goldlight border-b border-noc-purple2 pb-2">Tabla de Posiciones - Grupo A</h3>
-                <table class="w-full text-left border-collapse min-w-[700px]">
-                    <thead>
-                        <tr class="bg-noc-purple text-noc-goldlight text-sm uppercase tracking-wider">
-                            <th class="p-3 font-semibold text-center w-8">#</th>
-                            <th class="p-3 font-semibold">Equipo</th>
-                            <th class="p-3 font-semibold text-center" title="Puntos">PTS</th>
-                            <th class="p-3 font-semibold text-center" title="Partidos Jugados">PJ</th>
-                            <th class="p-3 font-semibold text-center" title="Partidos Ganados">PG</th>
-                            <th class="p-3 font-semibold text-center" title="Partidos Empatados">PE</th>
-                            <th class="p-3 font-semibold text-center" title="Partidos Perdidos">PP</th>
-                            <th class="p-3 font-semibold text-center" title="Goles a Favor">GF</th>
-                            <th class="p-3 font-semibold text-center" title="Goles en Contra">GC</th>
-                            <th class="p-3 font-semibold text-center" title="Diferencia de Gol">DG</th>
-                            <th class="p-3 font-semibold text-center" title="Partidos Aplazados pendientes">PA</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-pos-a" class="text-sm"></tbody>
-                </table>
-            </div>
-            <div class="bg-noc-dark/80 p-6 rounded-lg shadow-md overflow-x-auto border border-noc-purple2">
-                <h3 class="text-2xl font-bold mb-4 text-noc-goldlight border-b border-noc-purple2 pb-2">Tabla de Posiciones - Grupo B</h3>
-                <table class="w-full text-left border-collapse min-w-[700px]">
-                    <thead>
-                        <tr class="bg-noc-purple text-noc-goldlight text-sm uppercase tracking-wider">
-                            <th class="p-3 font-semibold text-center w-8">#</th>
-                            <th class="p-3 font-semibold">Equipo</th>
-                            <th class="p-3 font-semibold text-center" title="Puntos">PTS</th>
-                            <th class="p-3 font-semibold text-center" title="Partidos Jugados">PJ</th>
-                            <th class="p-3 font-semibold text-center" title="Partidos Ganados">PG</th>
-                            <th class="p-3 font-semibold text-center" title="Partidos Empatados">PE</th>
-                            <th class="p-3 font-semibold text-center" title="Partidos Perdidos">PP</th>
-                            <th class="p-3 font-semibold text-center" title="Goles a Favor">GF</th>
-                            <th class="p-3 font-semibold text-center" title="Goles en Contra">GC</th>
-                            <th class="p-3 font-semibold text-center" title="Diferencia de Gol">DG</th>
-                            <th class="p-3 font-semibold text-center" title="Partidos Aplazados pendientes">PA</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-pos-b" class="text-sm"></tbody>
-                </table>
-            </div>
+            <div id="posiciones-container" class="space-y-6"></div>
         </section>
 
         <!-- Pestaña: Usuarios (solo admin) -->
@@ -186,6 +140,16 @@
 
         function estaLogueado() { return !!TOKEN; }
         function esAdmin() { return USUARIO && USUARIO.rol === 'admin'; }
+
+        // --- SERIE (Adultos / Seniors) ---
+        const SERIES_GRUPOS = { ADULTO: ['A', 'B'], SENIOR: ['1', '2', '3'] };
+        let serieActual = 'ADULTO';
+        function cambiarSerie(serie) {
+            serieActual = serie;
+            document.querySelectorAll('.serie-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('serie-btn-' + serie).classList.add('active');
+            mostrarTabActual();
+        }
 
         // --- ESCUDOS ---
         function slugEscudo(nombre) {
@@ -270,12 +234,31 @@
         }
 
         // --- 3. EQUIPOS ---
+        const DESCRIPCION_SERIE = {
+            ADULTO: 'Grupo A: 7 equipos (1 queda libre por fecha). Grupo B: 6 equipos.',
+            SENIOR: 'Serie Seniors: 3 grupos de 4 equipos. Clasifican los 2 primeros de cada grupo y los 2 mejores terceros (por puntaje, diferencia de gol, goles a favor y goles en contra).',
+        };
         async function renderEquipos() {
-            const [equiposA, equiposB] = await Promise.all([
-                api('/equipos?grupo=A'), api('/equipos?grupo=B')
-            ]);
-            pintarListaEquipos('lista-grupo-a', equiposA);
-            pintarListaEquipos('lista-grupo-b', equiposB);
+            const grupos = SERIES_GRUPOS[serieActual];
+            document.getElementById('equipos-descripcion').textContent = DESCRIPCION_SERIE[serieActual];
+
+            const listas = await Promise.all(grupos.map(g => api(`/equipos?serie=${serieActual}&grupo=${g}`)));
+
+            const cont = document.getElementById('equipos-grupos-container');
+            cont.className = 'grid grid-cols-1 ' + (grupos.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2') + ' gap-6';
+            cont.innerHTML = grupos.map(g => `
+                <div>
+                    <h4 class="font-bold text-lg text-noc-gold mb-2">Grupo ${g}</h4>
+                    <div id="lista-grupo-${g}" class="space-y-2"></div>
+                </div>
+            `).join('');
+            grupos.forEach((g, i) => pintarListaEquipos('lista-grupo-' + g, listas[i]));
+
+            const acciones = document.getElementById('acciones-admin-equipos');
+            acciones.innerHTML =
+                grupos.map(g => `<button onclick="generarFixture('${g}')" class="bg-green-700 text-white px-4 py-2 rounded shadow hover:bg-green-600 transition">Regenerar Fixture Grupo ${g}</button>`).join('') +
+                grupos.map(g => `<button onclick="reiniciarResultados('${g}')" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition">Reiniciar Resultados ${g}</button>`).join('');
+            acciones.classList.toggle('hidden', !esAdmin());
         }
         function pintarListaEquipos(contId, equipos) {
             const cont = document.getElementById(contId);
@@ -301,7 +284,7 @@
         async function generarFixture(grupo) {
             if (!confirm(`Esto va a BORRAR todos los partidos y resultados actuales del Grupo ${grupo} y generar un fixture nuevo. ¿Continuar?`)) return;
             try {
-                await api('/fixture/generar', { method: 'POST', body: JSON.stringify({ grupo }) });
+                await api('/fixture/generar', { method: 'POST', body: JSON.stringify({ serie: serieActual, grupo }) });
                 alert('Fixture regenerado.');
                 showTab('tab-partidos');
             } catch (e) { alert(e.message); }
@@ -309,7 +292,7 @@
         async function reiniciarResultados(grupo) {
             if (!confirm(`Esto va a borrar TODOS los resultados cargados del Grupo ${grupo} (sin tocar el fixture). ¿Continuar?`)) return;
             try {
-                await api('/fixture/reiniciar-resultados', { method: 'POST', body: JSON.stringify({ grupo }) });
+                await api('/fixture/reiniciar-resultados', { method: 'POST', body: JSON.stringify({ serie: serieActual, grupo }) });
                 alert('Resultados reiniciados.');
                 showTab('tab-partidos');
             } catch (e) { alert(e.message); }
@@ -318,14 +301,10 @@
         // --- 4. PARTIDOS ---
         async function renderPartidos() {
             const container = document.getElementById('fixture-container');
-            const [partidosA, partidosB, libresA, libresB] = await Promise.all([
-                api('/partidos?grupo=A'), api('/partidos?grupo=B'),
-                api('/partidos/libres?grupo=A'), api('/partidos/libres?grupo=B')
-            ]);
-            let html = '';
-            html += pintarGrupoPartidos('A', partidosA, libresA);
-            html += pintarGrupoPartidos('B', partidosB, libresB);
-            container.innerHTML = html;
+            const grupos = SERIES_GRUPOS[serieActual];
+            const partidosPorGrupo = await Promise.all(grupos.map(g => api(`/partidos?serie=${serieActual}&grupo=${g}`)));
+            const libresPorGrupo = await Promise.all(grupos.map(g => api(`/partidos/libres?serie=${serieActual}&grupo=${g}`)));
+            container.innerHTML = grupos.map((g, i) => pintarGrupoPartidos(g, partidosPorGrupo[i], libresPorGrupo[i])).join('');
         }
 
         function pintarGrupoPartidos(grupo, partidos, libres) {
@@ -393,16 +372,53 @@
         }
 
         // --- 5. POSICIONES ---
+        const COLUMNAS_TABLA_POSICIONES = `
+            <tr class="bg-noc-purple text-noc-goldlight text-sm uppercase tracking-wider">
+                <th class="p-3 font-semibold text-center w-8">#</th>
+                <th class="p-3 font-semibold">Equipo</th>
+                <th class="p-3 font-semibold text-center" title="Puntos">PTS</th>
+                <th class="p-3 font-semibold text-center" title="Partidos Jugados">PJ</th>
+                <th class="p-3 font-semibold text-center" title="Partidos Ganados">PG</th>
+                <th class="p-3 font-semibold text-center" title="Partidos Empatados">PE</th>
+                <th class="p-3 font-semibold text-center" title="Partidos Perdidos">PP</th>
+                <th class="p-3 font-semibold text-center" title="Goles a Favor">GF</th>
+                <th class="p-3 font-semibold text-center" title="Goles en Contra">GC</th>
+                <th class="p-3 font-semibold text-center" title="Diferencia de Gol">DG</th>
+                <th class="p-3 font-semibold text-center" title="Partidos Aplazados pendientes">PA</th>
+            </tr>
+        `;
         async function renderTablas() {
-            const [tablaA, tablaB] = await Promise.all([api('/posiciones?grupo=A'), api('/posiciones?grupo=B')]);
-            pintarTabla('tabla-pos-a', tablaA);
-            pintarTabla('tabla-pos-b', tablaB);
+            const grupos = SERIES_GRUPOS[serieActual];
+            const tablas = await Promise.all(grupos.map(g => api(`/posiciones?serie=${serieActual}&grupo=${g}`)));
+
+            const cont = document.getElementById('posiciones-container');
+            cont.innerHTML = grupos.map(g => `
+                <div class="bg-noc-dark/80 p-6 rounded-lg shadow-md overflow-x-auto border border-noc-purple2">
+                    <h3 class="text-2xl font-bold mb-4 text-noc-goldlight border-b border-noc-purple2 pb-2">Tabla de Posiciones - Grupo ${g}</h3>
+                    <table class="w-full text-left border-collapse min-w-[700px]">
+                        <thead>${COLUMNAS_TABLA_POSICIONES}</thead>
+                        <tbody id="tabla-pos-${g}" class="text-sm"></tbody>
+                    </table>
+                </div>
+            `).join('') + (serieActual === 'SENIOR' ? `
+                <div class="bg-noc-dark/80 p-4 rounded-lg border border-noc-purple2 text-sm text-white/70 flex flex-wrap gap-x-6 gap-y-2">
+                    <span class="flex items-center gap-2"><span class="inline-block w-4 h-4 rounded fila-clasifica"></span> Clasifica directo (1° o 2° del grupo)</span>
+                    <span class="flex items-center gap-2"><span class="inline-block w-4 h-4 rounded fila-mejor-tercero"></span> Clasifica por mejor tercero</span>
+                </div>
+            ` : '');
+
+            grupos.forEach((g, i) => pintarTabla('tabla-pos-' + g, tablas[i]));
         }
         function pintarTabla(idTbody, datos) {
             const tbody = document.getElementById(idTbody);
             tbody.innerHTML = '';
             datos.forEach((eq, index) => {
-                const rowColor = index < 4 ? 'fila-clasifica font-semibold' : 'bg-noc-dark/60';
+                let rowColor = 'bg-noc-dark/60';
+                if (typeof eq.clasificado === 'boolean') {
+                    if (eq.clasificado) rowColor = (eq.clasificaVia === 'mejor-tercero' ? 'fila-mejor-tercero' : 'fila-clasifica') + ' font-semibold';
+                } else if (index < 4) {
+                    rowColor = 'fila-clasifica font-semibold';
+                }
                 tbody.innerHTML += `
                     <tr class="${rowColor} border-b border-noc-purple2 hover:bg-noc-purple2/40 transition">
                         <td class="p-3 text-center">${index + 1}</td>
@@ -474,7 +490,11 @@
             return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
 
-        window.onload = () => { renderAuthBox(); showTab('tab-equipos'); };
+        window.onload = () => {
+            renderAuthBox();
+            document.getElementById('serie-btn-' + serieActual).classList.add('active');
+            showTab('tab-equipos');
+        };
     </script>
 </body>
 </html>

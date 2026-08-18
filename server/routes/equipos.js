@@ -2,16 +2,20 @@ const express = require('express');
 const db = require('../db');
 const { requireAuth, requireAdmin } = require('../auth');
 const asyncHandler = require('../asyncHandler');
+const { esSerieValida } = require('../series');
 
 const router = express.Router();
 
 router.get('/', asyncHandler(async (req, res) => {
   const { grupo } = req.query;
+  const serie = req.query.serie || 'ADULTO';
+  if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
+
   let equipos;
   if (grupo) {
-    equipos = await db.all('SELECT * FROM equipos WHERE grupo = ? ORDER BY orden', [grupo]);
+    equipos = await db.all('SELECT * FROM equipos WHERE serie = ? AND grupo = ? ORDER BY orden', [serie, grupo]);
   } else {
-    equipos = await db.all('SELECT * FROM equipos ORDER BY grupo, orden');
+    equipos = await db.all('SELECT * FROM equipos WHERE serie = ? ORDER BY grupo, orden', [serie]);
   }
   res.json(equipos);
 }));

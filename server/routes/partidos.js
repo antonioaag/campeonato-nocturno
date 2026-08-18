@@ -2,12 +2,13 @@ const express = require('express');
 const db = require('../db');
 const { requireAuth } = require('../auth');
 const asyncHandler = require('../asyncHandler');
+const { esSerieValida } = require('../series');
 
 const router = express.Router();
 
 const SELECT_PARTIDOS = `
   SELECT
-    p.id, p.grupo, p.fecha,
+    p.id, p.serie, p.grupo, p.fecha,
     p.local_id  AS localId,  l.nombre AS local,
     p.visita_id AS visitaId, v.nombre AS visita,
     p.goles_local AS golesLocal, p.goles_visita AS golesVisita,
@@ -19,24 +20,30 @@ const SELECT_PARTIDOS = `
 
 router.get('/', asyncHandler(async (req, res) => {
   const { grupo, fecha } = req.query;
-  const condiciones = [];
-  const params = [];
+  const serie = req.query.serie || 'ADULTO';
+  if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
+
+  const condiciones = ['p.serie = ?'];
+  const params = [serie];
   if (grupo) { condiciones.push('p.grupo = ?'); params.push(grupo); }
   if (fecha) { condiciones.push('p.fecha = ?'); params.push(Number(fecha)); }
-  const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
+  const where = `WHERE ${condiciones.join(' AND ')}`;
   const partidos = await db.all(`${SELECT_PARTIDOS} ${where} ORDER BY p.grupo, p.fecha, p.id`, params);
   res.json(partidos);
 }));
 
 router.get('/libres', asyncHandler(async (req, res) => {
   const { grupo, fecha } = req.query;
-  const condiciones = [];
-  const params = [];
+  const serie = req.query.serie || 'ADULTO';
+  if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
+
+  const condiciones = ['b.serie = ?'];
+  const params = [serie];
   if (grupo) { condiciones.push('b.grupo = ?'); params.push(grupo); }
   if (fecha) { condiciones.push('b.fecha = ?'); params.push(Number(fecha)); }
-  const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
+  const where = `WHERE ${condiciones.join(' AND ')}`;
   const libres = await db.all(`
-    SELECT b.grupo, b.fecha, b.equipo_id AS equipoId, e.nombre
+    SELECT b.serie, b.grupo, b.fecha, b.equipo_id AS equipoId, e.nombre
     FROM byes b JOIN equipos e ON e.id = b.equipo_id
     ${where}
     ORDER BY b.grupo, b.fecha
