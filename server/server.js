@@ -54,6 +54,10 @@ async function start() {
     await require('./seed').seed();
   }
 
+  // Si ADMIN_PASSWORD está definida, actualiza/crea el admin con esa contraseña
+  const { resetearAdminPassword } = require('./reset-password');
+  await resetearAdminPassword();
+
   app.use('/api/auth/login', loginLimiter);
   app.use('/api/auth', require('./routes/auth'));
   app.use('/api/2fa', require('./routes/totp'));
