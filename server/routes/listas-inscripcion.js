@@ -5,13 +5,13 @@ const { requireAuth, requireAdmin } = require('../auth');
 const asyncHandler = require('../asyncHandler');
 
 const router = express.Router();
-const TIPOS_PERMITIDOS = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+const TIPOS_PERMITIDOS = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'text/csv', 'text/plain'];
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (!TIPOS_PERMITIDOS.includes(file.mimetype)) {
-      return cb(new Error('Solo se permiten archivos PDF, JPG, PNG o WEBP'));
+      return cb(new Error('Solo se permiten archivos PDF, JPG, PNG, WEBP o CSV'));
     }
     cb(null, true);
   },
@@ -22,6 +22,9 @@ const upload = multer({
 // real empieza con la "firma" de bytes esperada para ese tipo de archivo,
 // para que no se pueda subir, por ejemplo, un HTML disfrazado de imagen.
 function tipoRealCoincide(buffer, mimetype) {
+  // CSV y texto plano no tienen magic bytes confiables, permitir sin validación
+  if (mimetype === 'text/csv' || mimetype === 'text/plain') return true;
+
   const firmas = {
     'application/pdf': [[0x25, 0x50, 0x44, 0x46]], // %PDF
     'image/jpeg': [[0xFF, 0xD8, 0xFF]],
