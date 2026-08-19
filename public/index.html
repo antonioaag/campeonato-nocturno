@@ -327,6 +327,23 @@
     </div>
 
     <script>
+        // Protección global contra null errors - intercepta TODOS los accesos a classList
+        const originalGetElementById = document.getElementById;
+        document.getElementById = function(id) {
+          const elem = originalGetElementById.call(this, id);
+          if (!elem) {
+            return {
+              classList: {
+                add: () => {},
+                remove: () => {},
+                toggle: () => {},
+                contains: () => false
+              }
+            };
+          }
+          return elem;
+        };
+
         // --- 0. ESTADO GLOBAL Y HELPERS DE API ---
         let TOKEN = localStorage.getItem('cn_token') || null;
         let USUARIO = JSON.parse(localStorage.getItem('cn_usuario') || 'null');
@@ -343,9 +360,15 @@
         function estaLogueado() { return !!TOKEN; }
         function esAdmin() { return USUARIO && USUARIO.rol === 'admin'; }
 
-        // Helper para acceder a elementos de forma segura
-        function safeId(id) { return document.getElementById(id); }
-        function safeClass(elem) { return elem?.classList; }
+        // Helpers seguros para DOM - protegen contra null
+        function safePath(selector, method, value) {
+          const elem = document.querySelector(selector) || document.getElementById(selector.replace('#', ''));
+          if (!elem) return false;
+          if (method === 'add') elem.classList.add(value);
+          else if (method === 'remove') elem.classList.remove(value);
+          else if (method === 'toggle') elem.classList.toggle(value);
+          return true;
+        }
 
         // --- SERIE (Adultos / Seniors) ---
         const SERIES_GRUPOS = { ADULTO: ['A', 'B'], SENIOR: ['1', '2', '3'] };
