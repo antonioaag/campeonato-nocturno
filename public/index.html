@@ -22,23 +22,44 @@
         .serie-btn { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.65); }
         .serie-btn.active { background: #e8952a; color: #08050c; }
 
-        /* Logo de la asociación */
+        /* Logo de la asociación en header */
         .logo-asociacion {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 80px;
-            height: 80px;
-            opacity: 0.15;
-            pointer-events: none;
-            z-index: 1;
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            margin-right: 20px;
+            filter: drop-shadow(0 0 8px rgba(232, 149, 42, 0.3));
+        }
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        .header-text {
+            text-align: center;
         }
         @media (max-width: 640px) {
             .logo-asociacion {
-                width: 60px;
-                height: 60px;
-                bottom: 12px;
-                right: 12px;
+                width: 50px;
+                height: 50px;
+                margin-right: 12px;
+            }
+            .header-content {
+                gap: 12px;
+            }
+        }
+        @media (max-width: 480px) {
+            .logo-asociacion {
+                width: 40px;
+                height: 40px;
+                margin-right: 8px;
+            }
+            .header-text h1 {
+                font-size: 1.25rem !important;
+            }
+            .header-text h2 {
+                font-size: 0.875rem !important;
             }
         }
 
@@ -83,10 +104,15 @@
 </head>
 <body class="text-white font-sans min-h-screen">
     <!-- Encabezado -->
-    <header class="bg-gradient-to-b from-noc-purple2 to-noc-black text-white shadow-md p-6 text-center relative border-b-2 border-noc-gold">
+    <header class="bg-gradient-to-b from-noc-purple2 to-noc-black text-white shadow-md p-6 relative border-b-2 border-noc-gold">
         <div id="auth-box" class="flex justify-center mb-3 sm:absolute sm:right-4 sm:top-4 sm:mb-0 text-sm"></div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold uppercase tracking-wide">Campeonato nocturno 2026</h1>
-        <h2 class="text-lg sm:text-xl mt-2 italic text-noc-goldlight">"Francisco Moraga Gallegos"</h2>
+        <div class="header-content">
+            <img src="/logo-liga.png" alt="Liga Dávila" class="logo-asociacion">
+            <div class="header-text">
+                <h1 class="text-2xl sm:text-3xl font-extrabold uppercase tracking-wide">Campeonato nocturno 2026</h1>
+                <h2 class="text-lg sm:text-xl mt-2 italic text-noc-goldlight">"Francisco Moraga Gallegos"</h2>
+            </div>
+        </div>
     </header>
 
     <!-- Selector de Serie -->
