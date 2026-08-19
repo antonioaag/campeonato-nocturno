@@ -417,25 +417,6 @@
             if (modal) modal.classList.add('hidden');
         }
 
-        async function hacerLogin(ev) {
-            ev.preventDefault();
-            const username = document.getElementById('login-username').value.trim();
-            const password = document.getElementById('login-password').value;
-            try {
-                const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) });
-                TOKEN = data.token;
-                USUARIO = data.usuario;
-                localStorage.setItem('cn_token', TOKEN);
-                localStorage.setItem('cn_usuario', JSON.stringify(USUARIO));
-                cerrarModalLogin();
-                renderAuthBox();
-                mostrarTabActual();
-            } catch (e) {
-                const err = document.getElementById('login-error');
-                err.textContent = e.message;
-                err.classList.remove('hidden');
-            }
-        }
 
         function hacerLogout() {
             TOKEN = null; USUARIO = null;
@@ -1057,8 +1038,8 @@
                 }
 
                 if (!res.token) throw new Error(res.error || 'Login fallido');
-                localStorage.setItem('token', res.token);
-                localStorage.setItem('usuario', JSON.stringify(res.usuario));
+                localStorage.setItem('cn_token', res.token);
+                localStorage.setItem('cn_usuario', JSON.stringify(res.usuario));
                 USUARIO = res.usuario;
                 TOKEN = res.token;
                 loginPendiente2FA = null;
