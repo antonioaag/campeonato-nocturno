@@ -12,7 +12,8 @@ const SELECT_PARTIDOS = `
     p.local_id  AS localId,  l.nombre AS local,
     p.visita_id AS visitaId, v.nombre AS visita,
     p.goles_local AS golesLocal, p.goles_visita AS golesVisita,
-    p.estado, p.updated_at AS updatedAt
+    p.estado, p.updated_at AS updatedAt,
+    p.fecha_partido AS fechaPartido, p.hora, p.estadio, p.turno
   FROM partidos p
   JOIN equipos l ON l.id = p.local_id
   JOIN equipos v ON v.id = p.visita_id
@@ -83,6 +84,45 @@ router.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
         updated_by = ?, updated_at = datetime('now') WHERE id = ?
     `, [estado, req.usuario.id, id]);
   }
+
+  const actualizado = await db.get(`${SELECT_PARTIDOS} WHERE p.id = ?`, [id]);
+  res.json(actualizado);
+}));
+
+// Actualizar detalles del partido (fecha, hora, estadio, turno) - solo admin
+const { requireAdmin } = require('../auth');
+router.patch('/:id/detalles', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const partido = await db.get('SELECT * FROM partidos WHERE id = ?', [id]);
+  if (!partido) return res.status(404).json({ error: 'Partido no encontrado' });
+
+  const { fechaPartido, hora, estadio, turno } = req.body || {};
+  const updates = [];
+  const params = [];
+
+  if (fechaPartido !== undefined) {
+    updates.push('fecha_partido = ?');
+    params.push(fechaPartido || null);
+  }
+  if (hora !== undefined) {
+    updates.push('hora = ?');
+    params.push(hora || null);
+  }
+  if (estadio !== undefined) {
+    updates.push('estadio = ?');
+    params.push(estadio || null);
+  }
+  if (turno !== undefined) {
+    updates.push('turno = ?');
+    params.push(turno || null);
+  }
+
+  if (updates.length === 0) {
+    return res.status(400).json({ error: 'No hay campos para actualizar' });
+  }
+
+  params.push(id);
+  await db.run(`UPDATE partidos SET ${updates.join(', ')} WHERE id = ?`, params);
 
   const actualizado = await db.get(`${SELECT_PARTIDOS} WHERE p.id = ?`, [id]);
   res.json(actualizado);

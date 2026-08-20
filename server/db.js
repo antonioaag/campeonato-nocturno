@@ -208,6 +208,7 @@ function init() {
       `);
       await migrarSerie();
       await migrar2FAYPasswordReset();
+      await migrarPartidosDetalles();
     })();
   }
   return readyPromise;
@@ -242,6 +243,29 @@ async function migrar2FAYPasswordReset() {
     }
   } catch (e) {
     console.log('password_resets table already exists or error:', e.message);
+  }
+}
+
+// Migra partidos para agregar fecha_partido, hora, estadio, turno
+async function migrarPartidosDetalles() {
+  try {
+    const hasFechaPartido = await columnExists('partidos', 'fecha_partido');
+    const hasHora = await columnExists('partidos', 'hora');
+    const hasEstadio = await columnExists('partidos', 'estadio');
+    const hasTurno = await columnExists('partidos', 'turno');
+
+    if (!hasFechaPartido || !hasHora || !hasEstadio || !hasTurno) {
+      const columnsToAdd = [];
+      if (!hasFechaPartido) columnsToAdd.push('ALTER TABLE partidos ADD COLUMN fecha_partido TEXT');
+      if (!hasHora) columnsToAdd.push('ALTER TABLE partidos ADD COLUMN hora TEXT');
+      if (!hasEstadio) columnsToAdd.push('ALTER TABLE partidos ADD COLUMN estadio TEXT');
+      if (!hasTurno) columnsToAdd.push('ALTER TABLE partidos ADD COLUMN turno TEXT');
+
+      await exec(columnsToAdd.join(';'));
+      console.log('✓ Columnas de partidos agregadas: fecha_partido, hora, estadio, turno');
+    }
+  } catch (e) {
+    console.log('Partidos columns already exist or error:', e.message);
   }
 }
 

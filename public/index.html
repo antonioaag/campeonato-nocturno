@@ -352,6 +352,31 @@
         </div>
     </div>
 
+    <!-- Modal: Editar Detalles del Partido -->
+    <div id="modal-editar-partido" class="modal-hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div class="bg-noc-dark border border-noc-purple2 rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4 text-noc-goldlight">Editar Detalles del Partido</h3>
+            <form onsubmit="event.preventDefault(); guardarDetallesPartido();">
+                <div class="mb-3">
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Fecha (YYYY-MM-DD)</label>
+                    <input id="edit-fecha" type="text" placeholder="2026-08-16" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Hora (HH:MM)</label>
+                    <input id="edit-hora" type="text" placeholder="20:00" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Estadio</label>
+                    <input id="edit-estadio" type="text" placeholder="Dávila" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="cerrarEditarPartido()" class="px-4 py-2 rounded border border-noc-purple2 text-white/70 hover:text-white">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 rounded bg-noc-gold text-noc-black font-semibold hover:bg-noc-goldlight">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // Protección global contra null errors - intercepta TODOS los accesos a classList
         const originalGetElementById = document.getElementById;
@@ -451,6 +476,46 @@
             mostrarTabActual();
         }
 
+        // --- EDITAR PARTIDOS (detalles) ---
+        let partidoEditando = null;
+        function abrirEditarPartido(id) {
+            const tabla = document.querySelector('tbody');
+            const fila = tabla.querySelector(`tr:has(button[onclick*="${id}"])`);
+            if (!fila) return;
+
+            const celdas = fila.querySelectorAll('td');
+            partidoEditando = id;
+
+            document.getElementById('edit-fecha').value = celdas[0].textContent.trim() || '';
+            document.getElementById('edit-hora').value = celdas[1].textContent.trim() || '';
+            document.getElementById('edit-estadio').value = celdas[5].textContent.trim() || '';
+            document.getElementById('modal-editar-partido').classList.remove('modal-hidden');
+        }
+
+        function cerrarEditarPartido() {
+            document.getElementById('modal-editar-partido').classList.add('modal-hidden');
+            partidoEditando = null;
+        }
+
+        async function guardarDetallesPartido() {
+            if (!partidoEditando) return;
+            const fechaPartido = document.getElementById('edit-fecha').value.trim();
+            const hora = document.getElementById('edit-hora').value.trim();
+            const estadio = document.getElementById('edit-estadio').value.trim();
+
+            try {
+                await api(`/partidos/${partidoEditando}/detalles`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ fechaPartido: fechaPartido || null, hora: hora || null, estadio: estadio || null })
+                });
+                alert('Detalles del partido actualizados.');
+                cerrarEditarPartido();
+                mostrarTabActual();
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
         // --- 2. NAVEGACIÓN ---
         let tabActual = 'tab-equipos';
         function showTab(tabId) {
@@ -548,19 +613,57 @@
         }
 
         function pintarGrupoPartidos(grupo, partidos, libres) {
-            const numFechas = Math.max(...partidos.map(p => p.fecha), ...libres.map(l => l.fecha));
             let html = `<h4 class="text-xl font-bold bg-noc-purple text-noc-goldlight p-2 mt-6 rounded">Grupo ${grupo}</h4>`;
-            for (let f = 1; f <= numFechas; f++) {
-                const cruces = partidos.filter(p => p.fecha === f);
-                const libre = libres.find(l => l.fecha === f);
-                if (cruces.length === 0 && !libre) continue;
-                html += `<div class="mt-4 mb-2 font-bold text-noc-goldlight flex items-center gap-3">Fecha ${f}`;
-                if (libre) html += `<span class="text-xs font-normal text-white/50">(Libre: ${escapeHtml(libre.nombre)})</span>`;
-                html += `</div><div class="space-y-2">`;
-                cruces.forEach(p => { html += pintarFilaPartido(p); });
-                html += `</div>`;
-            }
+            html += `<div class="overflow-x-auto mt-4">
+                <table class="w-full text-sm border-collapse">
+                    <thead>
+                        <tr class="bg-noc-purple2 text-white">
+                            <th class="border border-noc-purple p-2 text-left">Fecha</th>
+                            <th class="border border-noc-purple p-2 text-left">Hora</th>
+                            <th class="border border-noc-purple p-2 text-left">Local</th>
+                            <th class="border border-noc-purple p-2 text-center">Score</th>
+                            <th class="border border-noc-purple p-2 text-left">Visita</th>
+                            <th class="border border-noc-purple p-2 text-left">Estadio</th>
+                            <th class="border border-noc-purple p-2 text-center">Estado</th>
+                            ${esAdmin() ? '<th class="border border-noc-purple p-2 text-center">Editar</th>' : ''}
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+            partidos.forEach(p => {
+                html += pintarFilaPartidoTabla(p);
+            });
+
+            html += `</tbody></table></div>`;
             return html;
+        }
+
+        function pintarFilaPartidoTabla(p) {
+            const logueado = estaLogueado();
+            const esAdministrador = esAdmin();
+            const badgeClass = p.estado === 'jugado' ? 'badge-jugado' : (p.estado === 'aplazado' ? 'badge-aplazado' : 'badge-programado');
+            const badgeTexto = p.estado === 'jugado' ? 'Jugado' : (p.estado === 'aplazado' ? 'Aplazado' : 'Pendiente');
+
+            return `
+                <tr class="border-b border-noc-purple hover:bg-noc-purple/20 transition">
+                    <td class="border border-noc-purple p-2">${p.fechaPartido || '-'}</td>
+                    <td class="border border-noc-purple p-2">${p.hora || '-'}</td>
+                    <td class="border border-noc-purple p-2">${escapeHtml(p.local)}</td>
+                    <td class="border border-noc-purple p-2 text-center font-bold">
+                        ${logueado ? `<input type="number" min="0" value="${p.golesLocal !== null ? p.golesLocal : ''}" id="gl_${p.id}" class="w-10 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">` : (p.golesLocal !== null ? p.golesLocal : '-')}
+                        ${logueado ? `-` : ''}
+                        ${logueado ? `<input type="number" min="0" value="${p.golesVisita !== null ? p.golesVisita : ''}" id="gv_${p.id}" class="w-10 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">` : (p.golesVisita !== null ? p.golesVisita : '-')}
+                    </td>
+                    <td class="border border-noc-purple p-2">${escapeHtml(p.visita)}</td>
+                    <td class="border border-noc-purple p-2">${p.estadio || '-'}</td>
+                    <td class="border border-noc-purple p-2 text-center">
+                        <span class="badge ${badgeClass}">${badgeTexto}</span>
+                    </td>
+                    ${esAdministrador ? `<td class="border border-noc-purple p-2 text-center">
+                        <button onclick="abrirEditarPartido(${p.id})" class="bg-noc-gold text-noc-black text-xs px-2 py-1 rounded hover:bg-noc-goldlight">Editar</button>
+                    </td>` : ''}
+                </tr>
+            `;
         }
 
         function pintarFilaPartido(p) {
