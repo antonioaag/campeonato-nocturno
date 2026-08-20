@@ -648,13 +648,13 @@
                 <tr class="border-b border-noc-purple hover:bg-noc-purple/20 transition">
                     <td class="border border-noc-purple p-2">${p.fechaPartido || '-'}</td>
                     <td class="border border-noc-purple p-2">${p.hora || '-'}</td>
-                    <td class="border border-noc-purple p-2 flex items-center gap-2">${escudoImg(p.local, '')} ${escapeHtml(p.local)}</td>
+                    <td class="border border-noc-purple p-2"><div class="flex items-center gap-2">${escudoImg(p.local, '')} <span>${escapeHtml(p.local)}</span></div></td>
                     <td class="border border-noc-purple p-2 text-center font-bold">
                         ${logueado ? `<input type="number" min="0" value="${p.golesLocal !== null ? p.golesLocal : ''}" id="gl_${p.id}" class="w-10 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">` : (p.golesLocal !== null ? p.golesLocal : '-')}
                         <span class="px-2">-</span>
                         ${logueado ? `<input type="number" min="0" value="${p.golesVisita !== null ? p.golesVisita : ''}" id="gv_${p.id}" class="w-10 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">` : (p.golesVisita !== null ? p.golesVisita : '-')}
                     </td>
-                    <td class="border border-noc-purple p-2 flex items-center gap-2">${escudoImg(p.visita, '')} ${escapeHtml(p.visita)}</td>
+                    <td class="border border-noc-purple p-2"><div class="flex items-center gap-2">${escudoImg(p.visita, '')} <span>${escapeHtml(p.visita)}</span></div></td>
                     <td class="border border-noc-purple p-2">${p.estadio || '-'}</td>
                     <td class="border border-noc-purple p-2 text-center">
                         <span class="badge ${badgeClass}">${badgeTexto}</span>
