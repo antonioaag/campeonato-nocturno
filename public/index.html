@@ -489,11 +489,14 @@
             document.getElementById('edit-fecha').value = celdas[0].textContent.trim() || '';
             document.getElementById('edit-hora').value = celdas[1].textContent.trim() || '';
             document.getElementById('edit-estadio').value = celdas[5].textContent.trim() || '';
-            document.getElementById('modal-editar-partido').classList.remove('modal-hidden');
+
+            const modalElement = document.getElementById('modal-editar-partido');
+            modalElement.style.display = 'flex';
         }
 
         function cerrarEditarPartido() {
-            document.getElementById('modal-editar-partido').classList.add('modal-hidden');
+            const modalElement = document.getElementById('modal-editar-partido');
+            modalElement.style.display = 'none';
             partidoEditando = null;
         }
 
