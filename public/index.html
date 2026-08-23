@@ -662,9 +662,10 @@
                     <td class="border border-noc-purple p-2 text-center">
                         <span class="badge ${badgeClass}">${badgeTexto}</span>
                     </td>
-                    ${esAdministrador ? `<td class="border border-noc-purple p-2 text-center">
-                        <button onclick="abrirEditarPartido(${p.id})" class="bg-noc-gold text-noc-black text-xs px-2 py-1 rounded hover:bg-noc-goldlight">Editar</button>
-                    </td>` : ''}
+                    <td class="border border-noc-purple p-2 text-center flex gap-1 justify-center flex-wrap">
+                        ${logueado ? `<button onclick="guardarResultado(${p.id})" class="bg-noc-gold text-noc-black text-xs px-2 py-1 rounded hover:bg-noc-goldlight">Guardar</button>` : ''}
+                        ${esAdministrador ? `<button onclick="abrirEditarPartido(${p.id})" class="bg-noc-gold text-noc-black text-xs px-2 py-1 rounded hover:bg-noc-goldlight">Editar</button>` : ''}
+                    </td>
                 </tr>
             `;
         }
