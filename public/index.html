@@ -486,9 +486,13 @@
             const celdas = fila.querySelectorAll('td');
             partidoEditando = id;
 
-            document.getElementById('edit-fecha').value = celdas[0].textContent.trim() || '';
-            document.getElementById('edit-hora').value = celdas[1].textContent.trim() || '';
-            document.getElementById('edit-estadio').value = celdas[5].textContent.trim() || '';
+            const fechaTexto = celdas[0].textContent.trim();
+            const horaTexto = celdas[1].textContent.trim();
+            const estadioTexto = celdas[5].textContent.trim();
+
+            document.getElementById('edit-fecha').value = (fechaTexto && fechaTexto !== '-') ? fechaTexto : '';
+            document.getElementById('edit-hora').value = (horaTexto && horaTexto !== '-') ? horaTexto : '';
+            document.getElementById('edit-estadio').value = (estadioTexto && estadioTexto !== '-') ? estadioTexto : '';
 
             const modalElement = document.getElementById('modal-editar-partido');
             modalElement.style.display = 'flex';
@@ -704,13 +708,19 @@
 
         async function guardarResultado(idPartido) {
             const estado = document.getElementById(`es_${idPartido}`).value;
-            const golesLocal = document.getElementById(`gl_${idPartido}`).value;
-            const golesVisita = document.getElementById(`gv_${idPartido}`).value;
+            const golesLocal = document.getElementById(`gl_${idPartido}`).value.trim();
+            const golesVisita = document.getElementById(`gv_${idPartido}`).value.trim();
             const body = { estado };
             if (estado === 'jugado') {
                 if (golesLocal === '' || golesVisita === '') { alert('Ingresa ambos marcadores para guardar como Jugado.'); return; }
-                body.golesLocal = Number(golesLocal);
-                body.golesVisita = Number(golesVisita);
+                const gl = Number(golesLocal);
+                const gv = Number(golesVisita);
+                if (!Number.isInteger(gl) || gl < 0 || !Number.isInteger(gv) || gv < 0) {
+                    alert('Los goles deben ser números enteros mayores o iguales a 0');
+                    return;
+                }
+                body.golesLocal = gl;
+                body.golesVisita = gv;
             }
             try {
                 await api('/partidos/' + idPartido, { method: 'PATCH', body: JSON.stringify(body) });
