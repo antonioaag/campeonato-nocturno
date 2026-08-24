@@ -62,7 +62,7 @@ router.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
   const partido = await db.get('SELECT * FROM partidos WHERE id = ?', [id]);
   if (!partido) return res.status(404).json({ error: 'Partido no encontrado' });
 
-  let { golesLocal, golesVisita, estado } = req.body || {};
+  let { golesLocal, golesVisita, estado, penalesLocal, penalesVisita } = req.body || {};
   estado = estado || (golesLocal !== undefined && golesVisita !== undefined ? 'jugado' : partido.estado);
 
   if (!ESTADOS_VALIDOS.includes(estado)) {
@@ -75,14 +75,39 @@ router.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
     if (!Number.isInteger(gl) || gl < 0 || !Number.isInteger(gv) || gv < 0) {
       return res.status(400).json({ error: 'Los goles deben ser números enteros mayores o iguales a 0' });
     }
+
+    // Penales: solo tienen sentido en eliminación directa y con el partido
+    // empatado. El marcador de los 90 minutos se guarda igual.
+    const hayPenales = penalesLocal !== undefined && penalesLocal !== null && penalesLocal !== ''
+      && penalesVisita !== undefined && penalesVisita !== null && penalesVisita !== '';
+    let pl = null;
+    let pv = null;
+    if (hayPenales) {
+      if (partido.fase === 'grupos') {
+        return res.status(400).json({ error: 'Los penales solo se usan en la fase de eliminación directa' });
+      }
+      if (gl !== gv) {
+        return res.status(400).json({ error: 'Solo se cargan penales cuando el partido termina empatado' });
+      }
+      pl = Number(penalesLocal);
+      pv = Number(penalesVisita);
+      if (!Number.isInteger(pl) || pl < 0 || !Number.isInteger(pv) || pv < 0) {
+        return res.status(400).json({ error: 'Los penales deben ser números enteros mayores o iguales a 0' });
+      }
+      if (pl === pv) {
+        return res.status(400).json({ error: 'La definición por penales no puede quedar empatada' });
+      }
+    }
+
     await db.run(`
-      UPDATE partidos SET goles_local = ?, goles_visita = ?, estado = 'jugado',
-        updated_by = ?, updated_at = datetime('now') WHERE id = ?
-    `, [gl, gv, req.usuario.id, id]);
+      UPDATE partidos SET goles_local = ?, goles_visita = ?, penales_local = ?, penales_visita = ?,
+        estado = 'jugado', updated_by = ?, updated_at = datetime('now') WHERE id = ?
+    `, [gl, gv, pl, pv, req.usuario.id, id]);
   } else {
     // 'programado' o 'aplazado' -> no cuenta como jugado, se limpian los goles
     await db.run(`
-      UPDATE partidos SET goles_local = NULL, goles_visita = NULL, estado = ?,
+      UPDATE partidos SET goles_local = NULL, goles_visita = NULL,
+        penales_local = NULL, penales_visita = NULL, estado = ?,
         updated_by = ?, updated_at = datetime('now') WHERE id = ?
     `, [estado, req.usuario.id, id]);
   }

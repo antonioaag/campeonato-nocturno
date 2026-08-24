@@ -63,6 +63,70 @@
             }
         }
 
+        /* Cuadro de eliminación directa.
+           Cada columna es una fase. Dentro de una columna, las llaves se
+           agrupan de a dos ("pair") porque de cada par sale un ganador que
+           alimenta una llave de la columna siguiente. Los conectores se
+           dibujan con pseudo-elementos: una línea horizontal por llave, una
+           vertical que une el par, y otra horizontal que sale hacia la fase
+           siguiente. En pantallas chicas se apila y se ocultan las líneas. */
+        .bracket {
+            display: flex;
+            gap: 2.5rem;
+            align-items: stretch;
+            min-width: max-content;
+        }
+        .bracket-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 1rem;
+            flex: 0 0 15rem;
+        }
+        .bracket-pair {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 1rem;
+            flex: 1;
+        }
+        .bracket-match { position: relative; }
+
+        .bracket-col:not(:last-child) .bracket-match::after,
+        .bracket-pair::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            height: 2px;
+            width: 1.25rem;
+            background: #6d4a9c;
+        }
+        .bracket-col:not(:last-child) .bracket-match::after { right: -1.25rem; }
+        .bracket-pair::before { right: -2.5rem; }
+
+        /* Vertical que une los centros de las dos llaves del par. */
+        .bracket-pair:not(.bracket-pair-suelto)::after {
+            content: '';
+            position: absolute;
+            right: -1.25rem;
+            top: 25%;
+            height: 50%;
+            width: 2px;
+            background: #6d4a9c;
+        }
+        /* Un par con una sola llave (semifinal hacia la final) no necesita
+           vertical, solo la horizontal de salida. */
+        .bracket-col:last-child .bracket-pair::before { display: none; }
+
+        @media (max-width: 900px) {
+            .bracket { flex-direction: column; gap: 1.5rem; min-width: 0; }
+            .bracket-col { flex: 1 1 auto; }
+            .bracket-match::after,
+            .bracket-pair::before,
+            .bracket-pair::after { display: none !important; }
+        }
+
         /* Modal overlay */
         .modal-overlay {
             position: fixed;
@@ -724,7 +788,7 @@
             `;
         }
 
-        async function guardarResultado(idPartido, alTerminar = renderPartidos) {
+        async function guardarResultado(idPartido, alTerminar = renderPartidos, penales = null) {
             const selectEstado = document.getElementById(`es_${idPartido}`);
             const inputLocal = document.getElementById(`gl_${idPartido}`);
             const inputVisita = document.getElementById(`gv_${idPartido}`);
@@ -747,6 +811,16 @@
                 }
                 body.golesLocal = gl;
                 body.golesVisita = gv;
+
+                if (penales) {
+                    if (penales.error) { alert(penales.error); return; }
+                    if (gl !== gv && penales.penalesLocal !== null) {
+                        alert('Los penales solo se cargan cuando el partido termina empatado.');
+                        return;
+                    }
+                    body.penalesLocal = penales.penalesLocal;
+                    body.penalesVisita = penales.penalesVisita;
+                }
             }
             try {
                 await api('/partidos/' + idPartido, { method: 'PATCH', body: JSON.stringify(body) });
@@ -833,6 +907,17 @@
             return html;
         }
 
+        // Ganador de una llave: por goles y, si hubo empate, por penales.
+        function ganadorDeLlave(p) {
+            if (!p || p.estado !== 'jugado') return null;
+            if (p.golesLocal > p.golesVisita) return p.localId;
+            if (p.golesVisita > p.golesLocal) return p.visitaId;
+            if (p.penalesLocal === null || p.penalesLocal === undefined) return null;
+            if (p.penalesLocal > p.penalesVisita) return p.localId;
+            if (p.penalesVisita > p.penalesLocal) return p.visitaId;
+            return null;
+        }
+
         function pintarCuadroPlayoffs(cuadro) {
             const fasesConPartidos = ORDEN_FASES.filter(f => cuadro.fases[f].length > 0);
             if (fasesConPartidos.length === 0) {
@@ -841,10 +926,11 @@
 
             let html = '';
             const final = cuadro.fases.final[0];
-            if (final && final.estado === 'jugado' && final.golesLocal !== final.golesVisita) {
-                const campeon = final.golesLocal > final.golesVisita ? final.local : final.visita;
+            const idCampeon = ganadorDeLlave(final);
+            if (idCampeon) {
+                const campeon = idCampeon === final.localId ? final.local : final.visita;
                 html += `
-                    <div class="bg-gradient-to-r from-noc-gold/20 to-transparent border-l-4 border-noc-gold rounded p-4 flex items-center gap-3">
+                    <div class="bg-gradient-to-r from-noc-gold/20 to-transparent border-l-4 border-noc-gold rounded p-4 flex items-center gap-3 mb-6">
                         <span class="text-3xl">🏆</span>
                         <div>
                             <p class="text-xs uppercase tracking-widest text-noc-goldlight/70">Campeón</p>
@@ -853,35 +939,64 @@
                     </div>`;
             }
 
+            html += '<div class="overflow-x-auto pb-2"><div class="bracket">';
             fasesConPartidos.forEach(fase => {
-                html += `<div>
-                    <h4 class="text-xl font-bold bg-noc-purple text-noc-goldlight p-2 rounded">${escapeHtml(cuadro.nombresFase[fase])}</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                        ${cuadro.fases[fase].map(pintarLlavePlayoff).join('')}
-                    </div>
-                </div>`;
+                const partidos = cuadro.fases[fase];
+                // Se agrupan de a dos: cada par define una llave de la fase siguiente.
+                let columnas = '';
+                for (let i = 0; i < partidos.length; i += 2) {
+                    const par = partidos.slice(i, i + 2);
+                    const suelto = par.length === 1 ? ' bracket-pair-suelto' : '';
+                    columnas += `<div class="bracket-pair${suelto}">${par.map(pintarLlavePlayoff).join('')}</div>`;
+                }
+                html += `
+                    <div class="bracket-col">
+                        <h4 class="text-sm font-bold uppercase tracking-wider bg-noc-purple text-noc-goldlight px-3 py-2 rounded text-center">
+                            ${escapeHtml(cuadro.nombresFase[fase])}
+                        </h4>
+                        ${columnas}
+                    </div>`;
             });
+            html += '</div></div>';
             return html;
         }
 
         function pintarLlavePlayoff(p) {
             const logueado = estaLogueado();
             const jugado = p.estado === 'jugado';
-            const ganaLocal = jugado && p.golesLocal > p.golesVisita;
-            const ganaVisita = jugado && p.golesVisita > p.golesLocal;
-            const empate = jugado && p.golesLocal === p.golesVisita;
-            const clase = g => `flex items-center gap-2 flex-1 min-w-0 ${g ? 'text-noc-goldlight font-bold' : 'text-white'}`;
+            const idGanador = ganadorDeLlave(p);
+            const empatado = jugado && p.golesLocal === p.golesVisita;
+            const hayPenales = p.penalesLocal !== null && p.penalesLocal !== undefined;
+            const porDefinir = empatado && !hayPenales;
+
+            const lado = (nombre, esGanador, alineado) => `
+                <div class="flex items-center gap-2 flex-1 min-w-0 ${alineado || ''} ${esGanador ? 'text-noc-goldlight font-bold' : jugado && idGanador ? 'text-white/40' : 'text-white'}">
+                    <span class="truncate">${escapeHtml(nombre)}</span>
+                </div>`;
 
             const detalles = [p.fechaPartido, p.hora, p.estadio].filter(Boolean).join(' · ');
 
+            // Los campos de penales solo se muestran cuando hacen falta: partido
+            // empatado, o penales ya cargados.
+            const camposPenales = (empatado || hayPenales) ? `
+                <div class="flex items-center justify-center gap-1 mt-2 pt-2 border-t border-noc-purple2/40">
+                    <span class="text-[10px] uppercase tracking-wider text-white/40 mr-1">Penales</span>
+                    ${logueado
+                        ? `<input type="number" min="0" value="${hayPenales ? p.penalesLocal : ''}" id="pl_${p.id}" class="w-10 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">
+                           <span class="text-white/40">-</span>
+                           <input type="number" min="0" value="${hayPenales ? p.penalesVisita : ''}" id="pv_${p.id}" class="w-10 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">`
+                        : `<span class="font-semibold text-sm">${hayPenales ? `${p.penalesLocal} - ${p.penalesVisita}` : '—'}</span>`}
+                </div>` : '';
+
             return `
-                <div class="bg-noc-black/40 border border-noc-purple2 rounded p-3">
-                    <div class="flex items-center justify-between mb-2">
+                <div class="bracket-match bg-noc-black/40 border ${porDefinir ? 'border-noc-gold/70' : 'border-noc-purple2'} rounded p-3">
+                    <div class="flex items-center justify-between mb-2 gap-2">
                         <span class="text-[11px] uppercase tracking-wider text-white/40">Llave ${p.llave}</span>
-                        ${empate ? '<span class="badge badge-aplazado">Empate: definir</span>' : ''}
+                        ${porDefinir ? '<span class="badge badge-aplazado">Definir por penales</span>' : ''}
+                        ${hayPenales && idGanador ? '<span class="text-[10px] text-white/40">definido por penales</span>' : ''}
                     </div>
                     <div class="flex items-center gap-2">
-                        <div class="${clase(ganaLocal)}"><span class="truncate">${escapeHtml(p.local)}</span></div>
+                        ${lado(p.local, idGanador === p.localId)}
                         <div class="flex items-center gap-1 shrink-0">
                             ${logueado
                                 ? `<input type="number" min="0" value="${p.golesLocal !== null ? p.golesLocal : ''}" id="gl_${p.id}" class="w-10 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">
@@ -889,8 +1004,9 @@
                                    <input type="number" min="0" value="${p.golesVisita !== null ? p.golesVisita : ''}" id="gv_${p.id}" class="w-10 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">`
                                 : `<span class="font-bold text-lg">${jugado ? `${p.golesLocal} - ${p.golesVisita}` : 'vs'}</span>`}
                         </div>
-                        <div class="${clase(ganaVisita)} justify-end text-right"><span class="truncate">${escapeHtml(p.visita)}</span></div>
+                        ${lado(p.visita, idGanador === p.visitaId, 'justify-end text-right')}
                     </div>
+                    ${camposPenales}
                     ${detalles ? `<p class="text-[11px] text-white/40 mt-2">${escapeHtml(detalles)}</p>` : ''}
                     ${logueado ? `
                     <div class="flex flex-wrap gap-1 justify-center mt-3 pt-2 border-t border-noc-purple2/50">
@@ -906,7 +1022,28 @@
         }
 
         async function guardarResultadoPlayoff(idPartido) {
-            await guardarResultado(idPartido, renderPlayoffs);
+            await guardarResultado(idPartido, renderPlayoffs, leerPenales(idPartido));
+        }
+
+        // Devuelve los penales cargados para esta llave, validados. Si el partido
+        // no está empatado o no hay campos, no se envía nada.
+        function leerPenales(idPartido) {
+            const inputLocal = document.getElementById(`pl_${idPartido}`);
+            const inputVisita = document.getElementById(`pv_${idPartido}`);
+            if (!inputLocal || !inputVisita) return null;
+
+            const local = inputLocal.value.trim();
+            const visita = inputVisita.value.trim();
+            if (local === '' && visita === '') return { penalesLocal: null, penalesVisita: null };
+            if (local === '' || visita === '') return { error: 'Ingresa los penales de ambos equipos.' };
+
+            const pl = Number(local);
+            const pv = Number(visita);
+            if (!Number.isInteger(pl) || pl < 0 || !Number.isInteger(pv) || pv < 0) {
+                return { error: 'Los penales deben ser números enteros mayores o iguales a 0.' };
+            }
+            if (pl === pv) return { error: 'La definición por penales no puede quedar empatada.' };
+            return { penalesLocal: pl, penalesVisita: pv };
         }
 
         async function generarFasePlayoff(fase) {

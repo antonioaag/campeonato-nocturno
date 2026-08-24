@@ -291,9 +291,18 @@ async function migrarFasePlayoffs() {
     if (!(await columnExists('partidos', 'llave'))) {
       columnas.push('ALTER TABLE partidos ADD COLUMN llave INTEGER');
     }
+    // Definición por penales. Solo se usan en eliminación directa y cuando el
+    // partido termina empatado; el marcador de los 90 minutos se conserva tal
+    // cual en goles_local / goles_visita.
+    if (!(await columnExists('partidos', 'penales_local'))) {
+      columnas.push('ALTER TABLE partidos ADD COLUMN penales_local INTEGER');
+    }
+    if (!(await columnExists('partidos', 'penales_visita'))) {
+      columnas.push('ALTER TABLE partidos ADD COLUMN penales_visita INTEGER');
+    }
     if (columnas.length) {
       await exec(columnas.join(';'));
-      console.log('✓ Columnas de playoffs agregadas a partidos: fase, llave');
+      console.log('✓ Columnas de playoffs agregadas a partidos: fase, llave, penales');
     }
   } catch (e) {
     console.log('Columnas de playoffs ya existen o error:', e.message);

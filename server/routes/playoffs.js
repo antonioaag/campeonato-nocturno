@@ -6,7 +6,7 @@ const { esSerieValida } = require('../series');
 const { leerBooleano, escribir, clavePlayoffsPublicos } = require('../configuracion');
 const {
   GRUPO_PLAYOFF, FASES, NOMBRE_FASE, LLAVES_POR_FASE, JORNADA_POR_FASE,
-  armarCuartos, ganadorDe, cruzarGanadores, faseSiguiente,
+  armarCuartos, ganadorDe, necesitaDefinicion, cruzarGanadores, faseSiguiente,
 } = require('../playoffs');
 
 const router = express.Router();
@@ -17,6 +17,7 @@ const SELECT_PLAYOFFS = `
     p.local_id  AS localId,  l.nombre AS local,
     p.visita_id AS visitaId, v.nombre AS visita,
     p.goles_local AS golesLocal, p.goles_visita AS golesVisita,
+    p.penales_local AS penalesLocal, p.penales_visita AS penalesVisita,
     p.estado, p.fecha_partido AS fechaPartido, p.hora, p.estadio
   FROM partidos p
   JOIN equipos l ON l.id = p.local_id
@@ -109,12 +110,13 @@ async function calcularSiguientePaso(serie, porFase) {
         motivo: `Faltan ${sinJugar.length} partido(s) de ${NOMBRE_FASE[fase].toLowerCase()} por jugar`,
       };
     }
-    const empatados = partidos.filter(p => p.golesLocal === p.golesVisita);
-    if (empatados.length > 0) {
+    const sinDefinir = partidos.filter(necesitaDefinicion);
+    if (sinDefinir.length > 0) {
+      const llaves = sinDefinir.map(p => p.llave).join(', ');
       return {
         fase: siguiente,
         puede: false,
-        motivo: `Hay ${empatados.length} llave(s) empatada(s). A partido único hay que cargar el resultado definitivo antes de avanzar`,
+        motivo: `La llave ${llaves} terminó empatada. Carga la definición por penales para saber quién avanza`,
       };
     }
     return { fase: siguiente, puede: true, motivo: null };
@@ -158,14 +160,16 @@ router.post('/generar', requireAuth, requireAdmin, asyncHandler(async (req, res)
     const indiceAnterior = FASES.indexOf(fase) - 1;
     const faseAnterior = FASES[indiceAnterior];
     const partidosAnteriores = await db.all(
-      'SELECT id, llave, local_id, visita_id, goles_local, goles_visita, estado FROM partidos WHERE serie = ? AND fase = ?',
+      `SELECT id, llave, local_id, visita_id, goles_local, goles_visita,
+              penales_local, penales_visita, estado
+       FROM partidos WHERE serie = ? AND fase = ?`,
       [serie, faseAnterior]
     );
     if (partidosAnteriores.length !== LLAVES_POR_FASE[faseAnterior]) {
       return res.status(400).json({ error: `Primero hay que generar ${NOMBRE_FASE[faseAnterior].toLowerCase()}` });
     }
     if (partidosAnteriores.some(p => ganadorDe(p) === null)) {
-      return res.status(400).json({ error: `Todas las llaves de ${NOMBRE_FASE[faseAnterior].toLowerCase()} deben estar jugadas y con un ganador definido (sin empates)` });
+      return res.status(400).json({ error: `Todas las llaves de ${NOMBRE_FASE[faseAnterior].toLowerCase()} deben estar jugadas y con un ganador definido. Si alguna terminó empatada, carga la definición por penales.` });
     }
     cruces = cruzarGanadores(partidosAnteriores);
   }

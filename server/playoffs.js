@@ -78,11 +78,41 @@ async function armarCuartos(serie) {
 
 // --- AVANCE DE FASE ---
 
+// Acepta tanto las filas crudas de la base (goles_local) como las ya mapeadas
+// para el front (golesLocal), porque ambas formas circulan por las rutas.
+function marcador(partido) {
+  return {
+    local: partido.goles_local !== undefined ? partido.goles_local : partido.golesLocal,
+    visita: partido.goles_visita !== undefined ? partido.goles_visita : partido.golesVisita,
+    penalesLocal: partido.penales_local !== undefined ? partido.penales_local : partido.penalesLocal,
+    penalesVisita: partido.penales_visita !== undefined ? partido.penales_visita : partido.penalesVisita,
+    localId: partido.local_id !== undefined ? partido.local_id : partido.localId,
+    visitaId: partido.visita_id !== undefined ? partido.visita_id : partido.visitaId,
+  };
+}
+
+// A partido único: gana quien marcó más goles y, si empataron, quien ganó la
+// definición por penales. Devuelve null si todavía no hay ganador (partido sin
+// jugar, o empatado y sin penales cargados).
 function ganadorDe(partido) {
   if (partido.estado !== 'jugado') return null;
-  if (partido.goles_local > partido.goles_visita) return partido.local_id;
-  if (partido.goles_visita > partido.goles_local) return partido.visita_id;
-  return null; // empate: a partido único hay que definirlo antes de avanzar
+  const m = marcador(partido);
+  if (m.local > m.visita) return m.localId;
+  if (m.visita > m.local) return m.visitaId;
+
+  const pl = m.penalesLocal;
+  const pv = m.penalesVisita;
+  if (pl === null || pl === undefined || pv === null || pv === undefined) return null;
+  if (pl > pv) return m.localId;
+  if (pv > pl) return m.visitaId;
+  return null; // penales también empatados: no define nada
+}
+
+// Un empate que ya quedó resuelto por penales no bloquea el avance de fase.
+function necesitaDefinicion(partido) {
+  if (partido.estado !== 'jugado') return false;
+  const m = marcador(partido);
+  return m.local === m.visita && ganadorDe(partido) === null;
 }
 
 // Empareja los ganadores de una fase para armar la siguiente: la llave 1 se
@@ -117,6 +147,7 @@ module.exports = {
   JORNADA_POR_FASE,
   armarCuartos,
   ganadorDe,
+  necesitaDefinicion,
   cruzarGanadores,
   faseSiguiente,
 };
