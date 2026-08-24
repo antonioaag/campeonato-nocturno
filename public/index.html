@@ -488,16 +488,31 @@
         // --- EDITAR PARTIDOS (detalles) ---
         let partidoEditando = null;
         function abrirEditarPartido(id) {
-            const tabla = document.querySelector('tbody');
-            const fila = tabla.querySelector(`tr:has(button[onclick*="${id}"])`);
+            // Buscar todos los botones Editar y encontrar el que corresponde a este ID
+            const botones = document.querySelectorAll('button');
+            let botonEditar = null;
+            for (const btn of botones) {
+                if (btn.textContent.trim() === 'Editar' && btn.onclick && btn.onclick.toString().includes(`abrirEditarPartido(${id})`)) {
+                    botonEditar = btn;
+                    break;
+                }
+            }
+            if (!botonEditar) return;
+
+            // Encontrar la fila (tr) que contiene este botón
+            const fila = botonEditar.closest('tr');
             if (!fila) return;
 
             const celdas = fila.querySelectorAll('td');
             partidoEditando = id;
 
-            const fechaTexto = celdas[0].textContent.trim();
-            const horaTexto = celdas[1].textContent.trim();
-            const estadioTexto = celdas[5].textContent.trim();
+            // Leer valores de las primeras 3 celdas de datos (Fecha, Hora, Estadio)
+            // Fecha siempre está en celdas[0]
+            // Hora siempre está en celdas[1]
+            // Estadio siempre está en celdas[5]
+            const fechaTexto = celdas.length > 0 ? celdas[0].textContent.trim() : '';
+            const horaTexto = celdas.length > 1 ? celdas[1].textContent.trim() : '';
+            const estadioTexto = celdas.length > 5 ? celdas[5].textContent.trim() : '';
 
             document.getElementById('edit-fecha').value = (fechaTexto && fechaTexto !== '-') ? fechaTexto : '';
             document.getElementById('edit-hora').value = (horaTexto && horaTexto !== '-') ? horaTexto : '';
@@ -673,7 +688,11 @@
                     <td class="border border-noc-purple p-2"><div class="flex items-center gap-2">${escudoImg(p.visita, '')} <span>${escapeHtml(p.visita)}</span></div></td>
                     <td class="border border-noc-purple p-2">${p.estadio || '-'}</td>
                     <td class="border border-noc-purple p-2 text-center">
-                        <span class="badge ${badgeClass}">${badgeTexto}</span>
+                        ${logueado ? `<select id="es_${p.id}" class="border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">
+                            <option value="programado" ${p.estado === 'programado' ? 'selected' : ''}>Pendiente</option>
+                            <option value="jugado" ${p.estado === 'jugado' ? 'selected' : ''}>Jugado</option>
+                            <option value="aplazado" ${p.estado === 'aplazado' ? 'selected' : ''}>Aplazado</option>
+                        </select>` : `<span class="badge ${badgeClass}">${badgeTexto}</span>`}
                     </td>
                     <td class="border border-noc-purple p-2 text-center flex gap-1 justify-center flex-wrap">
                         ${logueado ? `<button onclick="guardarResultado(${p.id})" class="bg-noc-gold text-noc-black text-xs px-2 py-1 rounded hover:bg-noc-goldlight">Guardar</button>` : ''}
