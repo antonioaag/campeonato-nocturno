@@ -37,6 +37,22 @@ function requireAuth(req, res, next) {
   }
 }
 
+// Para rutas públicas cuyo contenido cambia si quien mira es admin. A
+// diferencia de requireAuth, nunca rechaza: si no hay token o es inválido,
+// simplemente deja req.usuario sin definir y sigue.
+function authOpcional(req, res, next) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (token) {
+    try {
+      req.usuario = jwt.verify(token, JWT_SECRET);
+    } catch (e) {
+      // token vencido o corrupto: se atiende la petición como anónima
+    }
+  }
+  next();
+}
+
 function requireAdmin(req, res, next) {
   if (!req.usuario || req.usuario.rol !== 'admin') {
     return res.status(403).json({ error: 'Se requiere rol de administrador' });
@@ -44,4 +60,4 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { firmarToken, requireAuth, requireAdmin };
+module.exports = { firmarToken, requireAuth, requireAdmin, authOpcional };

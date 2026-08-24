@@ -1,8 +1,9 @@
 const express = require('express');
 const db = require('../db');
-const { requireAuth, requireAdmin } = require('../auth');
+const { requireAuth, requireAdmin, authOpcional } = require('../auth');
 const asyncHandler = require('../asyncHandler');
 const { esSerieValida } = require('../series');
+const { leerBooleano, escribir, clavePlayoffsPublicos } = require('../configuracion');
 const {
   GRUPO_PLAYOFF, FASES, NOMBRE_FASE, LLAVES_POR_FASE, JORNADA_POR_FASE,
   armarCuartos, ganadorDe, cruzarGanadores, faseSiguiente,
@@ -24,11 +25,37 @@ const SELECT_PLAYOFFS = `
   ORDER BY p.fecha, p.llave
 `;
 
-// Devuelve el cuadro completo agrupado por fase, más qué fase se puede generar
-// a continuación (para que el front sepa si mostrar el botón y con qué texto).
-router.get('/', asyncHandler(async (req, res) => {
+// Estado de visibilidad de la serie. Es liviano a propósito: el front lo
+// consulta al cargar y al cambiar de serie para decidir si muestra la pestaña,
+// sin traerse el cuadro entero.
+router.get('/estado', authOpcional, asyncHandler(async (req, res) => {
   const serie = req.query.serie || 'ADULTO';
   if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
+
+  const publico = await leerBooleano(clavePlayoffsPublicos(serie), false);
+  const esAdmin = !!(req.usuario && req.usuario.rol === 'admin');
+  res.json({ serie, publico, visible: publico || esAdmin });
+}));
+
+// Devuelve el cuadro completo agrupado por fase, más qué fase se puede generar
+// a continuación (para que el front sepa si mostrar el botón y con qué texto).
+// Mientras la serie no esté publicada, el cuadro solo se entrega al admin.
+router.get('/', authOpcional, asyncHandler(async (req, res) => {
+  const serie = req.query.serie || 'ADULTO';
+  if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
+
+  const publico = await leerBooleano(clavePlayoffsPublicos(serie), false);
+  const esAdmin = !!(req.usuario && req.usuario.rol === 'admin');
+
+  const vacio = {};
+  FASES.forEach(f => { vacio[f] = []; });
+  if (!publico && !esAdmin) {
+    return res.json({
+      serie, publico, visible: false,
+      fases: vacio, nombresFase: NOMBRE_FASE,
+      siguiente: { fase: null, puede: false, motivo: null },
+    });
+  }
 
   const partidos = await db.all(SELECT_PLAYOFFS, [serie]);
   const porFase = {};
@@ -36,10 +63,22 @@ router.get('/', asyncHandler(async (req, res) => {
 
   res.json({
     serie,
+    publico,
+    visible: true,
     fases: porFase,
     nombresFase: NOMBRE_FASE,
     siguiente: await calcularSiguientePaso(serie, porFase),
   });
+}));
+
+// Publica u oculta el cuadro de la serie para el público. Solo admin.
+router.post('/publicar', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const serie = (req.body && req.body.serie) || 'ADULTO';
+  const publico = !!(req.body && req.body.publico);
+  if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
+
+  await escribir(clavePlayoffsPublicos(serie), publico ? '1' : '0');
+  res.json({ ok: true, serie, publico });
 }));
 
 // Determina qué acción tiene disponible el admin: generar los cuartos, avanzar

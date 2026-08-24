@@ -125,7 +125,7 @@
     <nav class="bg-noc-dark shadow flex justify-center flex-wrap gap-1 px-4 py-2 sticky top-[52px] z-10 border-b border-noc-purple2">
         <button id="btn-equipos" data-tab="tab-equipos" class="tab-btn active px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Equipos</button>
         <button id="btn-partidos" data-tab="tab-partidos" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Partidos</button>
-        <button id="btn-eliminatorias" data-tab="tab-eliminatorias" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Eliminatorias</button>
+        <button id="btn-eliminatorias" data-tab="tab-eliminatorias" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition hidden">Eliminatorias</button>
         <button id="btn-posiciones" data-tab="tab-posiciones" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Posiciones</button>
         <button id="btn-jugadores" data-tab="tab-jugadores" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Jugadores</button>
         <button id="btn-castigados" data-tab="tab-castigados" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Castigados</button>
@@ -428,6 +428,8 @@
             document.querySelectorAll('.serie-btn').forEach(b => b.classList.remove('active'));
             const btnSerie = document.getElementById('serie-btn-' + serie);
             if (btnSerie) btnSerie.classList.add('active');
+            // Cada serie publica su cuadro por separado.
+            actualizarVisibilidadEliminatorias();
             mostrarTabActual();
         }
 
@@ -463,6 +465,8 @@
             if (accionesAdmin) accionesAdmin.classList.toggle('hidden', !esAdmin());
             const notaSoloLectura = document.getElementById('nota-solo-lectura-equipos');
             if (notaSoloLectura) notaSoloLectura.classList.toggle('hidden', esAdmin());
+            // Depende de la sesión (el admin ve el cuadro aunque esté sin publicar).
+            if (document.getElementById('btn-eliminatorias')) actualizarVisibilidadEliminatorias();
         }
 
         function abrirModalLogin() {
@@ -753,6 +757,21 @@
         // --- 4b. ELIMINATORIAS (cuartos, semifinales, final) ---
         const ORDEN_FASES = ['cuartos', 'semifinal', 'final'];
 
+        // La pestaña permanece oculta hasta que el admin publique el cuadro de
+        // esa serie. El admin siempre la ve, para poder prepararla antes.
+        async function actualizarVisibilidadEliminatorias() {
+            const boton = document.getElementById('btn-eliminatorias');
+            let visible = false;
+            try {
+                visible = (await api(`/playoffs/estado?serie=${serieActual}`)).visible;
+            } catch (e) {
+                visible = false;
+            }
+            boton.classList.toggle('hidden', !visible);
+            // Si se estaba mirando la pestaña y dejó de estar disponible, sale de ella.
+            if (!visible && tabActual === 'tab-eliminatorias') showTab('tab-partidos');
+        }
+
         async function renderPlayoffs() {
             const container = document.getElementById('playoffs-container');
             const acciones = document.getElementById('playoffs-acciones');
@@ -779,7 +798,25 @@
                 return '';
             }
 
-            let html = '<div class="flex flex-wrap items-center gap-3">';
+            let html = `
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4 p-3 rounded border ${cuadro.publico ? 'border-green-700/60 bg-green-900/20' : 'border-noc-gold/40 bg-noc-gold/10'}">
+                    <div class="min-w-0">
+                        <p class="font-semibold ${cuadro.publico ? 'text-green-300' : 'text-noc-goldlight'}">
+                            ${cuadro.publico ? '● Visible para todo el público' : '○ Oculto: solo lo ves tú'}
+                        </p>
+                        <p class="text-xs text-white/50 mt-0.5">
+                            ${cuadro.publico
+                                ? 'Cualquier visitante del sitio ve esta pestaña y el cuadro completo.'
+                                : 'La pestaña Eliminatorias no aparece para los visitantes. Publícala cuando esté lista.'}
+                        </p>
+                    </div>
+                    <button onclick="publicarPlayoffs(${cuadro.publico ? 'false' : 'true'})"
+                            class="${cuadro.publico ? 'bg-noc-purple2 text-white hover:bg-noc-purple' : 'bg-green-700 text-white hover:bg-green-600'} px-4 py-2 rounded shadow transition shrink-0">
+                        ${cuadro.publico ? 'Ocultar del público' : 'Publicar'}
+                    </button>
+                </div>`;
+
+            html += '<div class="flex flex-wrap items-center gap-3">';
             if (siguiente && siguiente.fase) {
                 const etiqueta = `Generar ${nombresFase[siguiente.fase].toLowerCase()}`;
                 html += siguiente.puede
@@ -875,6 +912,17 @@
         async function generarFasePlayoff(fase) {
             try {
                 await api('/playoffs/generar', { method: 'POST', body: JSON.stringify({ serie: serieActual, fase }) });
+                renderPlayoffs();
+            } catch (e) { alert(e.message); }
+        }
+
+        async function publicarPlayoffs(publico) {
+            const aviso = publico
+                ? 'El cuadro de eliminatorias quedará visible para cualquier visitante del sitio. ¿Continuar?'
+                : 'La pestaña Eliminatorias dejará de verse para el público. Solo tú podrás verla. ¿Continuar?';
+            if (!confirm(aviso)) return;
+            try {
+                await api('/playoffs/publicar', { method: 'POST', body: JSON.stringify({ serie: serieActual, publico }) });
                 renderPlayoffs();
             } catch (e) { alert(e.message); }
         }
@@ -1375,6 +1423,7 @@
         window.onload = () => {
             renderAuthBox();
             document.getElementById('serie-btn-' + serieActual).classList.add('active');
+            actualizarVisibilidadEliminatorias();
             showTab('tab-equipos');
 
             // Agregar event listeners a los botones de serie
