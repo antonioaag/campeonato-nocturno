@@ -404,7 +404,16 @@
             if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
             const res = await fetch('/api' + path, Object.assign({}, options, { headers }));
             const data = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(data.error || 'Error inesperado');
+            if (!res.ok) {
+                if (res.status === 401 && data.error && data.error.includes('Token')) {
+                    TOKEN = null;
+                    localStorage.removeItem('cn_token');
+                    localStorage.removeItem('cn_usuario');
+                    renderAuthBox();
+                    throw new Error('Tu sesión ha expirado. Por favor inicia sesión de nuevo.');
+                }
+                throw new Error(data.error || 'Error inesperado');
+            }
             return data;
         }
 
