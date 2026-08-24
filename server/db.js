@@ -209,6 +209,7 @@ function init() {
       await migrarSerie();
       await migrar2FAYPasswordReset();
       await migrarPartidosDetalles();
+      await migrarFasePlayoffs();
     })();
   }
   return readyPromise;
@@ -266,6 +267,30 @@ async function migrarPartidosDetalles() {
     }
   } catch (e) {
     console.log('Partidos columns already exist or error:', e.message);
+  }
+}
+
+// Migra partidos para soportar las fases de eliminación directa (cuartos,
+// semifinal, final). Los partidos de fase de grupos quedan con fase='grupos',
+// que es el valor por defecto, así que ninguna fila existente cambia de
+// comportamiento. 'llave' numera los cruces dentro de una fase (1..4 en
+// cuartos, 1..2 en semis, 1 en la final) y permite saber qué ganador alimenta
+// qué cruce de la fase siguiente.
+async function migrarFasePlayoffs() {
+  try {
+    const columnas = [];
+    if (!(await columnExists('partidos', 'fase'))) {
+      columnas.push("ALTER TABLE partidos ADD COLUMN fase TEXT NOT NULL DEFAULT 'grupos'");
+    }
+    if (!(await columnExists('partidos', 'llave'))) {
+      columnas.push('ALTER TABLE partidos ADD COLUMN llave INTEGER');
+    }
+    if (columnas.length) {
+      await exec(columnas.join(';'));
+      console.log('✓ Columnas de playoffs agregadas a partidos: fase, llave');
+    }
+  } catch (e) {
+    console.log('Columnas de playoffs ya existen o error:', e.message);
   }
 }
 

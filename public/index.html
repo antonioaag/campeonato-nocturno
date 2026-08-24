@@ -125,6 +125,7 @@
     <nav class="bg-noc-dark shadow flex justify-center flex-wrap gap-1 px-4 py-2 sticky top-[52px] z-10 border-b border-noc-purple2">
         <button id="btn-equipos" data-tab="tab-equipos" class="tab-btn active px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Equipos</button>
         <button id="btn-partidos" data-tab="tab-partidos" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Partidos</button>
+        <button id="btn-eliminatorias" data-tab="tab-eliminatorias" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Eliminatorias</button>
         <button id="btn-posiciones" data-tab="tab-posiciones" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Posiciones</button>
         <button id="btn-jugadores" data-tab="tab-jugadores" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Jugadores</button>
         <button id="btn-castigados" data-tab="tab-castigados" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Castigados</button>
@@ -148,6 +149,16 @@
         <section id="tab-partidos" class="hidden bg-noc-dark/80 p-6 rounded-lg shadow-md border border-noc-purple2">
             <h3 class="text-2xl font-bold mb-4 border-b border-noc-purple2 pb-2 text-noc-goldlight">Resultados de Partidos</h3>
             <div id="fixture-container" class="space-y-6">
+                <p class="text-white/50 italic">Cargando...</p>
+            </div>
+        </section>
+
+        <!-- Pestaña: Eliminatorias -->
+        <section id="tab-eliminatorias" class="hidden bg-noc-dark/80 p-6 rounded-lg shadow-md border border-noc-purple2">
+            <h3 class="text-2xl font-bold mb-1 border-b border-noc-purple2 pb-2 text-noc-goldlight">Fase de Eliminación Directa</h3>
+            <p class="text-xs text-white/50 mb-4">Cuartos de final, semifinales y final. Todos los partidos son a partido único.</p>
+            <div id="playoffs-acciones" class="mb-5"></div>
+            <div id="playoffs-container" class="space-y-6">
                 <p class="text-white/50 italic">Cargando...</p>
             </div>
         </section>
@@ -474,40 +485,25 @@
         }
 
         // --- EDITAR PARTIDOS (detalles) ---
+        // Caché de los partidos que se están mostrando, indexado por id. El modal
+        // lee de aquí en vez de raspar celdas del DOM: así funciona igual en la
+        // tabla de la fase de grupos y en las tarjetas del cuadro de eliminatorias,
+        // y no depende de en qué columna quedó cada dato.
+        let PARTIDOS_CACHE = {};
+        function cachearPartidos(partidos) {
+            partidos.forEach(p => { PARTIDOS_CACHE[p.id] = p; });
+        }
+
         let partidoEditando = null;
         function abrirEditarPartido(id) {
-            // Buscar todos los botones Editar y encontrar el que corresponde a este ID
-            const botones = document.querySelectorAll('button');
-            let botonEditar = null;
-            for (const btn of botones) {
-                if (btn.textContent.trim() === 'Editar' && btn.onclick && btn.onclick.toString().includes(`abrirEditarPartido(${id})`)) {
-                    botonEditar = btn;
-                    break;
-                }
-            }
-            if (!botonEditar) return;
+            const partido = PARTIDOS_CACHE[id];
+            if (!partido) { alert('No se encontró el partido. Recarga la página e intenta de nuevo.'); return; }
 
-            // Encontrar la fila (tr) que contiene este botón
-            const fila = botonEditar.closest('tr');
-            if (!fila) return;
-
-            const celdas = fila.querySelectorAll('td');
             partidoEditando = id;
-
-            // Leer valores de las primeras 3 celdas de datos (Fecha, Hora, Estadio)
-            // Fecha siempre está en celdas[0]
-            // Hora siempre está en celdas[1]
-            // Estadio siempre está en celdas[5]
-            const fechaTexto = celdas.length > 0 ? celdas[0].textContent.trim() : '';
-            const horaTexto = celdas.length > 1 ? celdas[1].textContent.trim() : '';
-            const estadioTexto = celdas.length > 5 ? celdas[5].textContent.trim() : '';
-
-            document.getElementById('edit-fecha').value = (fechaTexto && fechaTexto !== '-') ? fechaTexto : '';
-            document.getElementById('edit-hora').value = (horaTexto && horaTexto !== '-') ? horaTexto : '';
-            document.getElementById('edit-estadio').value = (estadioTexto && estadioTexto !== '-') ? estadioTexto : '';
-
-            const modalElement = document.getElementById('modal-editar-partido');
-            modalElement.style.display = 'flex';
+            document.getElementById('edit-fecha').value = partido.fechaPartido || '';
+            document.getElementById('edit-hora').value = partido.hora || '';
+            document.getElementById('edit-estadio').value = partido.estadio || '';
+            document.getElementById('modal-editar-partido').style.display = 'flex';
         }
 
         function cerrarEditarPartido() {
@@ -551,6 +547,7 @@
         function mostrarTabActual() {
             if (tabActual === 'tab-equipos') renderEquipos();
             if (tabActual === 'tab-partidos') renderPartidos();
+            if (tabActual === 'tab-eliminatorias') renderPlayoffs();
             if (tabActual === 'tab-posiciones') renderTablas();
             if (tabActual === 'tab-jugadores') renderJugadores();
             if (tabActual === 'tab-castigados') renderCastigados();
@@ -628,6 +625,7 @@
             const grupos = SERIES_GRUPOS[serieActual];
             const partidosPorGrupo = await Promise.all(grupos.map(g => api(`/partidos?serie=${serieActual}&grupo=${g}`)));
             const libresPorGrupo = await Promise.all(grupos.map(g => api(`/partidos/libres?serie=${serieActual}&grupo=${g}`)));
+            partidosPorGrupo.forEach(cachearPartidos);
             container.innerHTML = grupos.map((g, i) => pintarGrupoPartidos(g, partidosPorGrupo[i], libresPorGrupo[i])).join('');
         }
 
@@ -722,10 +720,18 @@
             `;
         }
 
-        async function guardarResultado(idPartido) {
-            const estado = document.getElementById(`es_${idPartido}`).value;
-            const golesLocal = document.getElementById(`gl_${idPartido}`).value.trim();
-            const golesVisita = document.getElementById(`gv_${idPartido}`).value.trim();
+        async function guardarResultado(idPartido, alTerminar = renderPartidos) {
+            const selectEstado = document.getElementById(`es_${idPartido}`);
+            const inputLocal = document.getElementById(`gl_${idPartido}`);
+            const inputVisita = document.getElementById(`gv_${idPartido}`);
+            if (!selectEstado || !inputLocal || !inputVisita) {
+                alert('No se encontraron los campos de este partido. Recarga la página e intenta de nuevo.');
+                return;
+            }
+
+            const estado = selectEstado.value;
+            const golesLocal = inputLocal.value.trim();
+            const golesVisita = inputVisita.value.trim();
             const body = { estado };
             if (estado === 'jugado') {
                 if (golesLocal === '' || golesVisita === '') { alert('Ingresa ambos marcadores para guardar como Jugado.'); return; }
@@ -740,7 +746,144 @@
             }
             try {
                 await api('/partidos/' + idPartido, { method: 'PATCH', body: JSON.stringify(body) });
-                renderPartidos();
+                alTerminar();
+            } catch (e) { alert(e.message); }
+        }
+
+        // --- 4b. ELIMINATORIAS (cuartos, semifinales, final) ---
+        const ORDEN_FASES = ['cuartos', 'semifinal', 'final'];
+
+        async function renderPlayoffs() {
+            const container = document.getElementById('playoffs-container');
+            const acciones = document.getElementById('playoffs-acciones');
+            try {
+                const cuadro = await api(`/playoffs?serie=${serieActual}`);
+                ORDEN_FASES.forEach(f => cachearPartidos(cuadro.fases[f]));
+                acciones.innerHTML = pintarAccionesPlayoffs(cuadro);
+                container.innerHTML = pintarCuadroPlayoffs(cuadro);
+            } catch (e) {
+                acciones.innerHTML = '';
+                container.innerHTML = `<p class="text-red-400">${escapeHtml(e.message)}</p>`;
+            }
+        }
+
+        function pintarAccionesPlayoffs(cuadro) {
+            const { siguiente, nombresFase } = cuadro;
+            const hayCuadro = ORDEN_FASES.some(f => cuadro.fases[f].length > 0);
+
+            if (!esAdmin()) {
+                // Para el público solo tiene sentido explicar por qué aún no hay cuadro.
+                if (!hayCuadro && siguiente && siguiente.motivo) {
+                    return `<p class="text-sm text-white/60 bg-noc-black/40 border border-noc-purple2 rounded p-3">${escapeHtml(siguiente.motivo)}.</p>`;
+                }
+                return '';
+            }
+
+            let html = '<div class="flex flex-wrap items-center gap-3">';
+            if (siguiente && siguiente.fase) {
+                const etiqueta = `Generar ${nombresFase[siguiente.fase].toLowerCase()}`;
+                html += siguiente.puede
+                    ? `<button onclick="generarFasePlayoff('${siguiente.fase}')" class="bg-green-700 text-white px-4 py-2 rounded shadow hover:bg-green-600 transition">${etiqueta}</button>`
+                    : `<button disabled title="${escapeHtml(siguiente.motivo || '')}" class="bg-noc-purple2/50 text-white/40 px-4 py-2 rounded cursor-not-allowed">${etiqueta}</button>`;
+            }
+            if (hayCuadro) {
+                html += `<button onclick="reiniciarPlayoffs()" class="bg-red-900/50 text-red-200 px-4 py-2 rounded hover:bg-red-900/70 transition">Borrar eliminatorias</button>`;
+            }
+            html += '</div>';
+            if (siguiente && siguiente.motivo) {
+                html += `<p class="text-xs text-white/50 mt-2">${escapeHtml(siguiente.motivo)}.</p>`;
+            }
+            return html;
+        }
+
+        function pintarCuadroPlayoffs(cuadro) {
+            const fasesConPartidos = ORDEN_FASES.filter(f => cuadro.fases[f].length > 0);
+            if (fasesConPartidos.length === 0) {
+                return `<p class="text-white/50 italic">Todavía no se ha generado el cuadro de eliminación directa para esta serie.</p>`;
+            }
+
+            let html = '';
+            const final = cuadro.fases.final[0];
+            if (final && final.estado === 'jugado' && final.golesLocal !== final.golesVisita) {
+                const campeon = final.golesLocal > final.golesVisita ? final.local : final.visita;
+                html += `
+                    <div class="bg-gradient-to-r from-noc-gold/20 to-transparent border-l-4 border-noc-gold rounded p-4 flex items-center gap-3">
+                        <span class="text-3xl">🏆</span>
+                        <div>
+                            <p class="text-xs uppercase tracking-widest text-noc-goldlight/70">Campeón</p>
+                            <p class="text-2xl font-bold text-noc-goldlight">${escapeHtml(campeon)}</p>
+                        </div>
+                    </div>`;
+            }
+
+            fasesConPartidos.forEach(fase => {
+                html += `<div>
+                    <h4 class="text-xl font-bold bg-noc-purple text-noc-goldlight p-2 rounded">${escapeHtml(cuadro.nombresFase[fase])}</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                        ${cuadro.fases[fase].map(pintarLlavePlayoff).join('')}
+                    </div>
+                </div>`;
+            });
+            return html;
+        }
+
+        function pintarLlavePlayoff(p) {
+            const logueado = estaLogueado();
+            const jugado = p.estado === 'jugado';
+            const ganaLocal = jugado && p.golesLocal > p.golesVisita;
+            const ganaVisita = jugado && p.golesVisita > p.golesLocal;
+            const empate = jugado && p.golesLocal === p.golesVisita;
+            const clase = g => `flex items-center gap-2 flex-1 min-w-0 ${g ? 'text-noc-goldlight font-bold' : 'text-white'}`;
+
+            const detalles = [p.fechaPartido, p.hora, p.estadio].filter(Boolean).join(' · ');
+
+            return `
+                <div class="bg-noc-black/40 border border-noc-purple2 rounded p-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] uppercase tracking-wider text-white/40">Llave ${p.llave}</span>
+                        ${empate ? '<span class="badge badge-aplazado">Empate: definir</span>' : ''}
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="${clase(ganaLocal)}"><span class="truncate">${escapeHtml(p.local)}</span></div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            ${logueado
+                                ? `<input type="number" min="0" value="${p.golesLocal !== null ? p.golesLocal : ''}" id="gl_${p.id}" class="w-10 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">
+                                   <span class="text-white/40">-</span>
+                                   <input type="number" min="0" value="${p.golesVisita !== null ? p.golesVisita : ''}" id="gv_${p.id}" class="w-10 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">`
+                                : `<span class="font-bold text-lg">${jugado ? `${p.golesLocal} - ${p.golesVisita}` : 'vs'}</span>`}
+                        </div>
+                        <div class="${clase(ganaVisita)} justify-end text-right"><span class="truncate">${escapeHtml(p.visita)}</span></div>
+                    </div>
+                    ${detalles ? `<p class="text-[11px] text-white/40 mt-2">${escapeHtml(detalles)}</p>` : ''}
+                    ${logueado ? `
+                    <div class="flex flex-wrap gap-1 justify-center mt-3 pt-2 border-t border-noc-purple2/50">
+                        <select id="es_${p.id}" class="border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">
+                            <option value="programado" ${p.estado === 'programado' ? 'selected' : ''}>Pendiente</option>
+                            <option value="jugado" ${p.estado === 'jugado' ? 'selected' : ''}>Jugado</option>
+                            <option value="aplazado" ${p.estado === 'aplazado' ? 'selected' : ''}>Aplazado</option>
+                        </select>
+                        <button onclick="guardarResultadoPlayoff(${p.id})" class="bg-noc-gold text-noc-black text-xs px-2 py-1 rounded hover:bg-noc-goldlight">Guardar</button>
+                        ${esAdmin() ? `<button onclick="abrirEditarPartido(${p.id})" class="bg-noc-gold text-noc-black text-xs px-2 py-1 rounded hover:bg-noc-goldlight">Editar</button>` : ''}
+                    </div>` : ''}
+                </div>`;
+        }
+
+        async function guardarResultadoPlayoff(idPartido) {
+            await guardarResultado(idPartido, renderPlayoffs);
+        }
+
+        async function generarFasePlayoff(fase) {
+            try {
+                await api('/playoffs/generar', { method: 'POST', body: JSON.stringify({ serie: serieActual, fase }) });
+                renderPlayoffs();
+            } catch (e) { alert(e.message); }
+        }
+
+        async function reiniciarPlayoffs() {
+            if (!confirm('Esto borra los cuartos, semifinales y final de esta serie, con sus resultados. La fase de grupos no se toca. ¿Continuar?')) return;
+            try {
+                await api('/playoffs/reiniciar', { method: 'POST', body: JSON.stringify({ serie: serieActual }) });
+                renderPlayoffs();
             } catch (e) { alert(e.message); }
         }
 

@@ -24,7 +24,9 @@ router.get('/', asyncHandler(async (req, res) => {
   const serie = req.query.serie || 'ADULTO';
   if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
 
-  const condiciones = ['p.serie = ?'];
+  // Solo fase de grupos: el cuadro de eliminación directa se sirve por
+  // /api/playoffs y no debe mezclarse con las jornadas de los grupos.
+  const condiciones = ['p.serie = ?', "p.fase = 'grupos'"];
   const params = [serie];
   if (grupo) { condiciones.push('p.grupo = ?'); params.push(grupo); }
   if (fecha) { condiciones.push('p.fecha = ?'); params.push(Number(fecha)); }

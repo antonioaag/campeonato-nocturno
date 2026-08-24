@@ -66,6 +66,7 @@ async function start() {
   app.use('/api/equipos', require('./routes/equipos'));
   app.use('/api/partidos', require('./routes/partidos'));
   app.use('/api/posiciones', require('./routes/posiciones'));
+  app.use('/api/playoffs', require('./routes/playoffs'));
   app.use('/api/fixture', require('./routes/fixture'));
   app.use('/api/jugadores', require('./routes/jugadores'));
   app.use('/api/listas-inscripcion', require('./routes/listas-inscripcion'));
