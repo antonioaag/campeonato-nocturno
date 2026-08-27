@@ -193,7 +193,7 @@
         <button id="btn-posiciones" data-tab="tab-posiciones" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Posiciones</button>
         <button id="btn-jugadores" data-tab="tab-jugadores" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Jugadores</button>
         <button id="btn-castigados" data-tab="tab-castigados" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Castigados</button>
-        <button id="btn-resoluciones" data-tab="tab-resoluciones" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Resoluciones</button>
+        <button id="btn-resoluciones" data-tab="tab-resoluciones" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition hidden">Resoluciones</button>
         <button id="btn-usuarios" data-tab="tab-usuarios" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition hidden">Usuarios</button>
     </nav>
 
@@ -518,7 +518,7 @@
             const btnSerie = document.getElementById('serie-btn-' + serie);
             if (btnSerie) btnSerie.classList.add('active');
             // Cada serie publica su cuadro por separado.
-            actualizarVisibilidadEliminatorias();
+            actualizarVisibilidadPestanas();
             mostrarTabActual();
         }
 
@@ -555,7 +555,7 @@
             const notaSoloLectura = document.getElementById('nota-solo-lectura-equipos');
             if (notaSoloLectura) notaSoloLectura.classList.toggle('hidden', esAdmin());
             // Depende de la sesión (el admin ve el cuadro aunque esté sin publicar).
-            if (document.getElementById('btn-eliminatorias')) actualizarVisibilidadEliminatorias();
+            if (document.getElementById('btn-eliminatorias')) actualizarVisibilidadPestanas();
         }
 
         function abrirModalLogin() {
@@ -864,7 +864,8 @@
         // El listado es público a propósito: es lo que permite a cualquier club
         // entender por qué la tabla dice lo que dice.
         async function renderResoluciones() {
-            const [resoluciones, reclamos, equipos, partidos] = await Promise.all([
+            const [estado, resoluciones, reclamos, equipos, partidos] = await Promise.all([
+                api(`/resoluciones/estado?serie=${serieActual}`),
                 api(`/resoluciones?serie=${serieActual}`),
                 api(`/reclamos?serie=${serieActual}`),
                 api(`/equipos?serie=${serieActual}`),
@@ -872,7 +873,9 @@
             ]);
 
             document.getElementById('resoluciones-form-admin').innerHTML =
-                esAdmin() ? pintarFormResolucion(equipos, partidos) : '';
+                esAdmin()
+                    ? pintarInterruptorResoluciones(estado, resoluciones) + pintarFormResolucion(equipos, partidos)
+                    : '';
             document.getElementById('resoluciones-lista').innerHTML = pintarListaResoluciones(resoluciones);
             document.getElementById('reclamos-form').innerHTML =
                 estaLogueado() ? pintarFormReclamo(equipos, partidos) : '';
@@ -899,6 +902,51 @@
 
         const CLASE_INPUT = 'border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full text-sm';
         const CLASE_LABEL = 'block text-xs font-semibold text-white/50 mb-1';
+
+        function pintarInterruptorResoluciones(estado, resoluciones) {
+            // Los descuentos y homologaciones se aplican a la tabla apenas se
+            // registran, esté publicado el registro o no: una sanción real no
+            // puede quedar sin efecto por un interruptor de visibilidad. Por
+            // eso, si hay sanciones vigentes con el registro oculto, se avisa:
+            // el público estaría viendo puntos ajustados sin poder ver por qué.
+            const vigentes = resoluciones.filter(r => r.estado === 'vigente').length;
+            const aviso = (!estado.publico && vigentes > 0) ? `
+                <p class="text-xs text-noc-gold mt-2 pt-2 border-t border-noc-gold/30">
+                    ⚠ Hay ${vigentes} sanción(es) aplicándose a la tabla mientras este registro está oculto.
+                    El público ve los puntos ajustados y el motivo al pie de la tabla, pero no puede consultar el detalle completo aquí.
+                    Conviene publicar el registro.
+                </p>` : '';
+
+            return `
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4 p-3 rounded border ${estado.publico ? 'border-green-700/60 bg-green-900/20' : 'border-noc-gold/40 bg-noc-gold/10'}">
+                    <div class="min-w-0">
+                        <p class="font-semibold ${estado.publico ? 'text-green-300' : 'text-noc-goldlight'}">
+                            ${estado.publico ? '● Registro visible para todo el público' : '○ Registro oculto: solo lo ves tú'}
+                        </p>
+                        <p class="text-xs text-white/50 mt-0.5">
+                            ${estado.publico
+                                ? 'Cualquier club puede consultar las sanciones y los reclamos con su fundamento.'
+                                : 'La pestaña Resoluciones no aparece para los visitantes.'}
+                        </p>
+                        ${aviso}
+                    </div>
+                    <button onclick="publicarResoluciones(${estado.publico ? 'false' : 'true'})"
+                            class="${estado.publico ? 'bg-noc-purple2 text-white hover:bg-noc-purple' : 'bg-green-700 text-white hover:bg-green-600'} px-4 py-2 rounded shadow transition shrink-0">
+                        ${estado.publico ? 'Ocultar del público' : 'Publicar'}
+                    </button>
+                </div>`;
+        }
+
+        async function publicarResoluciones(publico) {
+            const aviso = publico
+                ? 'El registro de sanciones y reclamos quedará visible para cualquier visitante. ¿Continuar?'
+                : 'La pestaña Resoluciones dejará de verse para el público. Ojo: las sanciones ya registradas siguen afectando la tabla igual. ¿Continuar?';
+            if (!confirm(aviso)) return;
+            try {
+                await api('/resoluciones/publicar', { method: 'POST', body: JSON.stringify({ serie: serieActual, publico }) });
+                renderResoluciones();
+            } catch (e) { alert(e.message); }
+        }
 
         function pintarFormResolucion(equipos, partidos) {
             return `
@@ -1180,19 +1228,27 @@
         // --- 4b. ELIMINATORIAS (cuartos, semifinales, final) ---
         const ORDEN_FASES = ['cuartos', 'semifinal', 'final'];
 
-        // La pestaña permanece oculta hasta que el admin publique el cuadro de
-        // esa serie. El admin siempre la ve, para poder prepararla antes.
-        async function actualizarVisibilidadEliminatorias() {
-            const boton = document.getElementById('btn-eliminatorias');
-            let visible = false;
-            try {
-                visible = (await api(`/playoffs/estado?serie=${serieActual}`)).visible;
-            } catch (e) {
-                visible = false;
+        // Pestañas que nacen ocultas y el admin publica cuando quiere. El admin
+        // siempre las ve, para poder prepararlas antes de estrenarlas.
+        const PESTANAS_PUBLICABLES = [
+            { boton: 'btn-eliminatorias', tab: 'tab-eliminatorias', estado: '/playoffs/estado' },
+            { boton: 'btn-resoluciones', tab: 'tab-resoluciones', estado: '/resoluciones/estado' },
+        ];
+
+        async function actualizarVisibilidadPestanas() {
+            for (const p of PESTANAS_PUBLICABLES) {
+                const boton = document.getElementById(p.boton);
+                if (!boton) continue;
+                let visible = false;
+                try {
+                    visible = (await api(`${p.estado}?serie=${serieActual}`)).visible;
+                } catch (e) {
+                    visible = false;
+                }
+                boton.classList.toggle('hidden', !visible);
+                // Si se estaba mirando la pestaña y dejó de estar disponible, sale de ella.
+                if (!visible && tabActual === p.tab) showTab('tab-partidos');
             }
-            boton.classList.toggle('hidden', !visible);
-            // Si se estaba mirando la pestaña y dejó de estar disponible, sale de ella.
-            if (!visible && tabActual === 'tab-eliminatorias') showTab('tab-partidos');
         }
 
         async function renderPlayoffs() {
@@ -1933,7 +1989,7 @@
         window.onload = () => {
             renderAuthBox();
             document.getElementById('serie-btn-' + serieActual).classList.add('active');
-            actualizarVisibilidadEliminatorias();
+            actualizarVisibilidadPestanas();
             showTab('tab-equipos');
 
             // Agregar event listeners a los botones de serie

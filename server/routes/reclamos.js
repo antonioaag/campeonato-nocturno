@@ -1,8 +1,9 @@
 const express = require('express');
 const db = require('../db');
-const { requireAuth, requireAdmin } = require('../auth');
+const { requireAuth, requireAdmin, authOpcional } = require('../auth');
 const asyncHandler = require('../asyncHandler');
 const { esSerieValida } = require('../series');
+const { leerBooleano, claveResolucionesPublicas } = require('../configuracion');
 
 const router = express.Router();
 
@@ -31,10 +32,16 @@ const SELECT_RECLAMOS = `
 
 const ESTADOS = ['presentado', 'aceptado', 'rechazado'];
 
-// Pública: un reclamo rechazado también es información que da transparencia.
-router.get('/', asyncHandler(async (req, res) => {
+// Un reclamo rechazado también es información que da transparencia, así que
+// una vez publicado el registro lo puede leer cualquiera. Mientras el registro
+// de la serie siga oculto, solo lo ve el admin.
+router.get('/', authOpcional, asyncHandler(async (req, res) => {
   const serie = req.query.serie || 'ADULTO';
   if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
+
+  const publico = await leerBooleano(claveResolucionesPublicas(serie), false);
+  const esAdmin = !!(req.usuario && req.usuario.rol === 'admin');
+  if (!publico && !esAdmin) return res.json([]);
 
   const condiciones = ['rc.serie = ?'];
   const params = [serie];

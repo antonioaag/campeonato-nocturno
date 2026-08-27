@@ -26,4 +26,10 @@ function clavePlayoffsPublicos(serie) {
   return `playoffs_publicos_${serie}`;
 }
 
-module.exports = { leer, escribir, leerBooleano, clavePlayoffsPublicos };
+// Mismo criterio para el registro de sanciones y reclamos: nace oculto y el
+// admin decide cuándo mostrarlo.
+function claveResolucionesPublicas(serie) {
+  return `resoluciones_publicas_${serie}`;
+}
+
+module.exports = { leer, escribir, leerBooleano, clavePlayoffsPublicos, claveResolucionesPublicas };

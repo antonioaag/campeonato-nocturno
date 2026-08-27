@@ -1,19 +1,48 @@
 const express = require('express');
 const db = require('../db');
-const { requireAuth, requireAdmin } = require('../auth');
+const { requireAuth, requireAdmin, authOpcional } = require('../auth');
 const asyncHandler = require('../asyncHandler');
 const { esSerieValida } = require('../series');
 const { listar, obtenerPorId, validar } = require('../resoluciones');
+const { leerBooleano, escribir, claveResolucionesPublicas } = require('../configuracion');
 
 const router = express.Router();
 
-// Pública: el listado de resoluciones es justamente lo que permite auditar la
-// tabla, así que cualquiera puede consultarlo, incluidas las revocadas.
-router.get('/', asyncHandler(async (req, res) => {
+async function estadoDeVisibilidad(serie, usuario) {
+  const publico = await leerBooleano(claveResolucionesPublicas(serie), false);
+  const esAdmin = !!(usuario && usuario.rol === 'admin');
+  return { publico, esAdmin, visible: publico || esAdmin };
+}
+
+// Estado de visibilidad, para que el front decida si muestra la pestaña.
+router.get('/estado', authOpcional, asyncHandler(async (req, res) => {
   const serie = req.query.serie || 'ADULTO';
   if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
+  const { publico, visible } = await estadoDeVisibilidad(serie, req.usuario);
+  res.json({ serie, publico, visible });
+}));
+
+// El listado de resoluciones es lo que permite auditar la tabla, así que una
+// vez publicado lo puede ver cualquiera, incluidas las revocadas. Mientras el
+// registro no esté publicado, solo lo ve el admin.
+router.get('/', authOpcional, asyncHandler(async (req, res) => {
+  const serie = req.query.serie || 'ADULTO';
+  if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
+
+  const { visible } = await estadoDeVisibilidad(serie, req.usuario);
+  if (!visible) return res.json([]);
+
   const soloVigentes = req.query.vigentes === '1';
   res.json(await listar(serie, { soloVigentes }));
+}));
+
+// Publica u oculta el registro de sanciones y reclamos de la serie. Solo admin.
+router.post('/publicar', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const serie = (req.body && req.body.serie) || 'ADULTO';
+  const publico = !!(req.body && req.body.publico);
+  if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
+  await escribir(claveResolucionesPublicas(serie), publico ? '1' : '0');
+  res.json({ ok: true, serie, publico });
 }));
 
 // Registrar una resolución. Solo admin.
