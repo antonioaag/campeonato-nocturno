@@ -193,6 +193,54 @@ function init() {
           subido_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
 
+        -- Resoluciones del tribunal: descuentos de puntos y partidos ganados
+        -- por secretaría. Son append-only a propósito: no se editan ni se
+        -- borran, porque son el respaldo de por qué la tabla dice lo que dice.
+        -- Si una resolución queda sin efecto (apelación, error), se marca
+        -- 'revocada' con su motivo y se emite otra. Así el historial completo
+        -- queda disponible para cualquiera que quiera auditarlo.
+        CREATE TABLE IF NOT EXISTS resoluciones (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          serie TEXT NOT NULL,
+          tipo TEXT NOT NULL CHECK(tipo IN ('descuento_puntos','partido_homologado')),
+          origen TEXT NOT NULL CHECK(origen IN ('oficio','reclamo')),
+          equipo_id INTEGER REFERENCES equipos(id),
+          partido_id INTEGER REFERENCES partidos(id),
+          puntos_ajuste INTEGER,
+          goles_local_hom INTEGER,
+          goles_visita_hom INTEGER,
+          articulo TEXT NOT NULL,
+          motivo TEXT NOT NULL,
+          numero_acta TEXT,
+          fecha_resolucion TEXT NOT NULL,
+          estado TEXT NOT NULL DEFAULT 'vigente' CHECK(estado IN ('vigente','revocada')),
+          creada_por INTEGER REFERENCES usuarios(id),
+          creada_at TEXT NOT NULL DEFAULT (datetime('now')),
+          revocada_por INTEGER REFERENCES usuarios(id),
+          revocada_at TEXT,
+          motivo_revocacion TEXT
+        );
+
+        -- Reclamos presentados por los clubes. Viven aparte de las
+        -- resoluciones porque un reclamo puede rechazarse, y un rechazo
+        -- también es información pública que conviene dejar registrada.
+        CREATE TABLE IF NOT EXISTS reclamos (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          serie TEXT NOT NULL,
+          partido_id INTEGER REFERENCES partidos(id),
+          club_id INTEGER NOT NULL REFERENCES equipos(id),
+          motivo TEXT NOT NULL,
+          articulo TEXT,
+          fecha_presentacion TEXT NOT NULL,
+          estado TEXT NOT NULL DEFAULT 'presentado' CHECK(estado IN ('presentado','aceptado','rechazado')),
+          resolucion_texto TEXT,
+          fecha_resolucion TEXT,
+          resuelto_por INTEGER REFERENCES usuarios(id),
+          resolucion_id INTEGER REFERENCES resoluciones(id),
+          creado_por INTEGER REFERENCES usuarios(id),
+          creado_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
         CREATE TABLE IF NOT EXISTS configuracion (
           clave TEXT PRIMARY KEY,
           valor TEXT NOT NULL,

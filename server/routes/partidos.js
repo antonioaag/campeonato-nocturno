@@ -3,6 +3,7 @@ const db = require('../db');
 const { requireAuth } = require('../auth');
 const asyncHandler = require('../asyncHandler');
 const { esSerieValida } = require('../series');
+const { ajustesVigentes } = require('../resoluciones');
 
 const router = express.Router();
 
@@ -32,6 +33,13 @@ router.get('/', asyncHandler(async (req, res) => {
   if (fecha) { condiciones.push('p.fecha = ?'); params.push(Number(fecha)); }
   const where = `WHERE ${condiciones.join(' AND ')}`;
   const partidos = await db.all(`${SELECT_PARTIDOS} ${where} ORDER BY p.grupo, p.fecha, p.id`, params);
+
+  // Se adjunta la homologación vigente, si la hay. El marcador de cancha viaja
+  // intacto en golesLocal/golesVisita; el resuelto por el tribunal va aparte,
+  // para que la interfaz pueda mostrar los dos y explicar la diferencia.
+  const { porPartido } = await ajustesVigentes(serie);
+  partidos.forEach(p => { p.homologacion = porPartido[p.id] || null; });
+
   res.json(partidos);
 }));
 

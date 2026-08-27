@@ -71,6 +71,8 @@ async function start() {
   app.use('/api/jugadores', require('./routes/jugadores'));
   app.use('/api/listas-inscripcion', require('./routes/listas-inscripcion'));
   app.use('/api/castigos', require('./routes/castigos'));
+  app.use('/api/resoluciones', require('./routes/resoluciones'));
+  app.use('/api/reclamos', require('./routes/reclamos'));
 
   // Frontend estático
   app.use(express.static(path.join(__dirname, '..', 'public')));

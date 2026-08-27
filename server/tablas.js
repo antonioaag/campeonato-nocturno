@@ -4,6 +4,7 @@
 // el cuadro de cuartos de final).
 const db = require('./db');
 const { SERIES } = require('./series');
+const { ajustesVigentes } = require('./resoluciones');
 
 // Orden estándar de desempate: puntos, diferencia de gol, goles a favor,
 // goles en contra (menos es mejor), y por último alfabético.
@@ -17,52 +18,83 @@ function compararEquipos(a, b) {
 
 // Solo la fase de grupos cuenta para la tabla: los partidos de cuartos en
 // adelante no suman puntos.
-async function calcularTabla(serie, grupo) {
+//
+// Los ajustes del tribunal se aplican aquí, al calcular, y nunca sobre los
+// datos guardados: un partido homologado conserva su marcador de cancha en la
+// base y se computa con el homologado; un descuento de puntos se resta al
+// final y queda anotado en el equipo para poder mostrarlo aparte.
+async function calcularTabla(serie, grupo, ajustes) {
   const equipos = await db.all('SELECT * FROM equipos WHERE serie = ? AND grupo = ? ORDER BY orden', [serie, grupo]);
   const stats = {};
   equipos.forEach(e => {
     stats[e.id] = {
       id: e.id, nombre: e.nombre, serie: e.serie, grupo: e.grupo,
-      pts: 0, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dg: 0
+      pts: 0, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dg: 0,
+      ptsCancha: 0, ajustePuntos: 0, sanciones: []
     };
   });
 
-  const jugados = await db.all(
-    "SELECT * FROM partidos WHERE serie = ? AND grupo = ? AND estado = 'jugado' AND fase = 'grupos'",
+  // Se traen todos los partidos del grupo, no solo los jugados: uno homologado
+  // por no presentarse nunca llegó a jugarse y aun así tiene que computar.
+  const partidos = await db.all(
+    "SELECT * FROM partidos WHERE serie = ? AND grupo = ? AND fase = 'grupos'",
     [serie, grupo]
   );
-  jugados.forEach(p => {
+
+  partidos.forEach(p => {
+    const homologado = ajustes.porPartido[p.id];
+    const cuenta = homologado || p.estado === 'jugado';
+    if (!cuenta) return;
+
     const L = stats[p.local_id];
     const V = stats[p.visita_id];
     if (!L || !V) return; // por si acaso
+
+    const gl = homologado ? homologado.golesLocal : p.goles_local;
+    const gv = homologado ? homologado.golesVisita : p.goles_visita;
+    if (gl === null || gl === undefined || gv === null || gv === undefined) return;
+
     L.pj++; V.pj++;
-    L.gf += p.goles_local; L.gc += p.goles_visita;
-    V.gf += p.goles_visita; V.gc += p.goles_local;
-    if (p.goles_local > p.goles_visita) { L.pg++; L.pts += 3; V.pp++; }
-    else if (p.goles_local < p.goles_visita) { V.pg++; V.pts += 3; L.pp++; }
+    L.gf += gl; L.gc += gv;
+    V.gf += gv; V.gc += gl;
+    if (gl > gv) { L.pg++; L.pts += 3; V.pp++; }
+    else if (gl < gv) { V.pg++; V.pts += 3; L.pp++; }
     else { L.pe++; V.pe++; L.pts += 1; V.pts += 1; }
     L.dg = L.gf - L.gc;
     V.dg = V.gf - V.gc;
   });
 
-  // Partidos aplazados pendientes de reprogramar (informativo).
-  const aplazados = await db.all(
-    "SELECT local_id, visita_id FROM partidos WHERE serie = ? AND grupo = ? AND estado = 'aplazado' AND fase = 'grupos'",
-    [serie, grupo]
-  );
-  aplazados.forEach(p => {
-    if (stats[p.local_id]) stats[p.local_id].pa = (stats[p.local_id].pa || 0) + 1;
-    if (stats[p.visita_id]) stats[p.visita_id].pa = (stats[p.visita_id].pa || 0) + 1;
+  // Partidos aplazados pendientes de reprogramar (informativo). Uno homologado
+  // ya quedó resuelto, así que deja de contar como pendiente.
+  partidos
+    .filter(p => p.estado === 'aplazado' && !ajustes.porPartido[p.id])
+    .forEach(p => {
+      if (stats[p.local_id]) stats[p.local_id].pa = (stats[p.local_id].pa || 0) + 1;
+      if (stats[p.visita_id]) stats[p.visita_id].pa = (stats[p.visita_id].pa || 0) + 1;
+    });
+
+  Object.values(stats).forEach(e => {
+    if (!e.pa) e.pa = 0;
+    // Se guarda el puntaje deportivo antes de sanciones para poder mostrar
+    // "14 − 3 = 11" en vez de un 11 sin explicación.
+    e.ptsCancha = e.pts;
+    const ajuste = ajustes.porEquipo[e.id];
+    if (ajuste) {
+      e.ajustePuntos = ajuste.puntos;
+      e.sanciones = ajuste.detalle;
+      e.pts += ajuste.puntos;
+    }
   });
-  Object.values(stats).forEach(e => { if (!e.pa) e.pa = 0; });
 
   return Object.values(stats).sort(compararEquipos);
 }
 
 async function calcularTodasLasTablas(serie) {
+  // Se leen una sola vez para todos los grupos de la serie.
+  const ajustes = await ajustesVigentes(serie);
   const resultado = {};
   for (const grupo of SERIES[serie].grupos) {
-    resultado[grupo] = await calcularTabla(serie, grupo);
+    resultado[grupo] = await calcularTabla(serie, grupo, ajustes);
   }
   return resultado;
 }
