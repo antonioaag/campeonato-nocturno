@@ -16,6 +16,14 @@ function compararEquipos(a, b) {
   return a.nombre.localeCompare(b.nombre);
 }
 
+// Un equipo descalificado por WO sigue apareciendo en la tabla, pero siempre al
+// final. Dejarlo en el puesto que traía mostraría un 2º lugar que no clasifica,
+// que es justo lo que confunde a cualquiera que mire la tabla de reojo.
+function compararConDescalificados(a, b) {
+  if (!a.descalificado !== !b.descalificado) return a.descalificado ? 1 : -1;
+  return compararEquipos(a, b);
+}
+
 // Solo la fase de grupos cuenta para la tabla: los partidos de cuartos en
 // adelante no suman puntos.
 //
@@ -42,6 +50,10 @@ async function calcularTabla(serie, grupo, ajustes) {
   );
 
   partidos.forEach(p => {
+    // Un WO puede dejar sin efecto los partidos del infractor: no computan
+    // para nadie, ni siquiera para el rival que se los ganó en la cancha.
+    if (ajustes.anulados[p.id]) return;
+
     const homologado = ajustes.porPartido[p.id];
     const cuenta = homologado || p.estado === 'jugado';
     if (!cuenta) return;
@@ -67,7 +79,7 @@ async function calcularTabla(serie, grupo, ajustes) {
   // Partidos aplazados pendientes de reprogramar (informativo). Uno homologado
   // ya quedó resuelto, así que deja de contar como pendiente.
   partidos
-    .filter(p => p.estado === 'aplazado' && !ajustes.porPartido[p.id])
+    .filter(p => p.estado === 'aplazado' && !ajustes.porPartido[p.id] && !ajustes.anulados[p.id])
     .forEach(p => {
       if (stats[p.local_id]) stats[p.local_id].pa = (stats[p.local_id].pa || 0) + 1;
       if (stats[p.visita_id]) stats[p.visita_id].pa = (stats[p.visita_id].pa || 0) + 1;
@@ -84,9 +96,15 @@ async function calcularTabla(serie, grupo, ajustes) {
       e.sanciones = ajuste.detalle;
       e.pts += ajuste.puntos;
     }
+    // La descalificación viaja completa (artículo, acta, alcance) para que la
+    // tabla pueda explicar por qué ese equipo quedó fuera sin mandar a nadie a
+    // buscarlo a otra pestaña.
+    const fuera = ajustes.descalificados[e.id];
+    e.descalificado = !!fuera;
+    e.descalificacion = fuera || null;
   });
 
-  return Object.values(stats).sort(compararEquipos);
+  return Object.values(stats).sort(compararConDescalificados);
 }
 
 async function calcularTodasLasTablas(serie) {
@@ -99,18 +117,25 @@ async function calcularTodasLasTablas(serie) {
   return resultado;
 }
 
+// Los descalificados no compiten por un puesto: se los saca antes de contar,
+// así el que venía detrás pasa a ocupar su lugar entre los clasificados.
+function enCarrera(tabla) {
+  return tabla.filter(eq => !eq.descalificado);
+}
+
 // SENIOR (3 grupos de 4): clasifican los 2 primeros de cada grupo más los 2
 // mejores terceros comparados entre sí. Modifica tablasPorGrupo en el lugar.
 function marcarClasificadosSenior(tablasPorGrupo) {
   Object.values(tablasPorGrupo).forEach(tabla => {
-    tabla.forEach((eq, idx) => {
-      eq.clasificado = idx < 2;
-      eq.clasificaVia = idx < 2 ? 'grupo' : null;
+    tabla.forEach(eq => { eq.clasificado = false; eq.clasificaVia = null; });
+    enCarrera(tabla).slice(0, 2).forEach(eq => {
+      eq.clasificado = true;
+      eq.clasificaVia = 'grupo';
     });
   });
 
   const terceros = Object.values(tablasPorGrupo)
-    .map(tabla => tabla[2])
+    .map(tabla => enCarrera(tabla)[2])
     .filter(Boolean)
     .sort(compararEquipos);
 
@@ -125,9 +150,10 @@ function marcarClasificadosSenior(tablasPorGrupo) {
 // ADULTO (grupos A de 7 y B de 6): clasifican los 4 primeros de cada grupo.
 function marcarClasificadosAdulto(tablasPorGrupo) {
   Object.values(tablasPorGrupo).forEach(tabla => {
-    tabla.forEach((eq, idx) => {
-      eq.clasificado = idx < 4;
-      eq.clasificaVia = idx < 4 ? 'grupo' : null;
+    tabla.forEach(eq => { eq.clasificado = false; eq.clasificaVia = null; });
+    enCarrera(tabla).slice(0, 4).forEach(eq => {
+      eq.clasificado = true;
+      eq.clasificaVia = 'grupo';
     });
   });
   return tablasPorGrupo;
@@ -141,6 +167,7 @@ function marcarClasificados(serie, tablasPorGrupo) {
 
 module.exports = {
   compararEquipos,
+  enCarrera,
   calcularTabla,
   calcularTodasLasTablas,
   marcarClasificados,

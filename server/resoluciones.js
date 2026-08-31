@@ -6,8 +6,9 @@
 // y siempre se acompaña del motivo, el artículo y el acta. Cualquiera puede ver
 // el marcador real y el homologado uno al lado del otro.
 const db = require('./db');
+const { efectosDeWalkover, explicarAlcance } = require('./walkover');
 
-const TIPOS = ['descuento_puntos', 'partido_homologado'];
+const TIPOS = ['descuento_puntos', 'partido_homologado', 'walkover'];
 const ORIGENES = ['oficio', 'reclamo'];
 
 const SELECT_RESOLUCIONES = `
@@ -19,6 +20,7 @@ const SELECT_RESOLUCIONES = `
     r.goles_local_hom AS golesLocalHom, r.goles_visita_hom AS golesVisitaHom,
     r.articulo, r.motivo, r.numero_acta AS numeroActa,
     r.fecha_resolucion AS fechaResolucion, r.estado,
+    r.wo_jugados AS woJugados, r.wo_total AS woTotal,
     r.creada_at AS creadaAt, u.nombre AS creadaPor,
     r.revocada_at AS revocadaAt, r.motivo_revocacion AS motivoRevocacion,
     ur.nombre AS revocadaPor,
@@ -50,14 +52,21 @@ async function obtenerPorId(id) {
 }
 
 // Devuelve las resoluciones vigentes ya organizadas para consumirlas al
-// calcular la tabla: los descuentos agrupados por equipo y las homologaciones
-// indexadas por partido.
+// calcular la tabla: los descuentos agrupados por equipo, las homologaciones
+// indexadas por partido, los equipos descalificados por WO y los partidos que
+// un WO dejó sin efecto para todos.
 async function ajustesVigentes(serie) {
   const vigentes = await listar(serie, { soloVigentes: true });
 
   const porEquipo = {};
   const porPartido = {};
+  const descalificados = {};
+  const anulados = {};
 
+  // Primero los descuentos y las homologaciones puntuales. Van antes que los WO
+  // a propósito: una homologación escrita a mano es una decisión específica del
+  // tribunal sobre ese partido y manda por sobre el marcador que deriva de la
+  // regla general del WO.
   vigentes.forEach(r => {
     if (r.tipo === 'descuento_puntos' && r.equipoId) {
       if (!porEquipo[r.equipoId]) porEquipo[r.equipoId] = { puntos: 0, detalle: [] };
@@ -90,7 +99,69 @@ async function ajustesVigentes(serie) {
     }
   });
 
-  return { porEquipo, porPartido };
+  // Ahora los WO. Cada uno descalifica a un equipo y además resuelve de una vez
+  // todos los partidos que ese equipo ya no jugará.
+  const derivadas = [];
+  const aAnular = new Map(); // partidoId -> resolución que lo anuló
+
+  for (const r of vigentes.filter(x => x.tipo === 'walkover' && x.equipoId && x.partidoId)) {
+    const efectos = await efectosDeWalkover(r);
+
+    descalificados[r.equipoId] = {
+      id: r.id,
+      equipoId: r.equipoId,
+      equipo: r.equipo,
+      articulo: r.articulo,
+      motivo: r.motivo,
+      numeroActa: r.numeroActa,
+      fechaResolucion: r.fechaResolucion,
+      origen: r.origen,
+      partidoId: r.partidoId,
+      rival: r.partidoLocalId === r.equipoId ? r.partidoVisita : r.partidoLocal,
+      jugados: r.woJugados,
+      total: r.woTotal,
+      resultadosValidos: efectos.validos,
+      alcance: explicarAlcance(r.woJugados, r.woTotal),
+    };
+
+    efectos.homologaciones.forEach(h => derivadas.push({ ...h, resolucion: r }));
+    efectos.anulados.forEach(id => { if (!aAnular.has(id)) aAnular.set(id, r); });
+  }
+
+  const desdeWalkover = (h) => ({
+    id: h.resolucion.id,
+    golesLocal: h.golesLocal,
+    golesVisita: h.golesVisita,
+    articulo: h.resolucion.articulo,
+    motivo: h.resolucion.motivo,
+    numeroActa: h.resolucion.numeroActa,
+    fechaResolucion: h.resolucion.fechaResolucion,
+    origen: h.resolucion.origen,
+    walkover: { equipo: h.resolucion.equipo, motivo: h.esElDelWo ? 'wo' : 'pendiente' },
+  });
+
+  // El partido donde ocurrió el WO se homologa siempre: el 3-0 del equipo que
+  // sí se presentó no se le quita ni cuando se anula todo lo demás.
+  derivadas.filter(h => h.esElDelWo).forEach(h => {
+    if (!porPartido[h.partidoId]) porPartido[h.partidoId] = desdeWalkover(h);
+  });
+
+  // Las anulaciones van antes que el 1-0 de los pendientes para que un cruce
+  // entre dos equipos descalificados no termine dándole puntos a ninguno.
+  aAnular.forEach((r, id) => {
+    if (porPartido[id]) return;
+    anulados[id] = {
+      id: r.id, equipo: r.equipo, articulo: r.articulo, motivo: r.motivo,
+      numeroActa: r.numeroActa, fechaResolucion: r.fechaResolucion,
+    };
+  });
+
+  derivadas.filter(h => !h.esElDelWo).forEach(h => {
+    if (porPartido[h.partidoId] || anulados[h.partidoId]) return;
+    porPartido[h.partidoId] = desdeWalkover(h);
+  });
+
+  return { porEquipo, porPartido, descalificados, anulados };
 }
 
 // Valida los datos de una resolución nueva. Devuelve un mensaje de error o
@@ -111,6 +182,11 @@ function validar({ tipo, origen, equipoId, partidoId, puntosAjuste, golesLocalHo
     if (!Number.isInteger(p) || p === 0) return 'Los puntos deben ser un número entero distinto de 0';
     if (p > 0) return 'Un descuento debe ser negativo (por ejemplo -3)';
     if (p < -100) return 'El descuento no puede superar los 100 puntos';
+  }
+
+  if (tipo === 'walkover') {
+    if (!partidoId) return 'Hay que indicar en qué partido se produjo el WO';
+    if (!equipoId) return 'Hay que indicar qué equipo no se presentó';
   }
 
   if (tipo === 'partido_homologado') {

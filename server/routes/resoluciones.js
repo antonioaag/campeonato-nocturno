@@ -4,6 +4,7 @@ const { requireAuth, requireAdmin, authOpcional } = require('../auth');
 const asyncHandler = require('../asyncHandler');
 const { esSerieValida } = require('../series');
 const { listar, obtenerPorId, validar } = require('../resoluciones');
+const { contarPartidosDeGrupo, efectosDeWalkover, explicarAlcance, umbralPartidosValidos } = require('../walkover');
 const { leerBooleano, escribir, claveResolucionesPublicas } = require('../configuracion');
 
 const router = express.Router();
@@ -45,6 +46,78 @@ router.post('/publicar', requireAuth, requireAdmin, asyncHandler(async (req, res
   res.json({ ok: true, serie, publico });
 }));
 
+// Qué pasaría si se registra este WO. Un WO puede anular media fase de grupos,
+// así que el admin tiene que poder verlo ANTES de confirmarlo y no descubrirlo
+// después mirando la tabla. Solo admin, igual que el registro.
+router.get('/walkover/previsualizar', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const serie = req.query.serie || 'ADULTO';
+  const partidoId = Number(req.query.partidoId);
+  const equipoId = Number(req.query.equipoId);
+  if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
+
+  const problema = await revisarWalkover(serie, partidoId, equipoId);
+  if (problema) return res.status(problema.status).json({ error: problema.error });
+
+  const { jugados, total } = await contarPartidosDeGrupo(equipoId);
+  const efectos = await efectosDeWalkover({ equipoId, partidoId, woJugados: jugados, woTotal: total });
+
+  // Se traducen los ids a nombres para que la previsualización se pueda leer
+  // sin tener que cruzar números a mano.
+  const ids = [...efectos.homologaciones.map(h => h.partidoId), ...efectos.anulados];
+  const detalles = ids.length ? await db.all(`
+    SELECT p.id, l.nombre AS local, v.nombre AS visita, p.estado,
+           p.goles_local AS golesLocal, p.goles_visita AS golesVisita
+    FROM partidos p
+    JOIN equipos l ON l.id = p.local_id
+    JOIN equipos v ON v.id = p.visita_id
+    WHERE p.id IN (${ids.map(() => '?').join(',')})
+  `, ids) : [];
+  const porId = {};
+  detalles.forEach(d => { porId[d.id] = d; });
+
+  res.json({
+    jugados,
+    total,
+    umbral: umbralPartidosValidos(total),
+    resultadosValidos: efectos.validos,
+    alcance: explicarAlcance(jugados, total),
+    homologaciones: efectos.homologaciones.map(h => ({ ...h, partido: porId[h.partidoId] || null })),
+    anulados: efectos.anulados.map(id => porId[id] || { id }),
+  });
+}));
+
+// Comprobaciones comunes a previsualizar y registrar un WO. Devuelve null si
+// todo está en orden, o el error a responder.
+async function revisarWalkover(serie, partidoId, equipoId) {
+  const partido = await db.get('SELECT id, serie, fase, local_id, visita_id FROM partidos WHERE id = ?', [partidoId]);
+  if (!partido) return { status: 400, error: 'Partido no encontrado' };
+  if (partido.serie !== serie) return { status: 400, error: 'El partido no pertenece a esa serie' };
+  if (partido.fase !== 'grupos') {
+    return { status: 400, error: 'Por ahora el WO solo se registra en la fase de grupos. En una llave de eliminatorias, homologa el partido a favor del equipo que se presentó.' };
+  }
+  if (Number(partido.local_id) !== equipoId && Number(partido.visita_id) !== equipoId) {
+    return { status: 400, error: 'El equipo que no se presentó tiene que ser uno de los dos de ese partido' };
+  }
+
+  const yaFuera = await db.get(
+    "SELECT id FROM resoluciones WHERE tipo = 'walkover' AND equipo_id = ? AND estado = 'vigente'",
+    [equipoId]
+  );
+  if (yaFuera) {
+    return { status: 409, error: `Ese equipo ya está descalificado por la resolución N°${yaFuera.id}. Un equipo no se descalifica dos veces.` };
+  }
+
+  const yaResuelto = await db.get(
+    "SELECT id, tipo FROM resoluciones WHERE partido_id = ? AND tipo IN ('partido_homologado','walkover') AND estado = 'vigente'",
+    [partidoId]
+  );
+  if (yaResuelto) {
+    return { status: 409, error: `Ese partido ya tiene una resolución vigente (N°${yaResuelto.id}). Revócala antes de emitir otra.` };
+  }
+
+  return null;
+}
+
 // Registrar una resolución. Solo admin.
 router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
   const {
@@ -68,6 +141,15 @@ router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
     if (equipo.serie !== serie) return res.status(400).json({ error: 'El equipo no pertenece a esa serie' });
   }
 
+  // El WO congela acá cuántos partidos había jugado el infractor: de ese número
+  // depende si sus resultados siguen valiendo, y no puede cambiar después.
+  let conteoWo = { jugados: null, total: null };
+  if (tipo === 'walkover') {
+    const problema = await revisarWalkover(serie, Number(partidoId), Number(equipoId));
+    if (problema) return res.status(problema.status).json({ error: problema.error });
+    conteoWo = await contarPartidosDeGrupo(Number(equipoId));
+  }
+
   let partido = null;
   if (tipo === 'partido_homologado') {
     partido = await db.get('SELECT id, serie FROM partidos WHERE id = ?', [Number(partidoId)]);
@@ -89,18 +171,19 @@ router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
     INSERT INTO resoluciones
       (serie, tipo, origen, equipo_id, partido_id, puntos_ajuste,
        goles_local_hom, goles_visita_hom, articulo, motivo, numero_acta,
-       fecha_resolucion, estado, creada_por)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'vigente', ?)
+       fecha_resolucion, estado, wo_jugados, wo_total, creada_por)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'vigente', ?, ?, ?)
   `, [
     serie, tipo, origen,
-    tipo === 'descuento_puntos' ? Number(equipoId) : null,
-    tipo === 'partido_homologado' ? Number(partidoId) : null,
+    tipo === 'descuento_puntos' || tipo === 'walkover' ? Number(equipoId) : null,
+    tipo === 'partido_homologado' || tipo === 'walkover' ? Number(partidoId) : null,
     tipo === 'descuento_puntos' ? Number(puntosAjuste) : null,
     tipo === 'partido_homologado' ? Number(golesLocalHom) : null,
     tipo === 'partido_homologado' ? Number(golesVisitaHom) : null,
     String(articulo).trim(), String(motivo).trim(),
     numeroActa ? String(numeroActa).trim() : null,
-    String(fechaResolucion).trim(), req.usuario.id,
+    String(fechaResolucion).trim(),
+    conteoWo.jugados, conteoWo.total, req.usuario.id,
   ]);
 
   res.status(201).json(await obtenerPorId(Number(info.lastInsertRowid)));
