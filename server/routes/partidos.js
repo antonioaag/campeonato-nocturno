@@ -37,8 +37,13 @@ router.get('/', asyncHandler(async (req, res) => {
   // Se adjunta la homologación vigente, si la hay. El marcador de cancha viaja
   // intacto en golesLocal/golesVisita; el resuelto por el tribunal va aparte,
   // para que la interfaz pueda mostrar los dos y explicar la diferencia.
-  const { porPartido } = await ajustesVigentes(serie);
-  partidos.forEach(p => { p.homologacion = porPartido[p.id] || null; });
+  // Un WO además puede dejar partidos sin efecto para todos: se marcan, para
+  // que el fixture no muestre un resultado que ya no le suma a nadie.
+  const { porPartido, anulados } = await ajustesVigentes(serie);
+  partidos.forEach(p => {
+    p.homologacion = porPartido[p.id] || null;
+    p.anulacion = anulados[p.id] || null;
+  });
 
   res.json(partidos);
 }));
@@ -69,6 +74,19 @@ router.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const partido = await db.get('SELECT * FROM partidos WHERE id = ?', [id]);
   if (!partido) return res.status(404).json({ error: 'Partido no encontrado' });
+
+  // Un equipo descalificado por WO no juega más: si se pudieran seguir cargando
+  // sus resultados, el partido dejaría de contarse como pendiente y el WO le
+  // cambiaría el efecto a la tabla meses después, sin que nadie lo note.
+  const descalificado = await db.get(`
+    SELECT e.nombre FROM resoluciones r JOIN equipos e ON e.id = r.equipo_id
+    WHERE r.tipo = 'walkover' AND r.estado = 'vigente' AND r.equipo_id IN (?, ?)
+  `, [partido.local_id, partido.visita_id]);
+  if (descalificado) {
+    return res.status(409).json({
+      error: `${descalificado.nombre} está descalificado por WO: sus partidos ya los resolvió el tribunal y no se cargan resultados. Si la descalificación fue un error, revoca la resolución.`,
+    });
+  }
 
   let { golesLocal, golesVisita, estado, penalesLocal, penalesVisita } = req.body || {};
   estado = estado || (golesLocal !== undefined && golesVisita !== undefined ? 'jugado' : partido.estado);

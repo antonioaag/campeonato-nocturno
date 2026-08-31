@@ -1,6 +1,6 @@
 // Fase de eliminación directa: siembra de los 8 clasificados, armado de los
 // cruces de cuartos y avance de fase. Todos los partidos son a PARTIDO ÚNICO.
-const { compararEquipos, calcularTodasLasTablas, marcarClasificados } = require('./tablas');
+const { compararEquipos, enCarrera, calcularTodasLasTablas, marcarClasificados } = require('./tablas');
 
 // Los partidos de eliminación directa se guardan con grupo = 'PO' para que no
 // aparezcan en las consultas por grupo (A/B/1/2/3) ni contaminen las tablas de
@@ -27,10 +27,13 @@ const JORNADA_POR_FASE = { cuartos: 1, semifinal: 2, final: 3 };
 //   Llave 1: 1ºA vs 4ºB      Llave 2: 2ºB vs 3ºA   -> Semifinal 1
 //   Llave 3: 1ºB vs 4ºA      Llave 4: 2ºA vs 3ºB   -> Semifinal 2
 function cruzarAdulto(tablas) {
-  const A = tablas['A'] || [];
-  const B = tablas['B'] || [];
+  // Se siembra solo con los equipos en carrera: un descalificado por WO no
+  // ocupa un lugar en el cuadro aunque hubiera terminado entre los cuatro
+  // primeros, y el quinto pasa a cuartos en su lugar.
+  const A = enCarrera(tablas['A'] || []);
+  const B = enCarrera(tablas['B'] || []);
   if (A.length < 4 || B.length < 4) {
-    throw new Error('Cada grupo de Adultos necesita al menos 4 equipos para armar los cuartos de final');
+    throw new Error('Cada grupo de Adultos necesita al menos 4 equipos en carrera para armar los cuartos de final');
   }
   return [
     { llave: 1, local: A[0], visita: B[3] },
@@ -48,7 +51,9 @@ function cruzarAdulto(tablas) {
 //   Llave 1: 1 vs 8          Llave 2: 4 vs 5       -> Semifinal 1
 //   Llave 3: 2 vs 7          Llave 4: 3 vs 6       -> Semifinal 2
 function sembrarSenior(tablas) {
-  const grupos = Object.values(tablas);
+  // Igual que en Adultos: los descalificados por WO salen del ranking y los
+  // puestos corren hacia arriba.
+  const grupos = Object.values(tablas).map(enCarrera);
   const primeros = grupos.map(t => t[0]).filter(Boolean).sort(compararEquipos);
   const segundos = grupos.map(t => t[1]).filter(Boolean).sort(compararEquipos);
   const terceros = grupos.map(t => t[2]).filter(Boolean).sort(compararEquipos);

@@ -202,7 +202,7 @@ function init() {
         CREATE TABLE IF NOT EXISTS resoluciones (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           serie TEXT NOT NULL,
-          tipo TEXT NOT NULL CHECK(tipo IN ('descuento_puntos','partido_homologado')),
+          tipo TEXT NOT NULL CHECK(tipo IN ('descuento_puntos','partido_homologado','walkover')),
           origen TEXT NOT NULL CHECK(origen IN ('oficio','reclamo')),
           equipo_id INTEGER REFERENCES equipos(id),
           partido_id INTEGER REFERENCES partidos(id),
@@ -214,6 +214,8 @@ function init() {
           numero_acta TEXT,
           fecha_resolucion TEXT NOT NULL,
           estado TEXT NOT NULL DEFAULT 'vigente' CHECK(estado IN ('vigente','revocada')),
+          wo_jugados INTEGER,
+          wo_total INTEGER,
           creada_por INTEGER REFERENCES usuarios(id),
           creada_at TEXT NOT NULL DEFAULT (datetime('now')),
           revocada_por INTEGER REFERENCES usuarios(id),
@@ -264,6 +266,7 @@ function init() {
       await migrar2FAYPasswordReset();
       await migrarPartidosDetalles();
       await migrarFasePlayoffs();
+      await migrarWalkover();
     })();
   }
   return readyPromise;
@@ -355,6 +358,79 @@ async function migrarFasePlayoffs() {
   } catch (e) {
     console.log('Columnas de playoffs ya existen o error:', e.message);
   }
+}
+
+// Migra 'resoluciones' para aceptar el tipo 'walkover' (WO) y guardar cuántos
+// partidos había jugado el infractor cuando se le registró.
+//
+// SQLite no permite ampliar un CHECK con ALTER TABLE, así que hay que
+// reconstruir la tabla igual que en migrarSerie: crear la nueva -> copiar TODAS
+// las filas tal cual -> reemplazar. No se pierde ninguna resolución ni cambia
+// el contenido de las existentes; solo se amplía lo que la tabla acepta a
+// futuro. Es idempotente: si el CHECK ya nombra 'walkover', no hace nada.
+//
+// El conteo se congela en la fila (wo_jugados / wo_total) en vez de calcularse
+// cada vez, porque de él depende si los resultados del infractor siguen
+// valiendo. Si se recalculara, cargar un resultado atrasado podría dar vuelta
+// media tabla en silencio, meses después de la resolución.
+async function migrarWalkover() {
+  const tabla = await get("SELECT sql FROM sqlite_master WHERE type='table' AND name='resoluciones'");
+  if (!tabla) return; // todavía no existe: init() la crea ya con walkover
+
+  if (!/walkover/.test(tabla.sql)) {
+    await exec('PRAGMA foreign_keys = OFF');
+    await batch([
+      { sql: `CREATE TABLE resoluciones_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        serie TEXT NOT NULL,
+        tipo TEXT NOT NULL CHECK(tipo IN ('descuento_puntos','partido_homologado','walkover')),
+        origen TEXT NOT NULL CHECK(origen IN ('oficio','reclamo')),
+        equipo_id INTEGER REFERENCES equipos(id),
+        partido_id INTEGER REFERENCES partidos(id),
+        puntos_ajuste INTEGER,
+        goles_local_hom INTEGER,
+        goles_visita_hom INTEGER,
+        articulo TEXT NOT NULL,
+        motivo TEXT NOT NULL,
+        numero_acta TEXT,
+        fecha_resolucion TEXT NOT NULL,
+        estado TEXT NOT NULL DEFAULT 'vigente' CHECK(estado IN ('vigente','revocada')),
+        wo_jugados INTEGER,
+        wo_total INTEGER,
+        creada_por INTEGER REFERENCES usuarios(id),
+        creada_at TEXT NOT NULL DEFAULT (datetime('now')),
+        revocada_por INTEGER REFERENCES usuarios(id),
+        revocada_at TEXT,
+        motivo_revocacion TEXT
+      )`, args: [] },
+      { sql: `INSERT INTO resoluciones_new
+                (id, serie, tipo, origen, equipo_id, partido_id, puntos_ajuste,
+                 goles_local_hom, goles_visita_hom, articulo, motivo, numero_acta,
+                 fecha_resolucion, estado, creada_por, creada_at,
+                 revocada_por, revocada_at, motivo_revocacion)
+              SELECT id, serie, tipo, origen, equipo_id, partido_id, puntos_ajuste,
+                 goles_local_hom, goles_visita_hom, articulo, motivo, numero_acta,
+                 fecha_resolucion, estado, creada_por, creada_at,
+                 revocada_por, revocada_at, motivo_revocacion
+              FROM resoluciones`, args: [] },
+      { sql: 'DROP TABLE resoluciones', args: [] },
+      { sql: 'ALTER TABLE resoluciones_new RENAME TO resoluciones', args: [] },
+    ]);
+    await exec('PRAGMA foreign_keys = ON');
+    console.log('\u2713 resoluciones acepta ahora el tipo walkover');
+    return;
+  }
+
+  // La tabla ya acepta walkover: solo faltaría el conteo si viene de una
+  // versión intermedia.
+  const columnas = [];
+  if (!(await columnExists('resoluciones', 'wo_jugados'))) {
+    columnas.push('ALTER TABLE resoluciones ADD COLUMN wo_jugados INTEGER');
+  }
+  if (!(await columnExists('resoluciones', 'wo_total'))) {
+    columnas.push('ALTER TABLE resoluciones ADD COLUMN wo_total INTEGER');
+  }
+  if (columnas.length) await exec(columnas.join(';'));
 }
 
 module.exports = { get, all, run, exec, batch, init };

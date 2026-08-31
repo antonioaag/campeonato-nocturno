@@ -15,6 +15,10 @@
         .badge-jugado { background:rgba(34,197,94,0.15); color:#4ade80; border:1px solid rgba(74,222,128,0.35); }
         .badge-programado { background:rgba(232,149,42,0.15); color:#f0d285; border:1px solid rgba(240,210,133,0.35); }
         .badge-aplazado { background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(248,113,113,0.35); }
+        .badge-descalificado { background:rgba(239,68,68,0.2); color:#fca5a5; border:1px solid rgba(248,113,113,0.5); }
+        /* El equipo descalificado no se borra de la tabla: se apaga. Que se siga
+           viendo es parte de la explicación de por qué los demás corrieron. */
+        .fila-descalificado { background: rgba(255,255,255,0.03); opacity: 0.55; border-left: 4px solid #ef4444; }
         .escudo { width: 2rem; height: 2rem; object-fit: contain; flex-shrink: 0; border-radius: 0.25rem; background: rgba(255,255,255,0.9); padding: 2px; }
         .escudo-lg { width: 3rem; height: 3rem; }
         .fila-clasifica { background: linear-gradient(to right, rgba(34,197,94,0.38), rgba(34,197,94,0.06)); border-left: 4px solid #22c55e; }
@@ -770,7 +774,11 @@
                         ${p.estadio || '-'}
                         ${p.homologacion ? `
                             <span class="block mt-1 text-[10px] text-noc-gold" title="${escapeHtml(p.homologacion.articulo + ': ' + p.homologacion.motivo)}">
-                                ⚖ Homologado ${p.homologacion.golesLocal}-${p.homologacion.golesVisita}
+                                ⚖ Homologado ${p.homologacion.golesLocal}-${p.homologacion.golesVisita}${p.homologacion.walkover ? (p.homologacion.walkover.motivo === 'wo' ? ' por WO' : ' (rival descalificado)') : ''}
+                            </span>` : ''}
+                        ${p.anulacion ? `
+                            <span class="block mt-1 text-[10px] text-red-300" title="${escapeHtml(p.anulacion.articulo + ': ' + p.anulacion.motivo)}">
+                                ⃠ Anulado: ${escapeHtml(p.anulacion.equipo || '')} fue descalificado. No suma para nadie.
                             </span>` : ''}
                     </td>
                     <td class="border border-noc-purple p-2 text-center">
@@ -885,7 +893,9 @@
         async function cargarPartidosDeLaSerie() {
             const grupos = SERIES_GRUPOS[serieActual];
             const porGrupo = await Promise.all(grupos.map(g => api(`/partidos?serie=${serieActual}&grupo=${g}`)));
-            return porGrupo.flat();
+            const partidos = porGrupo.flat();
+            cachearPartidos(partidos);
+            return partidos;
         }
 
         function opcionesEquipos(equipos) {
@@ -959,6 +969,7 @@
                                 <select id="res-tipo" onchange="alternarCamposResolucion()" class="${CLASE_INPUT}">
                                     <option value="descuento_puntos">Descuento de puntos</option>
                                     <option value="partido_homologado">Partido ganado por secretaría</option>
+                                    <option value="walkover">WO — no se presentó (descalifica del torneo)</option>
                                 </select>
                             </div>
                             <div>
@@ -1000,6 +1011,21 @@
                             <p class="text-[10px] text-white/40">El marcador de cancha no se borra: queda visible junto al homologado.</p>
                         </div>
 
+                        <div id="res-campos-wo" class="hidden space-y-3">
+                            <div>
+                                <label class="${CLASE_LABEL}">Partido donde ocurrió el WO</label>
+                                <select id="res-wo-partido" onchange="alternarCamposResolucion()" class="${CLASE_INPUT}">${opcionesPartidos(partidos)}</select>
+                            </div>
+                            <div>
+                                <label class="${CLASE_LABEL}">Equipo que no se presentó</label>
+                                <select id="res-wo-equipo" onchange="previsualizarWalkover()" class="${CLASE_INPUT}"></select>
+                                <p class="text-[10px] text-white/40 mt-1">Queda descalificado del campeonato y sale de la tabla de clasificados.</p>
+                            </div>
+                            <div id="res-wo-previa" class="text-xs text-white/60 border border-noc-gold/30 bg-noc-gold/5 rounded p-3">
+                                Elige el partido y el equipo para ver qué efecto tendrá.
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div>
                                 <label class="${CLASE_LABEL}">Artículo del reglamento *</label>
@@ -1029,9 +1055,55 @@
         }
 
         function alternarCamposResolucion() {
-            const esPartido = document.getElementById('res-tipo').value === 'partido_homologado';
-            document.getElementById('res-campos-descuento').classList.toggle('hidden', esPartido);
-            document.getElementById('res-campos-partido').classList.toggle('hidden', !esPartido);
+            const tipo = document.getElementById('res-tipo').value;
+            document.getElementById('res-campos-descuento').classList.toggle('hidden', tipo !== 'descuento_puntos');
+            document.getElementById('res-campos-partido').classList.toggle('hidden', tipo !== 'partido_homologado');
+            document.getElementById('res-campos-wo').classList.toggle('hidden', tipo !== 'walkover');
+            if (tipo === 'walkover') poblarEquiposDelWalkover();
+        }
+
+        // Los dos equipos del WO salen del partido elegido, leídos de la caché y
+        // no del texto del <option>: el nombre pintado en pantalla no es un dato,
+        // es una etiqueta.
+        function poblarEquiposDelWalkover() {
+            const partido = PARTIDOS_CACHE[Number(document.getElementById('res-wo-partido').value)];
+            const select = document.getElementById('res-wo-equipo');
+            if (!partido) { select.innerHTML = ''; return; }
+            select.innerHTML = `
+                <option value="${partido.localId}">${escapeHtml(partido.local)}</option>
+                <option value="${partido.visitaId}">${escapeHtml(partido.visita)}</option>`;
+            previsualizarWalkover();
+        }
+
+        // Un WO puede anular media fase de grupos. Antes de confirmarlo hay que
+        // poder leer exactamente qué va a pasar, partido por partido.
+        async function previsualizarWalkover() {
+            const caja = document.getElementById('res-wo-previa');
+            const partidoId = Number(document.getElementById('res-wo-partido').value);
+            const equipoId = Number(document.getElementById('res-wo-equipo').value);
+            if (!caja || !partidoId || !equipoId) return;
+            caja.innerHTML = 'Calculando el efecto...';
+            try {
+                const previa = await api(`/resoluciones/walkover/previsualizar?serie=${serieActual}&partidoId=${partidoId}&equipoId=${equipoId}`);
+                const linea = (texto) => `<li class="ml-4 list-disc">${texto}</li>`;
+                const homologados = previa.homologaciones.map(h => linea(
+                    `${escapeHtml(h.partido.local)} <span class="text-noc-gold font-semibold">${h.golesLocal}-${h.golesVisita}</span> ${escapeHtml(h.partido.visita)}` +
+                    (h.esElDelWo ? ' <span class="text-white/40">(el partido del WO)</span>' : '')
+                )).join('');
+                const anulados = previa.anulados.map(a => linea(
+                    `<span class="line-through">${escapeHtml(a.local)} vs ${escapeHtml(a.visita)}</span> <span class="text-white/40">queda sin efecto para los dos</span>`
+                )).join('');
+                caja.innerHTML = `
+                    <p class="text-noc-goldlight font-semibold mb-2">Al registrar este WO:</p>
+                    <ul class="space-y-1">
+                        ${linea('El equipo queda <span class="text-red-300 font-semibold">descalificado</span> y los que venían detrás corren un puesto en la clasificación.')}
+                        ${homologados}
+                        ${anulados}
+                    </ul>
+                    <p class="mt-2 pt-2 border-t border-white/10 text-white/50">${escapeHtml(previa.alcance)}</p>`;
+            } catch (e) {
+                caja.innerHTML = `<span class="text-red-300">${escapeHtml(e.message)}</span>`;
+            }
         }
 
         async function crearResolucion(event) {
@@ -1049,6 +1121,11 @@
             if (tipo === 'descuento_puntos') {
                 cuerpo.equipoId = Number(document.getElementById('res-equipo').value);
                 cuerpo.puntosAjuste = Number(document.getElementById('res-puntos').value);
+            } else if (tipo === 'walkover') {
+                cuerpo.partidoId = Number(document.getElementById('res-wo-partido').value);
+                cuerpo.equipoId = Number(document.getElementById('res-wo-equipo').value);
+                const equipo = document.getElementById('res-wo-equipo').selectedOptions[0];
+                if (!confirm(`${equipo ? equipo.textContent : 'El equipo'} quedará DESCALIFICADO del campeonato y saldrá de la lista de clasificados. Revisa el detalle del efecto antes de continuar. ¿Registrar el WO?`)) return;
             } else {
                 cuerpo.partidoId = Number(document.getElementById('res-partido').value);
                 cuerpo.golesLocalHom = Number(document.getElementById('res-gl').value);
@@ -1068,12 +1145,28 @@
             return `<div class="space-y-3">${resoluciones.map(r => {
                 const revocada = r.estado === 'revocada';
                 const esDescuento = r.tipo === 'descuento_puntos';
-                const titulo = esDescuento
-                    ? `${escapeHtml(r.equipo)} · <span class="text-noc-gold">${r.puntosAjuste} puntos</span>`
-                    : `${escapeHtml(r.partidoLocal || '?')} vs ${escapeHtml(r.partidoVisita || '?')} · <span class="text-noc-gold">homologado ${r.golesLocalHom}-${r.golesVisitaHom}</span>`;
-                const cancha = (!esDescuento && r.golesLocalCancha !== null && r.golesLocalCancha !== undefined)
+                const esWalkover = r.tipo === 'walkover';
+                let titulo;
+                if (esDescuento) {
+                    titulo = `${escapeHtml(r.equipo)} · <span class="text-noc-gold">${r.puntosAjuste} puntos</span>`;
+                } else if (esWalkover) {
+                    titulo = `${escapeHtml(r.equipo || '?')} · <span class="text-red-300">WO y descalificación</span>`;
+                } else {
+                    titulo = `${escapeHtml(r.partidoLocal || '?')} vs ${escapeHtml(r.partidoVisita || '?')} · <span class="text-noc-gold">homologado ${r.golesLocalHom}-${r.golesVisitaHom}</span>`;
+                }
+                const cancha = (!esDescuento && !esWalkover && r.golesLocalCancha !== null && r.golesLocalCancha !== undefined)
                     ? `<p class="text-xs text-white/50 mt-1">En cancha terminó ${r.golesLocalCancha}-${r.golesVisitaCancha}. El resultado deportivo se conserva; la tabla computa el homologado.</p>`
                     : '';
+                // El alcance del WO se explica siempre: sin esto, un tercero que
+                // mire la tabla no tiene cómo saber por qué desaparecieron
+                // partidos que sí se jugaron.
+                const alcanceWo = esWalkover ? `
+                    <p class="text-xs text-white/60 mt-2 border-l-2 border-red-500/40 pl-3">
+                        No se presentó ante ${escapeHtml(r.partidoLocalId === r.equipoId ? (r.partidoVisita || '?') : (r.partidoLocal || '?'))}, que gana 3-0.
+                        ${r.woTotal ? `Había jugado ${r.woJugados} de ${r.woTotal} partidos: ` + (r.woJugados >= Math.ceil(r.woTotal / 2)
+                            ? 'sus resultados quedan firmes y los equipos que aún no lo enfrentaban ganan 1-0.'
+                            : 'se anulan todos sus partidos y nadie recibe puntos por haberlo enfrentado.') : ''}
+                    </p>` : '';
                 return `
                     <div class="border rounded p-4 ${revocada ? 'border-white/15 bg-noc-black/20 opacity-60' : 'border-noc-purple2 bg-noc-black/40'}">
                         <div class="flex flex-wrap items-start justify-between gap-2">
@@ -1093,6 +1186,7 @@
                         </div>
                         <p class="text-sm text-white/80 mt-2">${escapeHtml(r.motivo)}</p>
                         ${cancha}
+                        ${alcanceWo}
                         <p class="text-[11px] text-white/35 mt-2">Emitida por ${escapeHtml(r.creadaPor || 'sistema')}</p>
                         ${revocada ? `
                             <div class="mt-2 pt-2 border-t border-white/10 text-xs text-white/60">
@@ -1515,6 +1609,28 @@
 
             grupos.forEach((g, i) => pintarTabla('tabla-pos-' + g, tablas[i]));
 
+            // Nota al pie de las descalificaciones por WO. Va antes que la de los
+            // descuentos porque es la que más cambia la lectura de la tabla: sin
+            // ella, los partidos que desaparecieron no tienen explicación.
+            const fuera = tablas.flat().filter(e => e.descalificado);
+            if (fuera.length) {
+                cont.insertAdjacentHTML('beforeend', `
+                    <div class="bg-noc-dark/80 p-4 rounded-lg border border-red-500/40 text-sm">
+                        <p class="text-red-300 font-semibold mb-2">Equipos descalificados por WO</p>
+                        <ul class="space-y-2 text-white/70">
+                            ${fuera.map(e => `
+                                <li>
+                                    <span class="text-white font-semibold">${escapeHtml(e.nombre)}</span>
+                                    — no se presentó ante ${escapeHtml(e.descalificacion.rival || 'su rival')}, que gana 3-0.
+                                    <span class="text-white/50">(${escapeHtml(e.descalificacion.articulo)}, ${escapeHtml(e.descalificacion.numeroActa || 'sin acta')}, ${escapeHtml(e.descalificacion.fechaResolucion)})</span>
+                                    <span class="block text-xs text-white/50 mt-0.5">${escapeHtml(e.descalificacion.alcance)}</span>
+                                </li>`).join('')}
+                        </ul>
+                        <p class="text-xs text-white/40 mt-3">Queda fuera del campeonato: los equipos que venían detrás corrieron un puesto en la clasificación.</p>
+                    </div>
+                `);
+            }
+
             // Nota al pie con las sanciones que explican los asteriscos. Sin
             // esto el puntaje ajustado parecería un error de carga.
             const sancionados = tablas.flat().filter(e => e.ajustePuntos);
@@ -1541,15 +1657,17 @@
             tbody.innerHTML = '';
             datos.forEach((eq, index) => {
                 let rowColor = 'bg-noc-dark/60';
-                if (typeof eq.clasificado === 'boolean') {
+                if (eq.descalificado) {
+                    rowColor = 'fila-descalificado';
+                } else if (typeof eq.clasificado === 'boolean') {
                     if (eq.clasificado) rowColor = (eq.clasificaVia === 'mejor-tercero' ? 'fila-mejor-tercero' : 'fila-clasifica') + ' font-semibold';
                 } else if (index < 4) {
                     rowColor = 'fila-clasifica font-semibold';
                 }
                 tbody.innerHTML += `
                     <tr class="${rowColor} border-b border-noc-purple2 hover:bg-noc-purple2/40 transition">
-                        <td class="p-3 text-center">${index + 1}</td>
-                        <td class="p-3 font-bold"><div class="flex items-center gap-2">${escudoImg(eq.nombre)}<span>${escapeHtml(eq.nombre)}</span>${eq.ajustePuntos ? '<span class="text-noc-gold" title="Tiene una sanción aplicada">*</span>' : ''}</div></td>
+                        <td class="p-3 text-center">${eq.descalificado ? '<span class="text-white/30" title="Fuera del campeonato: ya no ocupa un puesto">—</span>' : index + 1}</td>
+                        <td class="p-3 font-bold"><div class="flex items-center gap-2 flex-wrap">${escudoImg(eq.nombre)}<span class="${eq.descalificado ? 'line-through' : ''}">${escapeHtml(eq.nombre)}</span>${eq.ajustePuntos ? '<span class="text-noc-gold" title="Tiene una sanción aplicada">*</span>' : ''}${eq.descalificado ? `<span class="badge badge-descalificado" title="${escapeHtml(eq.descalificacion.articulo + ': ' + eq.descalificacion.motivo)}">Descalificado</span>` : ''}</div></td>
                         <td class="p-3 text-center text-noc-goldlight font-bold">
                             ${eq.pts}
                             ${eq.ajustePuntos ? `<span class="block text-[10px] font-normal text-noc-gold/80">${eq.ptsCancha} ${eq.ajustePuntos}</span>` : ''}

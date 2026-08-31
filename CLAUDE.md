@@ -37,6 +37,7 @@ server/
   tablas.js         cálculo de posiciones y de clasificados
   playoffs.js       siembra y cruces de la eliminación directa
   resoluciones.js   sanciones -> ajustes sobre la tabla
+  walkover.js       regla del WO: 3-0, descalificación y qué pasa con el resto
   configuracion.js  ajustes clave/valor que el admin cambia sin deploy
   fixtureGenerator.js  round robin
   routes/           una por recurso
@@ -54,6 +55,22 @@ public/index.html   TODO el frontend (HTML + CSS + JS en un archivo)
   (`penales_local` / `penales_visita`), conservando el marcador de los 90 minutos.
 - **Desempate en la tabla:** puntos, diferencia de gol, goles a favor, goles en
   contra (menos es mejor), alfabético.
+- **WO (walkover):** el equipo que no se presenta, o llega sin la base mínima de
+  jugadores, pierde 3-0 y queda **descalificado del campeonato**. Deja de contar
+  para la clasificación aunque fuera puntero, y los que venían detrás corren un
+  puesto. Con él fuera, el resto de sus partidos se resuelve según cuánto
+  alcanzó a jugar. El corte es la mitad de sus partidos de grupo redondeada
+  hacia arriba: 3 en Adulto (grupos A y B) y 2 en Senior.
+  - Jugó el corte o más: lo jugado queda firme y los rivales que todavía no lo
+    enfrentaban ganan 1-0.
+  - Jugó menos: se anulan todos sus partidos y nadie recibe puntos por haberlo
+    enfrentado, porque con tan pocas fechas repartiría ventajas según a quién le
+    tocó enfrentarlo antes.
+
+  El 3-0 del partido del WO no se toca en ninguno de los dos casos: el equipo
+  que sí fue a la cancha no pierde lo que ganó ahí. Por ahora el WO solo se
+  registra en fase de grupos; en una llave de eliminatorias se homologa el
+  partido a mano.
 
 ## Principio de diseño: el resultado de cancha es intocable
 
@@ -71,6 +88,15 @@ una queda sin efecto se marca `revocada` con su motivo y se emite otra.
 Si alguna vez se pide "dejar que el admin corrija el marcador de un partido
 sancionado", esa es justamente la funcionalidad que este diseño evita: proponer
 una resolución en su lugar.
+
+El WO sigue la misma regla y es una resolución más (`tipo = 'walkover'`): no
+edita ningún partido. Un partido anulado por WO conserva su marcador en el
+fixture y aparece tachado con el motivo. Como de cuántos partidos había jugado
+el infractor depende que se anule media fase, ese conteo se **congela** en la
+resolución (`wo_jugados` / `wo_total`) en vez de recalcularse: si se recalculara,
+cargar un resultado atrasado podría dar vuelta la tabla en silencio meses
+después. Por lo mismo, una vez descalificado un equipo, sus partidos ya no
+aceptan resultados.
 
 ## Pestañas que se publican
 
