@@ -730,7 +730,7 @@
         function pintarGrupoPartidos(grupo, partidos, libres) {
             let html = `<h4 class="text-xl font-bold bg-noc-purple text-noc-goldlight p-2 mt-6 rounded">Grupo ${grupo}</h4>`;
             html += `<div class="overflow-x-auto mt-4">
-                <table class="w-full text-sm border-collapse">
+                <table class="w-full text-sm border-collapse min-w-[800px]">
                     <thead>
                         <tr class="bg-noc-purple2 text-white">
                             <th class="border border-noc-purple p-2 text-left">Fecha</th>
@@ -740,7 +740,7 @@
                             <th class="border border-noc-purple p-2 text-left">Visita</th>
                             <th class="border border-noc-purple p-2 text-left">Estadio</th>
                             <th class="border border-noc-purple p-2 text-center">Estado</th>
-                            ${esAdmin() ? '<th class="border border-noc-purple p-2 text-center">Editar</th>' : ''}
+                            ${estaLogueado() ? '<th class="border border-noc-purple p-2 text-center">Acciones</th>' : ''}
                         </tr>
                     </thead>
                     <tbody>`;
@@ -765,9 +765,14 @@
                     <td class="border border-noc-purple p-2">${p.hora || '-'}</td>
                     <td class="border border-noc-purple p-2"><div class="flex items-center gap-2">${escudoImg(p.local, '')} <span>${escapeHtml(p.local)}</span></div></td>
                     <td class="border border-noc-purple p-2 text-center font-bold">
-                        ${logueado ? `<input type="number" min="0" value="${p.golesLocal !== null ? p.golesLocal : ''}" id="gl_${p.id}" class="w-10 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">` : (p.golesLocal !== null ? p.golesLocal : '-')}
-                        <span class="px-2">-</span>
-                        ${logueado ? `<input type="number" min="0" value="${p.golesVisita !== null ? p.golesVisita : ''}" id="gv_${p.id}" class="w-10 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">` : (p.golesVisita !== null ? p.golesVisita : '-')}
+                        <!-- Los dos marcadores van en una fila flex y no sueltos en la
+                             celda: así no se apilan cuando la columna queda justa, y de
+                             paso desaparecen los espacios en blanco entre elementos. -->
+                        <div class="flex items-center justify-center gap-1 whitespace-nowrap">
+                            ${logueado ? `<input type="number" min="0" value="${p.golesLocal !== null ? p.golesLocal : ''}" id="gl_${p.id}" class="w-10 shrink-0 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">` : (p.golesLocal !== null ? p.golesLocal : '-')}
+                            <span>-</span>
+                            ${logueado ? `<input type="number" min="0" value="${p.golesVisita !== null ? p.golesVisita : ''}" id="gv_${p.id}" class="w-10 shrink-0 text-center border border-noc-purple2 bg-noc-black/50 text-white p-1 rounded text-xs">` : (p.golesVisita !== null ? p.golesVisita : '-')}
+                        </div>
                     </td>
                     <td class="border border-noc-purple p-2"><div class="flex items-center gap-2">${escudoImg(p.visita, '')} <span>${escapeHtml(p.visita)}</span></div></td>
                     <td class="border border-noc-purple p-2">
@@ -788,10 +793,17 @@
                             <option value="aplazado" ${p.estado === 'aplazado' ? 'selected' : ''}>Aplazado</option>
                         </select>` : `<span class="badge ${badgeClass}">${badgeTexto}</span>`}
                     </td>
-                    <td class="border border-noc-purple p-2 text-center flex gap-1 justify-center flex-wrap">
-                        ${logueado ? `<button onclick="guardarResultado(${p.id})" class="bg-noc-gold text-noc-black text-xs px-2 py-1 rounded hover:bg-noc-goldlight">Guardar</button>` : ''}
-                        ${esAdministrador ? `<button onclick="abrirEditarPartido(${p.id})" class="bg-noc-gold text-noc-black text-xs px-2 py-1 rounded hover:bg-noc-goldlight">Editar</button>` : ''}
-                    </td>
+                    ${!logueado ? '' : `
+                    <td class="border border-noc-purple p-2 text-center">
+                        <!-- El flex va en un div y no en el <td>: un td con display:flex
+                             deja de ser table-cell y su columna se desalinea del resto.
+                             Y la celda entera solo se emite si hay encabezado que la
+                             encabece, o la fila queda con una columna de más. -->
+                        <div class="flex gap-1 justify-center flex-wrap">
+                            <button onclick="guardarResultado(${p.id})" class="bg-noc-gold text-noc-black text-xs px-2 py-1 rounded hover:bg-noc-goldlight">Guardar</button>
+                            ${esAdministrador ? `<button onclick="abrirEditarPartido(${p.id})" class="bg-noc-gold text-noc-black text-xs px-2 py-1 rounded hover:bg-noc-goldlight">Editar</button>` : ''}
+                        </div>
+                    </td>`}
                 </tr>
             `;
         }
