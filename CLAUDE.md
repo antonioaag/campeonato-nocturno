@@ -2,7 +2,16 @@
 
 App de gestión de un campeonato de fútbol amateur: fixture, resultados, tabla de
 posiciones, eliminatorias y sanciones. Backend Node/Express, frontend en un solo
-HTML con Tailwind por CDN. Sin build: se edita `public/index.html` y listo.
+HTML (`public/index.html`) con Tailwind.
+
+**Tailwind se compila, no viene de un CDN.** `public/styles.css` está versionado y
+es lo único que se sirve; el CSP de `server/server.js` bloquea cualquier CDN. El
+deploy NO compila nada: Render solo corre `npm start`. Por lo tanto, **si tocas
+una clase de Tailwind en el HTML tienes que correr `npm run build:css` y
+versionar el `styles.css` resultante**, o la clase sencillamente no existirá en
+producción y el elemento quedará con los estilos por defecto del navegador.
+Esto ya rompió la tabla de partidos una vez: `w-10` no estaba compilada, los
+inputs del marcador cayeron a 180px y se apilaron.
 
 ## Infraestructura (leer antes de opinar sobre la arquitectura)
 
@@ -128,10 +137,17 @@ a la tabla apenas se registra, esté publicado o no.
   raspando celdas del DOM** — eso causó bugs intermitentes en el pasado.
 - Las rutas públicas que cambian según el rol usan `authOpcional`, que nunca
   rechaza: un token vencido se atiende como visitante anónimo.
+- En las tablas, el `flex` va en un `<div>` dentro de la celda, nunca en el
+  `<td>`: un `<td>` con `display:flex` deja de ser `table-cell` y su columna se
+  desalinea del resto de la tabla. Y toda tabla ancha lleva su `min-w-[...]`
+  dentro del contenedor con `overflow-x-auto`, para que scrollee en vez de
+  comprimir las columnas.
 
 ## Al terminar un cambio
 
-1. Probar contra el puerto 3100 (nunca escribir en producción para probar).
-2. Borrar `data/campeonato.db*` al terminar.
-3. Commit y push solo si el usuario lo pide; Render despliega automáticamente.
-4. Si el cambio agrega algo visible al público, preguntar antes si debe nacer oculto.
+1. Si tocaste clases de Tailwind en el HTML: `npm run build:css` y versionar
+   `public/styles.css`. Para verificarlo: `grep -c '\.la-clase{' public/styles.css`.
+2. Probar contra el puerto 3100 (nunca escribir en producción para probar).
+3. Borrar `data/campeonato.db*` al terminar.
+4. Commit y push solo si el usuario lo pide; Render despliega automáticamente.
+5. Si el cambio agrega algo visible al público, preguntar antes si debe nacer oculto.
