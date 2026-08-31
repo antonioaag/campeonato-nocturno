@@ -978,7 +978,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div>
                                 <label class="${CLASE_LABEL}">Tipo de sanción</label>
-                                <select id="res-tipo" onchange="alternarCamposResolucion()" class="${CLASE_INPUT}">
+                                <select id="res-tipo" onchange="cambiarTipoResolucion()" class="${CLASE_INPUT}">
                                     <option value="descuento_puntos">Descuento de puntos</option>
                                     <option value="partido_homologado">Partido ganado por secretaría</option>
                                     <option value="walkover">WO — no se presentó (descalifica del torneo)</option>
@@ -1026,7 +1026,7 @@
                         <div id="res-campos-wo" class="hidden space-y-3">
                             <div>
                                 <label class="${CLASE_LABEL}">Partido donde ocurrió el WO</label>
-                                <select id="res-wo-partido" onchange="alternarCamposResolucion()" class="${CLASE_INPUT}">${opcionesPartidos(partidos)}</select>
+                                <select id="res-wo-partido" onchange="poblarEquiposDelWalkover()" class="${CLASE_INPUT}">${opcionesPartidos(partidos)}</select>
                             </div>
                             <div>
                                 <label class="${CLASE_LABEL}">Equipo que no se presentó</label>
@@ -1064,6 +1064,27 @@
                         <button type="submit" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded hover:bg-noc-goldlight">Registrar sanción</button>
                     </form>
                 </details>`;
+        }
+
+        // Cambiar el tipo de sanción empieza de cero. Si un registro falla, el
+        // formulario conserva lo escrito (para no hacer tipear todo de nuevo),
+        // pero al cambiar de tipo ese texto ya no corresponde: así fue como una
+        // resolución de WO terminó citando el descuento de puntos de otro club,
+        // y quedó guardada para siempre, porque las resoluciones no se editan.
+        function cambiarTipoResolucion() {
+            ['res-articulo', 'res-acta', 'res-motivo'].forEach(id => {
+                const campo = document.getElementById(id);
+                if (campo) campo.value = '';
+            });
+            // Los campos propios de cada tipo vuelven a su valor sugerido.
+            const porDefecto = { 'res-puntos': '-3', 'res-gl': '0', 'res-gv': '3' };
+            Object.entries(porDefecto).forEach(([id, valor]) => {
+                const campo = document.getElementById(id);
+                if (campo) campo.value = valor;
+            });
+            const previa = document.getElementById('res-wo-previa');
+            if (previa) previa.innerHTML = 'Elige el partido y el equipo para ver qué efecto tendrá.';
+            alternarCamposResolucion();
         }
 
         function alternarCamposResolucion() {
