@@ -1185,7 +1185,7 @@
                             <div class="min-w-0">
                                 <p class="font-semibold ${revocada ? 'line-through text-white/60' : 'text-white'}">${titulo}</p>
                                 <p class="text-xs text-white/50 mt-1">
-                                    Resolución N°${r.id} · ${escapeHtml(r.articulo)}
+                                    Resolución N°${r.id}
                                     ${r.numeroActa ? ' · ' + escapeHtml(r.numeroActa) : ''}
                                     · ${escapeHtml(r.fechaResolucion)}
                                     · ${r.origen === 'oficio' ? 'de oficio' : 'por reclamo'}
@@ -1197,6 +1197,9 @@
                             </div>
                         </div>
                         <p class="text-sm text-white/80 mt-2">${escapeHtml(r.motivo)}</p>
+                        <p class="text-xs text-white/40 mt-2">
+                            <span class="font-semibold text-white/60">Fundamento:</span> ${escapeHtml(r.articulo)}
+                        </p>
                         ${cancha}
                         ${alcanceWo}
                         <p class="text-[11px] text-white/35 mt-2">Emitida por ${escapeHtml(r.creadaPor || 'sistema')}</p>
@@ -1631,11 +1634,18 @@
                         <p class="text-red-300 font-semibold mb-2">Equipos descalificados por WO</p>
                         <ul class="space-y-2 text-white/70">
                             ${fuera.map(e => `
-                                <li>
-                                    <span class="text-white font-semibold">${escapeHtml(e.nombre)}</span>
-                                    — no se presentó ante ${escapeHtml(e.descalificacion.rival || 'su rival')}, que gana 3-0.
-                                    <span class="text-white/50">(${escapeHtml(e.descalificacion.articulo)}, ${escapeHtml(e.descalificacion.numeroActa || 'sin acta')}, ${escapeHtml(e.descalificacion.fechaResolucion)})</span>
-                                    <span class="block text-xs text-white/50 mt-0.5">${escapeHtml(e.descalificacion.alcance)}</span>
+                                <li class="border-l-2 border-red-500/30 pl-3">
+                                    <p>
+                                        <span class="text-white font-semibold">${escapeHtml(e.nombre)}</span>
+                                        — no se presentó ante ${escapeHtml(e.descalificacion.rival || 'su rival')}, que gana 3-0.
+                                    </p>
+                                    <p class="text-xs text-white/50 mt-0.5">${escapeHtml(e.descalificacion.alcance)}</p>
+                                    <p class="text-xs text-white/40 mt-1">
+                                        <span class="font-semibold text-white/60">Fundamento:</span> ${escapeHtml(e.descalificacion.articulo)}
+                                    </p>
+                                    <p class="text-[11px] text-white/30 mt-0.5">
+                                        ${escapeHtml(e.descalificacion.numeroActa || 'sin acta')} · ${escapeHtml(e.descalificacion.fechaResolucion)}
+                                    </p>
                                 </li>`).join('')}
                         </ul>
                         <p class="text-xs text-white/40 mt-3">Queda fuera del campeonato: los equipos que venían detrás corrieron un puesto en la clasificación.</p>
@@ -1652,11 +1662,18 @@
                         <p class="text-noc-goldlight font-semibold mb-2">* Puntos ajustados por resolución</p>
                         <ul class="space-y-1 text-white/70">
                             ${sancionados.map(e => e.sanciones.map(s => `
-                                <li>
-                                    <span class="text-white font-semibold">${escapeHtml(e.nombre)}</span>
-                                    <span class="text-noc-gold font-semibold">${s.puntos} pts</span>
-                                    — ${escapeHtml(s.articulo)}: ${escapeHtml(s.motivo)}
-                                    <span class="text-white/40">(${escapeHtml(s.numeroActa || 'sin acta')}, ${escapeHtml(s.fechaResolucion)})</span>
+                                <li class="border-l-2 border-noc-gold/30 pl-3">
+                                    <p>
+                                        <span class="text-white font-semibold">${escapeHtml(e.nombre)}</span>
+                                        <span class="text-noc-gold font-semibold">${s.puntos} pts</span>
+                                        — ${escapeHtml(s.motivo)}
+                                    </p>
+                                    <p class="text-xs text-white/40 mt-1">
+                                        <span class="font-semibold text-white/60">Fundamento:</span> ${escapeHtml(s.articulo)}
+                                    </p>
+                                    <p class="text-[11px] text-white/30 mt-0.5">
+                                        ${escapeHtml(s.numeroActa || 'sin acta')} · ${escapeHtml(s.fechaResolucion)}
+                                    </p>
                                 </li>`).join('')).join('')}
                         </ul>
                         <p class="text-xs text-white/40 mt-3">El detalle completo está en la pestaña Resoluciones.</p>
