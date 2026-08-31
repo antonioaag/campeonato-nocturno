@@ -6,11 +6,11 @@
 // porque el infractor ya jugó contra algunos y contra otros no. La regla que
 // fijó la asociación reparte según cuánto alcanzó a jugar:
 //
-//   - Jugó la mitad o más de sus partidos de grupo: lo jugado queda firme y
-//     los rivales que todavía no lo habían enfrentado ganan 1-0.
-//   - Jugó menos de la mitad: se anulan TODOS sus partidos y nadie recibe
-//     puntos por haberlo enfrentado. Con tan pocas fechas jugadas, dejar los
-//     resultados repartiría ventajas según a quién le tocó enfrentarlo antes.
+//   - Alcanzó el corte de su grupo: lo jugado queda firme y los rivales que
+//     todavía no lo habían enfrentado ganan 1-0.
+//   - No lo alcanzó: se anulan TODOS sus partidos y nadie recibe puntos por
+//     haberlo enfrentado. Con tan pocas fechas jugadas, dejar los resultados
+//     repartiría ventajas según a quién le tocó enfrentarlo antes.
 //
 // El partido del WO es la excepción en los dos casos: el 3-0 del equipo que sí
 // se presentó a la cancha no se le quita nunca, ni siquiera cuando se anula
@@ -26,39 +26,62 @@ const GOLES_WO = 3;
 // Marcador con el que se homologan los partidos que el infractor ya no jugará.
 const GOLES_PENDIENTE = 1;
 
-// La mitad de los partidos del grupo, redondeando hacia arriba. Da 3 en el
-// grupo A de Adultos (6 partidos), 3 en el B (5 partidos) y 2 en Senior (3
-// partidos), que es el corte que definió la asociación para cada serie.
-function umbralPartidosValidos(total) {
-  return Math.ceil(Number(total || 0) / 2);
+// Cuántos partidos tiene que haber jugado el infractor para que sus resultados
+// queden firmes. Lo fija la asociación grupo por grupo y NO sale de una fórmula:
+// el grupo A juega 6 partidos y corta en 3, el B juega 5 y corta en 2 (después
+// de la fecha 2), y los grupos de Senior juegan 3 y cortan en 2.
+const CORTE_POR_GRUPO = {
+  ADULTO: { A: 3, B: 2 },
+  SENIOR: { 1: 2, 2: 2, 3: 2 },
+};
+
+// Para un grupo que no esté en la tabla (uno nuevo, o un cambio de formato) se
+// cae a la mitad de sus partidos redondeada hacia arriba, que es de donde salió
+// el criterio original.
+function corteDelGrupo(serie, grupo, total) {
+  const porSerie = CORTE_POR_GRUPO[serie];
+  const corte = porSerie ? porSerie[grupo] : undefined;
+  return corte !== undefined ? corte : Math.ceil(Number(total || 0) / 2);
 }
 
-function resultadosSiguenValidos(jugados, total) {
+// El corte viaja congelado en la resolución. Si viniera vacío (una resolución
+// anterior a que el corte se guardara), se cae a la mitad hacia arriba.
+function resultadosSiguenValidos(jugados, total, corte) {
   const partidos = Number(total || 0);
   if (partidos === 0) return false;
-  return Number(jugados || 0) >= umbralPartidosValidos(partidos);
+  const umbral = corte === null || corte === undefined ? Math.ceil(partidos / 2) : Number(corte);
+  return Number(jugados || 0) >= umbral;
 }
 
-// Cuántos partidos de grupo tiene el equipo en total y cuántos alcanzó a jugar
-// de verdad. Se consulta una sola vez, al registrar el WO, y el resultado se
-// guarda en la resolución: es el dato del que depende toda la regla y no puede
-// cambiar después sin que quede constancia.
+// Cuántos partidos de grupo tiene el equipo, cuántos alcanzó a jugar de verdad
+// y cuál es el corte de su grupo. Se consulta una sola vez, al registrar el WO,
+// y los tres números se guardan en la resolución: son los datos de los que
+// depende toda la regla y no pueden cambiar después sin que quede constancia.
+// El corte va congelado por el mismo motivo que el resto: si la asociación lo
+// modifica en otra temporada, las resoluciones ya emitidas tienen que seguir
+// significando lo mismo.
 async function contarPartidosDeGrupo(equipoId) {
+  const equipo = await db.get('SELECT serie, grupo FROM equipos WHERE id = ?', [equipoId]);
   const fila = await db.get(`
     SELECT COUNT(*) AS total,
            SUM(CASE WHEN estado = 'jugado' THEN 1 ELSE 0 END) AS jugados
     FROM partidos
     WHERE fase = 'grupos' AND (local_id = ? OR visita_id = ?)
   `, [equipoId, equipoId]);
-  return { total: Number(fila.total || 0), jugados: Number(fila.jugados || 0) };
+  const total = Number(fila.total || 0);
+  return {
+    total,
+    jugados: Number(fila.jugados || 0),
+    corte: corteDelGrupo(equipo && equipo.serie, equipo && equipo.grupo, total),
+  };
 }
 
 // Explica en una frase qué le va a pasar (o le pasó) a la fase, para mostrarlo
 // antes de confirmar el WO y después en el registro. Sin esto el admin no tiene
 // cómo saber que registrar un WO puede anular media tabla.
-function explicarAlcance(jugados, total) {
-  const validos = resultadosSiguenValidos(jugados, total);
-  const umbral = umbralPartidosValidos(total);
+function explicarAlcance(jugados, total, corte) {
+  const validos = resultadosSiguenValidos(jugados, total, corte);
+  const umbral = corte === null || corte === undefined ? Math.ceil(Number(total || 0) / 2) : Number(corte);
   return validos
     ? `Jugó ${jugados} de ${total} partidos (el corte es ${umbral}), así que sus resultados quedan firmes y los equipos que aún no lo enfrentaban ganan ${GOLES_PENDIENTE}-0.`
     : `Jugó ${jugados} de ${total} partidos y el corte es ${umbral}, así que se anulan todos sus partidos y nadie recibe puntos por haberlo enfrentado.`;
@@ -70,7 +93,7 @@ function explicarAlcance(jugados, total) {
 async function efectosDeWalkover(resolucion) {
   const equipoId = Number(resolucion.equipoId);
   const partidoDelWo = Number(resolucion.partidoId);
-  const validos = resultadosSiguenValidos(resolucion.woJugados, resolucion.woTotal);
+  const validos = resultadosSiguenValidos(resolucion.woJugados, resolucion.woTotal, resolucion.woCorte);
 
   const partidos = await db.all(`
     SELECT id, local_id, visita_id, estado
@@ -108,7 +131,8 @@ async function efectosDeWalkover(resolucion) {
 module.exports = {
   GOLES_WO,
   GOLES_PENDIENTE,
-  umbralPartidosValidos,
+  CORTE_POR_GRUPO,
+  corteDelGrupo,
   resultadosSiguenValidos,
   contarPartidosDeGrupo,
   explicarAlcance,

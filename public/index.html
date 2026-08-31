@@ -1163,7 +1163,7 @@
                 const alcanceWo = esWalkover ? `
                     <p class="text-xs text-white/60 mt-2 border-l-2 border-red-500/40 pl-3">
                         No se presentó ante ${escapeHtml(r.partidoLocalId === r.equipoId ? (r.partidoVisita || '?') : (r.partidoLocal || '?'))}, que gana 3-0.
-                        ${r.woTotal ? `Había jugado ${r.woJugados} de ${r.woTotal} partidos: ` + (r.woJugados >= Math.ceil(r.woTotal / 2)
+                        ${r.woTotal ? `Había jugado ${r.woJugados} de ${r.woTotal} partidos y el corte de su grupo es ${r.woCorte != null ? r.woCorte : Math.ceil(r.woTotal / 2)}: ` + (r.woJugados >= (r.woCorte != null ? r.woCorte : Math.ceil(r.woTotal / 2))
                             ? 'sus resultados quedan firmes y los equipos que aún no lo enfrentaban ganan 1-0.'
                             : 'se anulan todos sus partidos y nadie recibe puntos por haberlo enfrentado.') : ''}
                     </p>` : '';

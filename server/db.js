@@ -216,6 +216,7 @@ function init() {
           estado TEXT NOT NULL DEFAULT 'vigente' CHECK(estado IN ('vigente','revocada')),
           wo_jugados INTEGER,
           wo_total INTEGER,
+          wo_corte INTEGER,
           creada_por INTEGER REFERENCES usuarios(id),
           creada_at TEXT NOT NULL DEFAULT (datetime('now')),
           revocada_por INTEGER REFERENCES usuarios(id),
@@ -369,10 +370,12 @@ async function migrarFasePlayoffs() {
 // el contenido de las existentes; solo se amplía lo que la tabla acepta a
 // futuro. Es idempotente: si el CHECK ya nombra 'walkover', no hace nada.
 //
-// El conteo se congela en la fila (wo_jugados / wo_total) en vez de calcularse
-// cada vez, porque de él depende si los resultados del infractor siguen
-// valiendo. Si se recalculara, cargar un resultado atrasado podría dar vuelta
-// media tabla en silencio, meses después de la resolución.
+// El conteo se congela en la fila (wo_jugados / wo_total / wo_corte) en vez de
+// calcularse cada vez, porque de él depende si los resultados del infractor
+// siguen valiendo. Si se recalculara, cargar un resultado atrasado podría dar
+// vuelta media tabla en silencio, meses después de la resolución. El corte va
+// congelado por el mismo motivo: si la asociación lo cambia en otra temporada,
+// las resoluciones ya emitidas tienen que seguir significando lo mismo.
 async function migrarWalkover() {
   const tabla = await get("SELECT sql FROM sqlite_master WHERE type='table' AND name='resoluciones'");
   if (!tabla) return; // todavía no existe: init() la crea ya con walkover
@@ -397,6 +400,7 @@ async function migrarWalkover() {
         estado TEXT NOT NULL DEFAULT 'vigente' CHECK(estado IN ('vigente','revocada')),
         wo_jugados INTEGER,
         wo_total INTEGER,
+        wo_corte INTEGER,
         creada_por INTEGER REFERENCES usuarios(id),
         creada_at TEXT NOT NULL DEFAULT (datetime('now')),
         revocada_por INTEGER REFERENCES usuarios(id),
@@ -429,6 +433,9 @@ async function migrarWalkover() {
   }
   if (!(await columnExists('resoluciones', 'wo_total'))) {
     columnas.push('ALTER TABLE resoluciones ADD COLUMN wo_total INTEGER');
+  }
+  if (!(await columnExists('resoluciones', 'wo_corte'))) {
+    columnas.push('ALTER TABLE resoluciones ADD COLUMN wo_corte INTEGER');
   }
   if (columnas.length) await exec(columnas.join(';'));
 }

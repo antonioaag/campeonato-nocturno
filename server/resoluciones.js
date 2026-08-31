@@ -20,7 +20,7 @@ const SELECT_RESOLUCIONES = `
     r.goles_local_hom AS golesLocalHom, r.goles_visita_hom AS golesVisitaHom,
     r.articulo, r.motivo, r.numero_acta AS numeroActa,
     r.fecha_resolucion AS fechaResolucion, r.estado,
-    r.wo_jugados AS woJugados, r.wo_total AS woTotal,
+    r.wo_jugados AS woJugados, r.wo_total AS woTotal, r.wo_corte AS woCorte,
     r.creada_at AS creadaAt, u.nombre AS creadaPor,
     r.revocada_at AS revocadaAt, r.motivo_revocacion AS motivoRevocacion,
     ur.nombre AS revocadaPor,
@@ -120,8 +120,9 @@ async function ajustesVigentes(serie) {
       rival: r.partidoLocalId === r.equipoId ? r.partidoVisita : r.partidoLocal,
       jugados: r.woJugados,
       total: r.woTotal,
+      corte: r.woCorte,
       resultadosValidos: efectos.validos,
-      alcance: explicarAlcance(r.woJugados, r.woTotal),
+      alcance: explicarAlcance(r.woJugados, r.woTotal, r.woCorte),
     };
 
     efectos.homologaciones.forEach(h => derivadas.push({ ...h, resolucion: r }));

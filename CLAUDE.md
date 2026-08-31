@@ -58,9 +58,16 @@ public/index.html   TODO el frontend (HTML + CSS + JS en un archivo)
 - **WO (walkover):** el equipo que no se presenta, o llega sin la base mínima de
   jugadores, pierde 3-0 y queda **descalificado del campeonato**. Deja de contar
   para la clasificación aunque fuera puntero, y los que venían detrás corren un
-  puesto. Con él fuera, el resto de sus partidos se resuelve según cuánto
-  alcanzó a jugar. El corte es la mitad de sus partidos de grupo redondeada
-  hacia arriba: 3 en Adulto (grupos A y B) y 2 en Senior.
+  puesto. Con él fuera, el resto de sus partidos se resuelve según cuántos
+  partidos alcanzó a jugar de verdad (un aplazado no cuenta hasta que se juega).
+  El corte lo fija la asociación **grupo por grupo** y no sale de una fórmula:
+
+  | Serie y grupo | Partidos por equipo | Corte |
+  |---|---|---|
+  | Adulto A (7 equipos, con libre) | 6 | 3 |
+  | Adulto B (6 equipos) | 5 | 2 |
+  | Senior 1, 2 y 3 (4 equipos) | 3 | 2 |
+
   - Jugó el corte o más: lo jugado queda firme y los rivales que todavía no lo
     enfrentaban ganan 1-0.
   - Jugó menos: se anulan todos sus partidos y nadie recibe puntos por haberlo
@@ -93,9 +100,12 @@ El WO sigue la misma regla y es una resolución más (`tipo = 'walkover'`): no
 edita ningún partido. Un partido anulado por WO conserva su marcador en el
 fixture y aparece tachado con el motivo. Como de cuántos partidos había jugado
 el infractor depende que se anule media fase, ese conteo se **congela** en la
-resolución (`wo_jugados` / `wo_total`) en vez de recalcularse: si se recalculara,
-cargar un resultado atrasado podría dar vuelta la tabla en silencio meses
-después. Por lo mismo, una vez descalificado un equipo, sus partidos ya no
+resolución (`wo_jugados` / `wo_total` / `wo_corte`) en vez de recalcularse: si se
+recalculara, cargar un resultado atrasado podría dar vuelta la tabla en silencio
+meses después. El corte va congelado por el mismo motivo: si la asociación lo
+cambia en otra temporada, las resoluciones ya emitidas tienen que seguir
+significando lo mismo (una fila sin `wo_corte` cae a la mitad hacia arriba, que
+era el criterio vigente cuando se emitió). Por lo mismo, una vez descalificado un equipo, sus partidos ya no
 aceptan resultados.
 
 ## Pestañas que se publican

@@ -4,7 +4,7 @@ const { requireAuth, requireAdmin, authOpcional } = require('../auth');
 const asyncHandler = require('../asyncHandler');
 const { esSerieValida } = require('../series');
 const { listar, obtenerPorId, validar } = require('../resoluciones');
-const { contarPartidosDeGrupo, efectosDeWalkover, explicarAlcance, umbralPartidosValidos } = require('../walkover');
+const { contarPartidosDeGrupo, efectosDeWalkover, explicarAlcance } = require('../walkover');
 const { leerBooleano, escribir, claveResolucionesPublicas } = require('../configuracion');
 
 const router = express.Router();
@@ -58,8 +58,8 @@ router.get('/walkover/previsualizar', requireAuth, requireAdmin, asyncHandler(as
   const problema = await revisarWalkover(serie, partidoId, equipoId);
   if (problema) return res.status(problema.status).json({ error: problema.error });
 
-  const { jugados, total } = await contarPartidosDeGrupo(equipoId);
-  const efectos = await efectosDeWalkover({ equipoId, partidoId, woJugados: jugados, woTotal: total });
+  const { jugados, total, corte } = await contarPartidosDeGrupo(equipoId);
+  const efectos = await efectosDeWalkover({ equipoId, partidoId, woJugados: jugados, woTotal: total, woCorte: corte });
 
   // Se traducen los ids a nombres para que la previsualización se pueda leer
   // sin tener que cruzar números a mano.
@@ -78,9 +78,9 @@ router.get('/walkover/previsualizar', requireAuth, requireAdmin, asyncHandler(as
   res.json({
     jugados,
     total,
-    umbral: umbralPartidosValidos(total),
+    umbral: corte,
     resultadosValidos: efectos.validos,
-    alcance: explicarAlcance(jugados, total),
+    alcance: explicarAlcance(jugados, total, corte),
     homologaciones: efectos.homologaciones.map(h => ({ ...h, partido: porId[h.partidoId] || null })),
     anulados: efectos.anulados.map(id => porId[id] || { id }),
   });
@@ -143,7 +143,7 @@ router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
 
   // El WO congela acá cuántos partidos había jugado el infractor: de ese número
   // depende si sus resultados siguen valiendo, y no puede cambiar después.
-  let conteoWo = { jugados: null, total: null };
+  let conteoWo = { jugados: null, total: null, corte: null };
   if (tipo === 'walkover') {
     const problema = await revisarWalkover(serie, Number(partidoId), Number(equipoId));
     if (problema) return res.status(problema.status).json({ error: problema.error });
@@ -171,8 +171,8 @@ router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
     INSERT INTO resoluciones
       (serie, tipo, origen, equipo_id, partido_id, puntos_ajuste,
        goles_local_hom, goles_visita_hom, articulo, motivo, numero_acta,
-       fecha_resolucion, estado, wo_jugados, wo_total, creada_por)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'vigente', ?, ?, ?)
+       fecha_resolucion, estado, wo_jugados, wo_total, wo_corte, creada_por)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'vigente', ?, ?, ?, ?)
   `, [
     serie, tipo, origen,
     tipo === 'descuento_puntos' || tipo === 'walkover' ? Number(equipoId) : null,
@@ -183,7 +183,7 @@ router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
     String(articulo).trim(), String(motivo).trim(),
     numeroActa ? String(numeroActa).trim() : null,
     String(fechaResolucion).trim(),
-    conteoWo.jugados, conteoWo.total, req.usuario.id,
+    conteoWo.jugados, conteoWo.total, conteoWo.corte, req.usuario.id,
   ]);
 
   res.status(201).json(await obtenerPorId(Number(info.lastInsertRowid)));
