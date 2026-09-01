@@ -4,6 +4,7 @@ const { requireAuth, requireAdmin, authOpcional } = require('../auth');
 const asyncHandler = require('../asyncHandler');
 const { esSerieValida } = require('../series');
 const { leerBooleano, escribir, clavePlayoffsPublicos } = require('../configuracion');
+const { marcarClasificados, calcularTodasLasTablas } = require('../tablas');
 const {
   GRUPO_PLAYOFF, FASES, NOMBRE_FASE, LLAVES_POR_FASE, JORNADA_POR_FASE,
   armarCuartos, ganadorDe, necesitaDefinicion, cruzarGanadores, faseSiguiente,
@@ -62,6 +63,17 @@ router.get('/', authOpcional, asyncHandler(async (req, res) => {
   const porFase = {};
   FASES.forEach(f => { porFase[f] = partidos.filter(p => p.fase === f); });
 
+  // Incluir info de descalificados para cada equipo
+  const tablas = marcarClasificados(serie, await calcularTodasLasTablas(serie));
+  const descalificadosPorNombre = {};
+  Object.values(tablas).forEach(tabla => {
+    tabla.forEach(eq => {
+      if (eq.descalificado) {
+        descalificadosPorNombre[eq.nombre] = eq.descalificacion;
+      }
+    });
+  });
+
   res.json({
     serie,
     publico,
@@ -69,6 +81,7 @@ router.get('/', authOpcional, asyncHandler(async (req, res) => {
     fases: porFase,
     nombresFase: NOMBRE_FASE,
     siguiente: await calcularSiguientePaso(serie, porFase),
+    descalificados: descalificadosPorNombre,
   });
 }));
 
