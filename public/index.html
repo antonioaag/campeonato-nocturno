@@ -85,7 +85,7 @@
             flex-direction: column;
             justify-content: space-around;
             gap: 1rem;
-            flex: 0 0 15rem;
+            flex: 0 0 22rem;
         }
         .bracket-pair {
             position: relative;
@@ -95,7 +95,7 @@
             gap: 1rem;
             flex: 1;
         }
-        .bracket-match { position: relative; }
+        .bracket-match { position: relative; min-w-0; }
 
         .bracket-col:not(:last-child) .bracket-match::after,
         .bracket-pair::before {
@@ -1388,7 +1388,7 @@
                 const cuadro = await api(`/playoffs?serie=${serieActual}`);
                 ORDEN_FASES.forEach(f => cachearPartidos(cuadro.fases[f]));
                 acciones.innerHTML = pintarAccionesPlayoffs(cuadro);
-                container.innerHTML = pintarCuadroPlayoffs(cuadro);
+                container.innerHTML = pintarCuadroPlayoffs(cuadro, cuadro.descalificados || {});
             } catch (e) {
                 acciones.innerHTML = '';
                 container.innerHTML = `<p class="text-red-400">${escapeHtml(e.message)}</p>`;
@@ -1453,7 +1453,7 @@
             return null;
         }
 
-        function pintarCuadroPlayoffs(cuadro) {
+        function pintarCuadroPlayoffs(cuadro, descalificados = {}) {
             const fasesConPartidos = ORDEN_FASES.filter(f => cuadro.fases[f].length > 0);
             if (fasesConPartidos.length === 0) {
                 return `<p class="text-white/50 italic">Todavía no se ha generado el cuadro de eliminación directa para esta serie.</p>`;
@@ -1482,7 +1482,7 @@
                 for (let i = 0; i < partidos.length; i += 2) {
                     const par = partidos.slice(i, i + 2);
                     const suelto = par.length === 1 ? ' bracket-pair-suelto' : '';
-                    columnas += `<div class="bracket-pair${suelto}">${par.map(pintarLlavePlayoff).join('')}</div>`;
+                    columnas += `<div class="bracket-pair${suelto}">${par.map(p => pintarLlavePlayoff(p, descalificados)).join('')}</div>`;
                 }
                 html += `
                     <div class="bracket-col">
@@ -1496,7 +1496,7 @@
             return html;
         }
 
-        function pintarLlavePlayoff(p) {
+        function pintarLlavePlayoff(p, descalificados = {}) {
             const logueado = estaLogueado();
             const jugado = p.estado === 'jugado';
             const idGanador = ganadorDeLlave(p);
@@ -1504,10 +1504,17 @@
             const hayPenales = p.penalesLocal !== null && p.penalesLocal !== undefined;
             const porDefinir = empatado && !hayPenales;
 
-            const lado = (nombre, esGanador, alineado) => `
-                <div class="flex items-center gap-2 flex-1 min-w-0 ${alineado || ''} ${esGanador ? 'text-noc-goldlight font-bold' : jugado && idGanador ? 'text-white/40' : 'text-white'}">
-                    <span class="truncate">${escapeHtml(nombre)}</span>
+            const lado = (nombre, esGanador, alineado) => {
+                const descalif = descalificados[nombre];
+                const escudoHtml = escudoImg(nombre);
+                const descalificadoHtml = descalif ? `<span class="badge badge-descalificado text-[10px]" title="${escapeHtml(descalif.articulo + ': ' + descalif.motivo)}">Dsc.</span>` : '';
+                return `
+                <div class="flex items-center gap-1 flex-1 ${alineado || ''} ${esGanador ? 'text-noc-goldlight font-bold' : jugado && idGanador ? 'text-white/40' : 'text-white'}">
+                    ${escudoHtml}
+                    <span class="whitespace-normal break-words">${escapeHtml(nombre)}</span>
+                    ${descalificadoHtml}
                 </div>`;
+            };
 
             const detalles = [p.fechaPartido, p.hora, p.estadio].filter(Boolean).join(' · ');
 
