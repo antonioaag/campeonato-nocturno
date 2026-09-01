@@ -1,81 +1,117 @@
 const express = require('express');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 const db = require('../db');
 const asyncHandler = require('../asyncHandler');
 
 const router = express.Router();
 
-// Solicita un reset de contraseña (envía token por correo en el futuro, ahora lo devolvemos)
-router.post('/request', asyncHandler(async (req, res) => {
-  const { username } = req.body;
+// Configurar Ethereal (sin credenciales)
+let transporter;
+(async () => {
+  try {
+    const testAccount = await nodemailer.createTestAccount();
+    transporter = nodemailer.createTransport({
+      host: testAccount.smtp.host,
+      port: testAccount.smtp.port,
+      secure: testAccount.smtp.secure,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      },
+    });
+  } catch (e) {
+    console.error('Error configurando Ethereal:', e.message);
+    // Fallback: transporter dummy
+    transporter = null;
+  }
+})();
 
-  if (!username) {
-    return res.status(400).json({ error: 'Falta el usuario' });
+// Solicita recuperación de contraseña por email
+router.post('/request', asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email requerido' });
   }
 
-  const usuario = await db.get('SELECT id FROM usuarios WHERE username = ?', [username]);
+  const usuario = await db.get('SELECT id, username, email FROM usuarios WHERE email = ?', [email]);
   if (!usuario) {
-    // Por seguridad, no decimos si el usuario existe o no
     return res.status(200).json({
       ok: true,
-      mensaje: 'Si el usuario existe, recibirá un link de reset por correo',
+      mensaje: 'Si el correo existe, recibirá una contraseña temporal',
     });
   }
 
-  // Genera un token aleatorio válido por 1 hora
-  const token = crypto.randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + 3600000).toISOString(); // 1 hora
+  // Generar contraseña temporal aleatoria (8 caracteres)
+  const tempPassword = crypto.randomBytes(4).toString('hex').substring(0, 8);
+  const hash = bcrypt.hashSync(tempPassword, 10);
 
+  // Actualizar usuario con contraseña temporal
   await db.run(
-    'INSERT INTO password_resets (usuario_id, token, expires_at) VALUES (?, ?, ?)',
-    [usuario.id, token, expiresAt]
+    'UPDATE usuarios SET password_hash = ?, is_temporary_password = 1 WHERE id = ?',
+    [hash, usuario.id]
   );
 
-  // TODO: Enviar correo con el link: /reset-password?token=XXX
-  // Por ahora, devolvemos el token en dev (no hacer en producción)
-  const isDev = !process.env.TURSO_DATABASE_URL;
-  if (isDev) {
-    res.json({
-      ok: true,
-      mensaje: 'Token generado (dev mode)',
-      token, // SOLO EN DESARROLLO
-    });
-  } else {
-    res.json({
-      ok: true,
-      mensaje: 'Si el usuario existe, recibirá un link de reset por correo',
-    });
+  // Enviar email con contraseña temporal
+  try {
+    if (transporter) {
+      const info = await transporter.sendMail({
+        from: '"Campeonato Nocturno" <noreply@campeonato.com>',
+        to: email,
+        subject: 'Recuperación de Contraseña - Campeonato Nocturno',
+        html: `
+          <h2>Hola ${usuario.username}</h2>
+          <p>Tu contraseña temporal es:</p>
+          <p style="font-size: 24px; font-weight: bold; background: #f0f0f0; padding: 10px; border-radius: 5px;">
+            ${tempPassword}
+          </p>
+          <p>Usa esta contraseña para iniciar sesión. Al entrar, se te pedirá que cambies por una contraseña nueva.</p>
+          <p style="color: #999; font-size: 12px;">Por seguridad, esta contraseña temporal expira en 24 horas.</p>
+        `,
+      });
+      console.log('Email enviado. Vista previa en:', nodemailer.getTestMessageUrl(info));
+    }
+  } catch (e) {
+    console.error('Error enviando email:', e.message);
   }
+
+  res.json({
+    ok: true,
+    mensaje: 'Contraseña temporal enviada al correo registrado',
+  });
 }));
 
-// Valida el token y cambia la contraseña
-router.post('/confirm', asyncHandler(async (req, res) => {
-  const { token, newPassword } = req.body;
+// Cambia contraseña temporal por una permanente
+router.post('/change-temporary', asyncHandler(async (req, res) => {
+  const { username, newPassword } = req.body;
 
-  if (!token || !newPassword || newPassword.length < 6) {
+  if (!username || !newPassword || newPassword.length < 6) {
     return res.status(400).json({
-      error: 'Token y contraseña nueva (mín. 6 caracteres) son requeridos',
+      error: 'Usuario y contraseña nueva (mín. 6 caracteres) son requeridos',
     });
   }
 
-  // Busca el token válido
-  const reset = await db.get(`
-    SELECT pr.usuario_id, pr.expires_at
-    FROM password_resets pr
-    WHERE pr.token = ? AND pr.expires_at > datetime('now')
-  `, [token]);
+  const usuario = await db.get(
+    'SELECT id, is_temporary_password FROM usuarios WHERE username = ?',
+    [username]
+  );
 
-  if (!reset) {
-    return res.status(400).json({ error: 'Link de reset inválido o expirado' });
+  if (!usuario) {
+    return res.status(404).json({ error: 'Usuario no encontrado' });
   }
 
-  // Cambia la contraseña
-  const hash = bcrypt.hashSync(newPassword, 10);
-  await db.run('UPDATE usuarios SET password_hash = ? WHERE id = ?', [hash, reset.usuario_id]);
+  if (!usuario.is_temporary_password) {
+    return res.status(400).json({ error: 'No hay contraseña temporal pendiente' });
+  }
 
-  // Elimina el token usado
-  await db.run('DELETE FROM password_resets WHERE token = ?', [token]);
+  // Cambia la contraseña y marca como permanente
+  const hash = bcrypt.hashSync(newPassword, 10);
+  await db.run(
+    'UPDATE usuarios SET password_hash = ?, is_temporary_password = 0 WHERE id = ?',
+    [hash, usuario.id]
+  );
 
   res.json({ ok: true, mensaje: 'Contraseña cambiada correctamente' });
 }));

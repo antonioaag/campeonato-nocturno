@@ -469,6 +469,46 @@
         </div>
     </div>
 
+    <!-- Modal: Recuperar Contraseña por Email -->
+    <div id="modal-reset-password" class="modal-hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div class="bg-noc-dark border border-noc-purple2 rounded-lg shadow-lg p-6 w-full max-w-sm">
+            <h3 class="text-xl font-bold mb-4 text-noc-goldlight">Recuperar Contraseña</h3>
+            <form onsubmit="event.preventDefault(); solicitarRecuperacionContrasena();">
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Email registrado</label>
+                    <input required id="reset-email" type="email" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full" placeholder="tu@email.com">
+                </div>
+                <p id="reset-message" class="text-sm text-white/70 mb-3 hidden"></p>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="cerrarModalReset()" class="px-4 py-2 rounded border border-noc-purple2 text-white/70 hover:text-white">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 rounded bg-noc-gold text-noc-black font-semibold hover:bg-noc-goldlight">Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Cambiar Contraseña Temporal -->
+    <div id="modal-change-temporary-password" class="modal-hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div class="bg-noc-dark border border-noc-purple2 rounded-lg shadow-lg p-6 w-full max-w-sm">
+            <h3 class="text-xl font-bold mb-2 text-noc-goldlight">Cambiar Contraseña Temporal</h3>
+            <p class="text-xs text-white/60 mb-4">Se te asignó una contraseña temporal. Debes cambiarla antes de continuar.</p>
+            <form onsubmit="event.preventDefault(); cambiarContrasenaTemporaria();">
+                <div class="mb-3">
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Nueva contraseña</label>
+                    <input required id="new-password" type="password" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full" minlength="6" placeholder="Mínimo 6 caracteres">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Confirmar contraseña</label>
+                    <input required id="confirm-password" type="password" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full" minlength="6" placeholder="Confirma tu contraseña">
+                </div>
+                <p id="password-change-error" class="text-red-400 text-sm mb-3 hidden"></p>
+                <div class="flex justify-end gap-2">
+                    <button type="submit" class="px-4 py-2 rounded bg-noc-gold text-noc-black font-semibold hover:bg-noc-goldlight">Cambiar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // Protección global contra null errors - intercepta TODOS los accesos a classList
         const originalGetElementById = document.getElementById;
@@ -2058,49 +2098,62 @@
 
         function abrirModalReset() {
             document.getElementById('modal-reset-password').classList.remove('modal-hidden');
-            document.getElementById('reset-step-1').classList.remove('hidden');
-            document.getElementById('reset-step-2').classList.add('hidden');
+            document.getElementById('reset-email').value = '';
+            document.getElementById('reset-message').classList.add('hidden');
         }
 
         function cerrarModalReset() {
             document.getElementById('modal-reset-password').classList.add('modal-hidden');
-            document.getElementById('reset-username').value = '';
-            document.getElementById('reset-token').value = '';
+            document.getElementById('reset-email').value = '';
+            document.getElementById('reset-message').classList.add('hidden');
             document.getElementById('reset-nueva-clave').value = '';
         }
 
-        async function solicitarReset(ev) {
-            ev.preventDefault();
-            const username = document.getElementById('reset-username').value;
+        async function solicitarRecuperacionContrasena() {
+            const email = document.getElementById('reset-email').value.trim();
+            if (!email) { alert('Ingresa tu email'); return; }
             try {
                 const res = await fetch('/api/password-reset/request', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username })
+                    body: JSON.stringify({ email })
                 }).then(r => r.json());
-                if (res.token) {
-                    document.getElementById('reset-token').value = res.token;
-                    document.getElementById('reset-step-1').classList.add('hidden');
-                    document.getElementById('reset-step-2').classList.remove('hidden');
-                } else {
-                    alert('Si el usuario existe, recibirá un email con el link para resetear');
-                }
+                const msg = document.getElementById('reset-message');
+                msg.textContent = res.mensaje || 'Contraseña temporal enviada a tu email.';
+                msg.classList.remove('hidden');
+                setTimeout(() => { cerrarModalReset(); document.getElementById('modal-login').classList.remove('hidden'); }, 3000);
             } catch (e) { alert('Error: ' + e.message); }
         }
 
-        async function confirmarReset(ev) {
-            ev.preventDefault();
-            const token = document.getElementById('reset-token').value;
-            const newPassword = document.getElementById('reset-nueva-clave').value;
+        async function cambiarContrasenaTemporaria() {
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const username = localStorage.getItem('_temp_username');
+
+            if (!newPassword || !confirmPassword) { alert('Ingresa ambas contraseñas'); return; }
+            if (newPassword !== confirmPassword) { alert('Las contraseñas no coinciden'); return; }
+            if (newPassword.length < 6) { alert('La contraseña debe tener al menos 6 caracteres'); return; }
+
             try {
-                await fetch('/api/password-reset/confirm', {
+                const res = await fetch('/api/password-reset/change-temporary', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token, newPassword })
+                    body: JSON.stringify({ username, newPassword })
                 }).then(r => r.json());
-                alert('Contraseña cambiada. Ahora puedes iniciar sesión con la nueva clave.');
-                cerrarModalReset();
-            } catch (e) { alert('Error: ' + e.message); }
+                if (res.ok) {
+                    alert('Contraseña cambiada correctamente. Ahora puedes iniciar sesión.');
+                    localStorage.removeItem('_temp_username');
+                    document.getElementById('modal-change-temporary-password').classList.add('modal-hidden');
+                    document.getElementById('modal-login').classList.remove('hidden');
+                    document.getElementById('login-username').value = '';
+                    document.getElementById('login-password').value = '';
+                } else {
+                    throw new Error(res.error || 'Error cambiando contraseña');
+                }
+            } catch (e) {
+                document.getElementById('password-change-error').textContent = e.message;
+                document.getElementById('password-change-error').classList.remove('hidden');
+            }
         }
 
         // Modificar hacerLogin para soportar 2FA
@@ -2119,6 +2172,14 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(loginData)
                 }).then(r => r.json());
+
+                if (res.needs_password_change) {
+                    // Usuario tiene contraseña temporal, debe cambiarla
+                    localStorage.setItem('_temp_username', username);
+                    document.getElementById('modal-login').classList.add('hidden');
+                    document.getElementById('modal-change-temporary-password').classList.remove('modal-hidden');
+                    return;
+                }
 
                 if (res.needs_totp) {
                     loginPendiente2FA = null;
