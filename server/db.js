@@ -268,6 +268,7 @@ function init() {
       await migrarPartidosDetalles();
       await migrarFasePlayoffs();
       await migrarWalkover();
+      await migrarEmailAlUsuarios();
     })();
   }
   return readyPromise;
@@ -438,6 +439,24 @@ async function migrarWalkover() {
     columnas.push('ALTER TABLE resoluciones ADD COLUMN wo_corte INTEGER');
   }
   if (columnas.length) await exec(columnas.join(';'));
+}
+
+async function migrarEmailAlUsuarios() {
+  try {
+    const hasEmail = await columnExists('usuarios', 'email');
+    const hasTemporaryPassword = await columnExists('usuarios', 'is_temporary_password');
+
+    const toAdd = [];
+    if (!hasEmail) toAdd.push('ALTER TABLE usuarios ADD COLUMN email TEXT');
+    if (!hasTemporaryPassword) toAdd.push('ALTER TABLE usuarios ADD COLUMN is_temporary_password INTEGER DEFAULT 0');
+
+    if (toAdd.length) {
+      await exec(toAdd.join(';'));
+      console.log('✓ Campos email e is_temporary_password agregados a usuarios');
+    }
+  } catch (e) {
+    console.log('Email migration already done or error:', e.message);
+  }
 }
 
 module.exports = { get, all, run, exec, batch, init };

@@ -18,6 +18,14 @@ router.post('/login', asyncHandler(async (req, res) => {
     return res.status(401).json({ error: 'Usuario o clave incorrectos' });
   }
 
+  // Si tiene contraseña temporal, debe cambiarla primero
+  if (usuario.is_temporary_password) {
+    return res.status(200).json({
+      needs_password_change: true,
+      mensaje: 'Debes cambiar tu contraseña temporal antes de continuar',
+    });
+  }
+
   // Si el usuario tiene 2FA activo, pide el código TOTP
   if (usuario.totp_enabled) {
     if (!totp_code) {
