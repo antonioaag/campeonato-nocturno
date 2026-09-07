@@ -1604,7 +1604,55 @@
         }
 
         async function guardarResultadoPlayoff(idPartido) {
-            await guardarResultado(idPartido, renderPlayoffs, leerPenales(idPartido));
+            try {
+                const selectEstado = document.getElementById(`es_${idPartido}`);
+                const inputLocal = document.getElementById(`gl_${idPartido}`);
+                const inputVisita = document.getElementById(`gv_${idPartido}`);
+                if (!selectEstado || !inputLocal || !inputVisita) {
+                    alert('No se encontraron los campos de este partido. Recarga la página e intenta de nuevo.');
+                    return;
+                }
+
+                const estado = selectEstado.value;
+                const golesLocal = inputLocal.value.trim();
+                const golesVisita = inputVisita.value.trim();
+                const body = { estado };
+
+                if (estado === 'jugado') {
+                    if (golesLocal === '' || golesVisita === '') {
+                        alert('Ingresa ambos marcadores para guardar como Jugado.');
+                        return;
+                    }
+                    const gl = Number(golesLocal);
+                    const gv = Number(golesVisita);
+                    if (!Number.isInteger(gl) || gl < 0 || !Number.isInteger(gv) || gv < 0) {
+                        alert('Los goles deben ser números enteros mayores o iguales a 0');
+                        return;
+                    }
+                    body.golesLocal = gl;
+                    body.golesVisita = gv;
+
+                    const penales = leerPenales(idPartido);
+                    if (penales) {
+                        if (penales.error) { alert(penales.error); return; }
+                        if (gl !== gv && penales.penalesLocal !== null) {
+                            alert('Los penales solo se cargan cuando el partido termina empatado.');
+                            return;
+                        }
+                        body.penalesLocal = penales.penalesLocal;
+                        body.penalesVisita = penales.penalesVisita;
+                    }
+                }
+
+                // Ejecutar el PATCH
+                await api('/partidos/' + idPartido, { method: 'PATCH', body: JSON.stringify(body) });
+
+                // Limpiar el caché y refrescar
+                delete PARTIDOS_CACHE[idPartido];
+                renderPlayoffs();
+            } catch (e) {
+                alert(e.message);
+            }
         }
 
         // Devuelve los penales cargados para esta llave, validados. Si el partido
