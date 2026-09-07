@@ -1677,31 +1677,52 @@
         // Devuelve los penales cargados para esta llave, validados. Si el partido
         // no está empatado o no hay campos, no se envía nada.
         function leerPenales(idPartido) {
-            const inputLocal = document.getElementById(`pl_${idPartido}`);
-            const inputVisita = document.getElementById(`pv_${idPartido}`);
+            try {
+                const inputLocal = document.getElementById(`pl_${idPartido}`);
+                const inputVisita = document.getElementById(`pv_${idPartido}`);
 
-            // Si no existen los campos de penales, no hay penales que leer
-            if (!inputLocal || !inputVisita) {
-                console.log('[leerPenales] Campos de penales no encontrados para', idPartido);
-                return null;
+                // Si no existen los campos de penales, no hay penales que leer
+                if (!inputLocal || !inputVisita) {
+                    console.log('[leerPenales] Campos no encontrados');
+                    return null;
+                }
+
+                // Leer valores de forma segura, paso a paso
+                let localVal = null;
+                let visitaVal = null;
+
+                if (inputLocal && typeof inputLocal.value === 'string') {
+                    localVal = inputLocal.value.trim();
+                } else if (inputLocal && inputLocal.value) {
+                    localVal = String(inputLocal.value).trim();
+                } else {
+                    localVal = '';
+                }
+
+                if (inputVisita && typeof inputVisita.value === 'string') {
+                    visitaVal = inputVisita.value.trim();
+                } else if (inputVisita && inputVisita.value) {
+                    visitaVal = String(inputVisita.value).trim();
+                } else {
+                    visitaVal = '';
+                }
+
+                console.log('[leerPenales] Valores:', { localVal, visitaVal });
+
+                if (localVal === '' && visitaVal === '') return { penalesLocal: null, penalesVisita: null };
+                if (localVal === '' || visitaVal === '') return { error: 'Ingresa los penales de ambos equipos.' };
+
+                const pl = Number(localVal);
+                const pv = Number(visitaVal);
+                if (!Number.isInteger(pl) || pl < 0 || !Number.isInteger(pv) || pv < 0) {
+                    return { error: 'Los penales deben ser números enteros mayores o iguales a 0.' };
+                }
+                if (pl === pv) return { error: 'La definición por penales no puede quedar empatada.' };
+                return { penalesLocal: pl, penalesVisita: pv };
+            } catch (e) {
+                console.error('[leerPenales] Error no manejado:', e);
+                return null; // Retornar null para no bloquear el guardado
             }
-
-            // Validar que .value existe y es string (proteger contra undefined)
-            const localValue = (inputLocal.value || '').toString().trim();
-            const visitaValue = (inputVisita.value || '').toString().trim();
-
-            console.log('[leerPenales] Valores leídos:', { localValue, visitaValue });
-
-            if (localValue === '' && visitaValue === '') return { penalesLocal: null, penalesVisita: null };
-            if (localValue === '' || visitaValue === '') return { error: 'Ingresa los penales de ambos equipos.' };
-
-            const pl = Number(localValue);
-            const pv = Number(visitaValue);
-            if (!Number.isInteger(pl) || pl < 0 || !Number.isInteger(pv) || pv < 0) {
-                return { error: 'Los penales deben ser números enteros mayores o iguales a 0.' };
-            }
-            if (pl === pv) return { error: 'La definición por penales no puede quedar empatada.' };
-            return { penalesLocal: pl, penalesVisita: pv };
         }
 
         async function generarFasePlayoff(fase) {
