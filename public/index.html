@@ -1605,9 +1605,18 @@
 
         async function guardarResultadoPlayoff(idPartido) {
             try {
+                console.log('[guardarResultadoPlayoff] Iniciando con ID:', idPartido);
+
                 const selectEstado = document.getElementById(`es_${idPartido}`);
                 const inputLocal = document.getElementById(`gl_${idPartido}`);
                 const inputVisita = document.getElementById(`gv_${idPartido}`);
+
+                console.log('[guardarResultadoPlayoff] Elementos encontrados:', {
+                    selectEstado: !!selectEstado,
+                    inputLocal: !!inputLocal,
+                    inputVisita: !!inputVisita
+                });
+
                 if (!selectEstado || !inputLocal || !inputVisita) {
                     alert('No se encontraron los campos de este partido. Recarga la página e intenta de nuevo.');
                     return;
@@ -1617,6 +1626,8 @@
                 const golesLocal = inputLocal.value.trim();
                 const golesVisita = inputVisita.value.trim();
                 const body = { estado };
+
+                console.log('[guardarResultadoPlayoff] Datos:', { estado, golesLocal, golesVisita });
 
                 if (estado === 'jugado') {
                     if (golesLocal === '' || golesVisita === '') {
@@ -1644,14 +1655,22 @@
                     }
                 }
 
+                console.log('[guardarResultadoPlayoff] Enviando PATCH con body:', body);
+
                 // Ejecutar el PATCH
-                await api('/partidos/' + idPartido, { method: 'PATCH', body: JSON.stringify(body) });
+                const respuesta = await api('/partidos/' + idPartido, { method: 'PATCH', body: JSON.stringify(body) });
+                console.log('[guardarResultadoPlayoff] Respuesta del PATCH:', respuesta);
 
                 // Limpiar el caché y refrescar
                 delete PARTIDOS_CACHE[idPartido];
-                renderPlayoffs();
+                console.log('[guardarResultadoPlayoff] Caché limpiado, renderizando...');
+
+                await renderPlayoffs();
+                console.log('[guardarResultadoPlayoff] Renderizado completado');
+                alert('✓ Resultado guardado correctamente');
             } catch (e) {
-                alert(e.message);
+                console.error('[guardarResultadoPlayoff] ERROR:', e);
+                alert('Error al guardar: ' + e.message);
             }
         }
 
