@@ -1643,15 +1643,35 @@
                     body.golesLocal = gl;
                     body.golesVisita = gv;
 
-                    const penales = leerPenales(idPartido);
-                    if (penales) {
-                        if (penales.error) { alert(penales.error); return; }
-                        if (gl !== gv && penales.penalesLocal !== null) {
-                            alert('Los penales solo se cargan cuando el partido termina empatado.');
-                            return;
+                    // Leer penales de forma segura, elemento por elemento
+                    try {
+                        const inputPenalesLocal = document.getElementById(`pl_${idPartido}`);
+                        const inputPenalesVisita = document.getElementById(`pv_${idPartido}`);
+
+                        if (inputPenalesLocal && inputPenalesVisita) {
+                            const plVal = (inputPenalesLocal.value || '').trim();
+                            const pvVal = (inputPenalesVisita.value || '').trim();
+
+                            if (plVal !== '' || pvVal !== '') {
+                                if (plVal === '' || pvVal === '') {
+                                    alert('Ingresa los penales de ambos equipos.');
+                                    return;
+                                }
+                                const pl = Number(plVal);
+                                const pv = Number(pvVal);
+                                if (!Number.isInteger(pl) || pl < 0 || !Number.isInteger(pv) || pv < 0) {
+                                    alert('Los penales deben ser números enteros mayores o iguales a 0.');
+                                    return;
+                                }
+                                if (gl === gv && pl !== pv) {
+                                    body.penalesLocal = pl;
+                                    body.penalesVisita = pv;
+                                }
+                            }
                         }
-                        body.penalesLocal = penales.penalesLocal;
-                        body.penalesVisita = penales.penalesVisita;
+                    } catch (e) {
+                        console.error('Error leyendo penales:', e);
+                        // Continuar sin penales si hay error
                     }
                 }
 
