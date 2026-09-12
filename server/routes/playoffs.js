@@ -140,8 +140,13 @@ async function calcularSiguientePaso(serie, porFase) {
 
 async function faseDeGruposTerminada(serie) {
   const { pendientes } = await db.get(
-    "SELECT COUNT(*) AS pendientes FROM partidos WHERE serie = ? AND fase = 'grupos' AND estado != 'jugado'",
-    [serie]
+    `SELECT COUNT(*) AS pendientes FROM partidos
+     WHERE serie = ? AND fase = 'grupos' AND estado != 'jugado'
+       AND id NOT IN (
+         SELECT partido_id FROM resoluciones
+         WHERE serie = ? AND estado = 'vigente' AND partido_id IS NOT NULL
+       )`,
+    [serie, serie]
   );
   return Number(pendientes) === 0;
 }
