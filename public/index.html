@@ -509,27 +509,112 @@
         </div>
     </div>
 
-    <script>
-        // Protección global contra null errors - intercepta TODOS los accesos a classList
-        const originalGetElementById = document.getElementById;
-        document.getElementById = function(id) {
-          const elem = originalGetElementById.call(this, id);
-          if (!elem) {
-            return {
-              classList: {
-                add: () => {},
-                remove: () => {},
-                toggle: () => {},
-                contains: () => false
-              }
-            };
-          }
-          return elem;
-        };
+    <!-- Modal: Configurar 2FA -->
+    <div id="modal-setup-2fa" class="modal-hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div class="bg-noc-dark border border-noc-purple2 rounded-lg shadow-lg p-6 w-full max-w-sm">
+            <h3 class="text-xl font-bold mb-4 text-noc-goldlight">Activar verificación en dos pasos</h3>
+            <div id="totp-step-1">
+                <p class="text-xs text-white/60 mb-3">Escanea este código con Google Authenticator (u otra app TOTP) y luego ingresa el código de 6 dígitos que te muestre.</p>
+                <div id="qr-container" class="flex justify-center mb-3"></div>
+                <p class="text-xs text-white/50 mb-3">Código manual: <span id="secret-code" class="font-mono text-white/80"></span></p>
+                <form onsubmit="verificarTOTP(event)">
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Código de 6 dígitos</label>
+                        <input required id="totp-code" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full" placeholder="000000">
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <button type="button" onclick="cerrarModal2FA()" class="px-4 py-2 rounded border border-noc-purple2 text-white/70 hover:text-white">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 rounded bg-noc-gold text-noc-black font-semibold hover:bg-noc-goldlight">Verificar</button>
+                    </div>
+                </form>
+            </div>
+            <div id="totp-step-2" class="hidden text-center">
+                <p class="text-white/80">✓ 2FA activado correctamente.</p>
+            </div>
+        </div>
+    </div>
 
+    <!-- Modal: Pedir código 2FA al iniciar sesión -->
+    <div id="modal-totp-login" class="modal-hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div class="bg-noc-dark border border-noc-purple2 rounded-lg shadow-lg p-6 w-full max-w-sm">
+            <h3 class="text-xl font-bold mb-4 text-noc-goldlight">Código de verificación</h3>
+            <form onsubmit="completarLoginWith2FA(event)">
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Código de 6 dígitos de tu app</label>
+                    <input required id="totp-login-code" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full" placeholder="000000">
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="cerrarModal2FALogin()" class="px-4 py-2 rounded border border-noc-purple2 text-white/70 hover:text-white">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 rounded bg-noc-gold text-noc-black font-semibold hover:bg-noc-goldlight">Ingresar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notificaciones tipo toast, reemplazan a alert() -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 items-end pointer-events-none"></div>
+
+    <!-- Modal de confirmación genérico, reemplaza a confirm() -->
+    <div id="modal-confirmar" class="modal-hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div class="bg-noc-dark border border-noc-purple2 rounded-lg shadow-lg p-6 w-full max-w-sm">
+            <p id="confirmar-mensaje" class="text-white mb-6 whitespace-pre-line"></p>
+            <div class="flex justify-end gap-2">
+                <button id="confirmar-cancelar" type="button" class="px-4 py-2 rounded border border-noc-purple2 text-white/70 hover:text-white">Cancelar</button>
+                <button id="confirmar-aceptar" type="button" class="px-4 py-2 rounded bg-noc-gold text-noc-black font-semibold hover:bg-noc-goldlight">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
         // --- 0. ESTADO GLOBAL Y HELPERS DE API ---
         let TOKEN = localStorage.getItem('cn_token') || null;
         let USUARIO = JSON.parse(localStorage.getItem('cn_usuario') || 'null');
+
+        // Notificación no bloqueante. tipo: 'info' (default) | 'success' | 'error'.
+        // Reemplaza a alert(), que congelaba el navegador y se veía anticuado.
+        function mostrarToast(mensaje, tipo = 'info') {
+            const colores = {
+                info: 'bg-noc-dark border-noc-purple2 text-white',
+                success: 'bg-noc-dark border-green-500 text-green-400',
+                error: 'bg-noc-dark border-red-500 text-red-400',
+            };
+            const el = document.createElement('div');
+            el.className = `pointer-events-auto max-w-sm border rounded-lg shadow-lg px-4 py-3 text-sm transition-opacity duration-300 opacity-0 ${colores[tipo] || colores.info}`;
+            el.textContent = mensaje;
+            const cont = document.getElementById('toast-container');
+            cont.appendChild(el);
+            requestAnimationFrame(() => { el.classList.remove('opacity-0'); });
+            setTimeout(() => {
+                el.classList.add('opacity-0');
+                setTimeout(() => el.remove(), 300);
+            }, 4000);
+        }
+
+        // Modal de confirmación asíncrono. Reemplaza a confirm(), que también
+        // bloqueaba el hilo del navegador. Uso: if (!(await confirmarAccion('¿Seguro?'))) return;
+        // Los textos de los botones son personalizables para casos como "Aceptar/Rechazar"
+        // que no son un simple continuar-o-cancelar.
+        function confirmarAccion(mensaje, textoAceptar = 'Confirmar', textoCancelar = 'Cancelar') {
+            return new Promise(resolve => {
+                document.getElementById('confirmar-mensaje').textContent = mensaje;
+                const modal = document.getElementById('modal-confirmar');
+                const btnOk = document.getElementById('confirmar-aceptar');
+                const btnCancel = document.getElementById('confirmar-cancelar');
+                btnOk.textContent = textoAceptar;
+                btnCancel.textContent = textoCancelar;
+                modal.classList.remove('modal-hidden');
+                function cerrar(resultado) {
+                    modal.classList.add('modal-hidden');
+                    btnOk.removeEventListener('click', onOk);
+                    btnCancel.removeEventListener('click', onCancel);
+                    resolve(resultado);
+                }
+                function onOk() { cerrar(true); }
+                function onCancel() { cerrar(false); }
+                btnOk.addEventListener('click', onOk);
+                btnCancel.addEventListener('click', onCancel);
+            });
+        }
 
         async function api(path, options = {}) {
             const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
@@ -634,7 +719,7 @@
         let partidoEditando = null;
         function abrirEditarPartido(id) {
             const partido = PARTIDOS_CACHE[id];
-            if (!partido) { alert('No se encontró el partido. Recarga la página e intenta de nuevo.'); return; }
+            if (!partido) { mostrarToast('No se encontró el partido. Recarga la página e intenta de nuevo.', 'error'); return; }
 
             partidoEditando = id;
             document.getElementById('edit-fecha').value = partido.fechaPartido || '';
@@ -660,11 +745,11 @@
                     method: 'PATCH',
                     body: JSON.stringify({ fechaPartido: fechaPartido || null, hora: hora || null, estadio: estadio || null })
                 });
-                alert('Detalles del partido actualizados.');
+                mostrarToast('Detalles del partido actualizados.', 'success');
                 cerrarEditarPartido();
                 mostrarTabActual();
             } catch (e) {
-                alert('Error: ' + e.message);
+                mostrarToast('Error: ' + e.message, 'error');
             }
         }
 
@@ -737,24 +822,24 @@
         async function actualizarNombreEquipo(id, nuevoNombre) {
             try {
                 await api('/equipos/' + id, { method: 'PATCH', body: JSON.stringify({ nombre: nuevoNombre }) });
-            } catch (e) { alert(e.message); renderEquipos(); }
+            } catch (e) { mostrarToast(e.message, 'error'); renderEquipos(); }
         }
 
         async function generarFixture(grupo) {
-            if (!confirm(`Esto va a BORRAR todos los partidos y resultados actuales del Grupo ${grupo} y generar un fixture nuevo. ¿Continuar?`)) return;
+            if (!(await confirmarAccion(`Esto va a BORRAR todos los partidos y resultados actuales del Grupo ${grupo} y generar un fixture nuevo. ¿Continuar?`))) return;
             try {
                 await api('/fixture/generar', { method: 'POST', body: JSON.stringify({ serie: serieActual, grupo }) });
-                alert('Fixture regenerado.');
+                mostrarToast('Fixture regenerado.', 'success');
                 showTab('tab-partidos');
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
         async function reiniciarResultados(grupo) {
-            if (!confirm(`Esto va a borrar TODOS los resultados cargados del Grupo ${grupo} (sin tocar el fixture). ¿Continuar?`)) return;
+            if (!(await confirmarAccion(`Esto va a borrar TODOS los resultados cargados del Grupo ${grupo} (sin tocar el fixture). ¿Continuar?`))) return;
             try {
                 await api('/fixture/reiniciar-resultados', { method: 'POST', body: JSON.stringify({ serie: serieActual, grupo }) });
-                alert('Resultados reiniciados.');
+                mostrarToast('Resultados reiniciados.', 'success');
                 showTab('tab-partidos');
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         // --- 4. PARTIDOS ---
@@ -885,7 +970,7 @@
             const inputLocal = document.getElementById(`gl_${idPartido}`);
             const inputVisita = document.getElementById(`gv_${idPartido}`);
             if (!selectEstado || !inputLocal || !inputVisita) {
-                alert('No se encontraron los campos de este partido. Recarga la página e intenta de nuevo.');
+                mostrarToast('No se encontraron los campos de este partido. Recarga la página e intenta de nuevo.', 'error');
                 return;
             }
 
@@ -894,20 +979,20 @@
             const golesVisita = inputVisita.value.trim();
             const body = { estado };
             if (estado === 'jugado') {
-                if (golesLocal === '' || golesVisita === '') { alert('Ingresa ambos marcadores para guardar como Jugado.'); return; }
+                if (golesLocal === '' || golesVisita === '') { mostrarToast('Ingresa ambos marcadores para guardar como Jugado.', 'error'); return; }
                 const gl = Number(golesLocal);
                 const gv = Number(golesVisita);
                 if (!Number.isInteger(gl) || gl < 0 || !Number.isInteger(gv) || gv < 0) {
-                    alert('Los goles deben ser números enteros mayores o iguales a 0');
+                    mostrarToast('Los goles deben ser números enteros mayores o iguales a 0', 'error');
                     return;
                 }
                 body.golesLocal = gl;
                 body.golesVisita = gv;
 
                 if (penales) {
-                    if (penales.error) { alert(penales.error); return; }
+                    if (penales.error) { mostrarToast(penales.error, 'error'); return; }
                     if (gl !== gv && penales.penalesLocal !== null) {
-                        alert('Los penales solo se cargan cuando el partido termina empatado.');
+                        mostrarToast('Los penales solo se cargan cuando el partido termina empatado.', 'error');
                         return;
                     }
                     body.penalesLocal = penales.penalesLocal;
@@ -917,7 +1002,7 @@
             try {
                 await api('/partidos/' + idPartido, { method: 'PATCH', body: JSON.stringify(body) });
                 alTerminar();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         // --- 4c. RESOLUCIONES Y RECLAMOS ---
@@ -1003,11 +1088,11 @@
             const aviso = publico
                 ? 'El registro de sanciones y reclamos quedará visible para cualquier visitante. ¿Continuar?'
                 : 'La pestaña Resoluciones dejará de verse para el público. Ojo: las sanciones ya registradas siguen afectando la tabla igual. ¿Continuar?';
-            if (!confirm(aviso)) return;
+            if (!(await confirmarAccion(aviso))) return;
             try {
                 await api('/resoluciones/publicar', { method: 'POST', body: JSON.stringify({ serie: serieActual, publico }) });
                 renderResoluciones();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         function pintarFormResolucion(equipos, partidos) {
@@ -1198,7 +1283,7 @@
                 cuerpo.partidoId = Number(document.getElementById('res-wo-partido').value);
                 cuerpo.equipoId = Number(document.getElementById('res-wo-equipo').value);
                 const equipo = document.getElementById('res-wo-equipo').selectedOptions[0];
-                if (!confirm(`${equipo ? equipo.textContent : 'El equipo'} quedará DESCALIFICADO del campeonato y saldrá de la lista de clasificados. Revisa el detalle del efecto antes de continuar. ¿Registrar el WO?`)) return;
+                if (!(await confirmarAccion(`${equipo ? equipo.textContent : 'El equipo'} quedará DESCALIFICADO del campeonato y saldrá de la lista de clasificados. Revisa el detalle del efecto antes de continuar. ¿Registrar el WO?`))) return;
             } else {
                 cuerpo.partidoId = Number(document.getElementById('res-partido').value);
                 cuerpo.golesLocalHom = Number(document.getElementById('res-gl').value);
@@ -1206,9 +1291,9 @@
             }
             try {
                 await api('/resoluciones', { method: 'POST', body: JSON.stringify(cuerpo) });
-                alert('Sanción registrada.');
+                mostrarToast('Sanción registrada.', 'success');
                 renderResoluciones();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         function pintarListaResoluciones(resoluciones) {
@@ -1275,11 +1360,11 @@
         async function revocarResolucion(id) {
             const motivo = prompt('¿Por qué se revoca esta resolución? Quedará registrado públicamente.');
             if (motivo === null) return;
-            if (!motivo.trim()) { alert('El motivo es obligatorio.'); return; }
+            if (!motivo.trim()) { mostrarToast('El motivo es obligatorio.', 'error'); return; }
             try {
                 await api(`/resoluciones/${id}/revocar`, { method: 'POST', body: JSON.stringify({ motivoRevocacion: motivo }) });
                 renderResoluciones();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         function pintarFormReclamo(equipos, partidos) {
@@ -1332,9 +1417,9 @@
                         fechaPresentacion: document.getElementById('rec-fecha').value,
                     }),
                 });
-                alert('Reclamo ingresado. Queda pendiente de resolución.');
+                mostrarToast('Reclamo ingresado. Queda pendiente de resolución.', 'success');
                 renderResoluciones();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         function pintarListaReclamos(reclamos) {
@@ -1372,10 +1457,10 @@
         }
 
         async function resolverReclamo(id) {
-            const acepta = confirm('Aceptar → OK.  Rechazar → Cancelar.');
+            const acepta = await confirmarAccion('¿Aceptar o rechazar este reclamo?', 'Aceptar', 'Rechazar');
             const texto = prompt(`Fundamento de la resolución (${acepta ? 'aceptado' : 'rechazado'}):`);
             if (texto === null) return;
-            if (!texto.trim()) { alert('El fundamento es obligatorio.'); return; }
+            if (!texto.trim()) { mostrarToast('El fundamento es obligatorio.', 'error'); return; }
             let resolucionId = null;
             if (acepta) {
                 const nro = prompt('Si esta resolución ya fue registrada como sanción, escribe su N°. Si no, deja vacío.');
@@ -1392,7 +1477,7 @@
                     }),
                 });
                 renderResoluciones();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         // --- 4b. ELIMINATORIAS (cuartos, semifinales, final) ---
@@ -1618,7 +1703,7 @@
                 });
 
                 if (!selectEstado || !inputLocal || !inputVisita) {
-                    alert('No se encontraron los campos de este partido. Recarga la página e intenta de nuevo.');
+                    mostrarToast('No se encontraron los campos de este partido. Recarga la página e intenta de nuevo.', 'error');
                     return;
                 }
 
@@ -1631,13 +1716,13 @@
 
                 if (estado === 'jugado') {
                     if (golesLocal === '' || golesVisita === '') {
-                        alert('Ingresa ambos marcadores para guardar como Jugado.');
+                        mostrarToast('Ingresa ambos marcadores para guardar como Jugado.', 'error');
                         return;
                     }
                     const gl = Number(golesLocal);
                     const gv = Number(golesVisita);
                     if (!Number.isInteger(gl) || gl < 0 || !Number.isInteger(gv) || gv < 0) {
-                        alert('Los goles deben ser números enteros mayores o iguales a 0');
+                        mostrarToast('Los goles deben ser números enteros mayores o iguales a 0', 'error');
                         return;
                     }
                     body.golesLocal = gl;
@@ -1654,13 +1739,13 @@
 
                             if (plVal !== '' || pvVal !== '') {
                                 if (plVal === '' || pvVal === '') {
-                                    alert('Ingresa los penales de ambos equipos.');
+                                    mostrarToast('Ingresa los penales de ambos equipos.', 'error');
                                     return;
                                 }
                                 const pl = Number(plVal);
                                 const pv = Number(pvVal);
                                 if (!Number.isInteger(pl) || pl < 0 || !Number.isInteger(pv) || pv < 0) {
-                                    alert('Los penales deben ser números enteros mayores o iguales a 0.');
+                                    mostrarToast('Los penales deben ser números enteros mayores o iguales a 0.', 'error');
                                     return;
                                 }
                                 if (gl === gv && pl !== pv) {
@@ -1687,10 +1772,10 @@
 
                 await renderPlayoffs();
                 console.log('[guardarResultadoPlayoff] Renderizado completado');
-                alert('✓ Resultado guardado correctamente');
+                mostrarToast('✓ Resultado guardado correctamente', 'success');
             } catch (e) {
                 console.error('[guardarResultadoPlayoff] ERROR:', e);
-                alert('Error al guardar: ' + e.message);
+                mostrarToast('Error al guardar: ' + e.message, 'error');
             }
         }
 
@@ -1749,26 +1834,26 @@
             try {
                 await api('/playoffs/generar', { method: 'POST', body: JSON.stringify({ serie: serieActual, fase }) });
                 renderPlayoffs();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         async function publicarPlayoffs(publico) {
             const aviso = publico
                 ? 'El cuadro de eliminatorias quedará visible para cualquier visitante del sitio. ¿Continuar?'
                 : 'La pestaña Eliminatorias dejará de verse para el público. Solo tú podrás verla. ¿Continuar?';
-            if (!confirm(aviso)) return;
+            if (!(await confirmarAccion(aviso))) return;
             try {
                 await api('/playoffs/publicar', { method: 'POST', body: JSON.stringify({ serie: serieActual, publico }) });
                 renderPlayoffs();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         async function reiniciarPlayoffs() {
-            if (!confirm('Esto borra los cuartos, semifinales y final de esta serie, con sus resultados. La fase de grupos no se toca. ¿Continuar?')) return;
+            if (!(await confirmarAccion('Esto borra los cuartos, semifinales y final de esta serie, con sus resultados. La fase de grupos no se toca. ¿Continuar?'))) return;
             try {
                 await api('/playoffs/reiniciar', { method: 'POST', body: JSON.stringify({ serie: serieActual }) });
                 renderPlayoffs();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         // --- 5. POSICIONES ---
@@ -1988,21 +2073,21 @@
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok) throw new Error(data.error || 'Error al subir el documento');
                 renderJugadores();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         async function eliminarDocumento(equipoId) {
-            if (!confirm('¿Eliminar el documento de inscripción de este equipo?')) return;
+            if (!(await confirmarAccion('¿Eliminar el documento de inscripción de este equipo?'))) return;
             try {
                 await api('/listas-inscripcion/' + equipoId, { method: 'DELETE' });
                 renderJugadores();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         async function crearJugador(ev) {
             ev.preventDefault();
             const equipoId = document.getElementById('jugadores-filtro-equipo').value;
-            if (!equipoId) { alert('Elige un equipo en el filtro de arriba antes de agregar un jugador.'); return; }
+            if (!equipoId) { mostrarToast('Elige un equipo en el filtro de arriba antes de agregar un jugador.', 'error'); return; }
             const nombre = document.getElementById('nj-nombre').value.trim();
             const rut = document.getElementById('nj-rut').value.trim();
             const fechaNacimiento = document.getElementById('nj-fecha').value;
@@ -2012,27 +2097,27 @@
                 document.getElementById('nj-rut').value = '';
                 document.getElementById('nj-fecha').value = '';
                 renderJugadores();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         async function actualizarJugador(id, campo, valor) {
             try {
                 await api('/jugadores/' + id, { method: 'PATCH', body: JSON.stringify({ [campo]: valor }) });
-            } catch (e) { alert(e.message); renderJugadores(); }
+            } catch (e) { mostrarToast(e.message, 'error'); renderJugadores(); }
         }
 
         async function eliminarJugador(id) {
-            if (!confirm('¿Eliminar este jugador?')) return;
+            if (!(await confirmarAccion('¿Eliminar este jugador?'))) return;
             try {
                 await api('/jugadores/' + id, { method: 'DELETE' });
                 renderJugadores();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         async function subirCsvJugadores(ev) {
             ev.preventDefault();
             const equipoId = document.getElementById('jugadores-filtro-equipo').value;
-            if (!equipoId) { alert('Elige un equipo en el filtro de arriba antes de subir el CSV.'); return; }
+            if (!equipoId) { mostrarToast('Elige un equipo en el filtro de arriba antes de subir el CSV.', 'error'); return; }
             const input = document.getElementById('csv-archivo');
             if (!input.files[0]) return;
             const fd = new FormData();
@@ -2105,22 +2190,22 @@
                 await api('/castigos', { method: 'POST', body: JSON.stringify({ equipoId, nombre, rut, infraccion, castigo, fechaCastigo }) });
                 ev.target.reset();
                 renderCastigados();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         async function actualizarCastigo(id, campo, valor) {
             try {
                 await api('/castigos/' + id, { method: 'PATCH', body: JSON.stringify({ [campo]: valor }) });
                 renderCastigados();
-            } catch (e) { alert(e.message); renderCastigados(); }
+            } catch (e) { mostrarToast(e.message, 'error'); renderCastigados(); }
         }
 
         async function eliminarCastigo(id) {
-            if (!confirm('¿Eliminar este castigo?')) return;
+            if (!(await confirmarAccion('¿Eliminar este castigo?'))) return;
             try {
                 await api('/castigos/' + id, { method: 'DELETE' });
                 renderCastigados();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         // --- 8. USUARIOS (solo admin) ---
@@ -2151,7 +2236,7 @@
                 await api('/usuarios', { method: 'POST', body: JSON.stringify({ nombre, username, password, rol }) });
                 document.getElementById('form-nuevo-usuario').reset();
                 renderUsuarios();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         async function resetearClave(id) {
@@ -2159,16 +2244,16 @@
             if (!nueva) return;
             try {
                 await api('/usuarios/' + id, { method: 'PATCH', body: JSON.stringify({ password: nueva }) });
-                alert('Clave actualizada.');
-            } catch (e) { alert(e.message); }
+                mostrarToast('Clave actualizada.', 'success');
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         async function eliminarUsuario(id) {
-            if (!confirm('¿Eliminar este usuario? No podrá volver a iniciar sesión.')) return;
+            if (!(await confirmarAccion('¿Eliminar este usuario? No podrá volver a iniciar sesión.'))) return;
             try {
                 await api('/usuarios/' + id, { method: 'DELETE' });
                 renderUsuarios();
-            } catch (e) { alert(e.message); }
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         // --- 7. UTILIDADES ---
@@ -2180,7 +2265,7 @@
         let temp2FAToken = null;
 
         function abrirModal2FA() {
-            if (!estaLogueado()) { alert('Debes iniciar sesión'); return; }
+            if (!estaLogueado()) { mostrarToast('Debes iniciar sesión', 'error'); return; }
             document.getElementById('modal-setup-2fa').classList.remove('modal-hidden');
             generarQR2FA();
         }
@@ -2199,7 +2284,7 @@
                 document.getElementById('qr-container').innerHTML = res.qrCode
                     ? `<img src="${res.qrCode}" style="width:200px;height:200px;">`
                     : '<p class="text-white/50">Error generando QR</p>';
-            } catch (e) { alert('Error: ' + e.message); }
+            } catch (e) { mostrarToast('Error: ' + e.message, 'error'); }
         }
 
         async function verificarTOTP(ev) {
@@ -2210,7 +2295,7 @@
                 document.getElementById('totp-step-1').classList.add('hidden');
                 document.getElementById('totp-step-2').classList.remove('hidden');
                 setTimeout(() => cerrarModal2FA(), 2000);
-            } catch (e) { alert('Error: ' + e.message); }
+            } catch (e) { mostrarToast('Error: ' + e.message, 'error'); }
         }
 
         function abrirModalReset() {
@@ -2223,12 +2308,11 @@
             document.getElementById('modal-reset-password').classList.add('modal-hidden');
             document.getElementById('reset-email').value = '';
             document.getElementById('reset-message').classList.add('hidden');
-            document.getElementById('reset-nueva-clave').value = '';
         }
 
         async function solicitarRecuperacionContrasena() {
             const email = document.getElementById('reset-email').value.trim();
-            if (!email) { alert('Ingresa tu email'); return; }
+            if (!email) { mostrarToast('Ingresa tu email', 'error'); return; }
             try {
                 const res = await fetch('/api/password-reset/request', {
                     method: 'POST',
@@ -2239,7 +2323,7 @@
                 msg.textContent = res.mensaje || 'Contraseña temporal enviada a tu email.';
                 msg.classList.remove('hidden');
                 setTimeout(() => { cerrarModalReset(); document.getElementById('modal-login').classList.remove('hidden'); }, 3000);
-            } catch (e) { alert('Error: ' + e.message); }
+            } catch (e) { mostrarToast('Error: ' + e.message, 'error'); }
         }
 
         async function cambiarContrasenaTemporaria() {
@@ -2247,9 +2331,9 @@
             const confirmPassword = document.getElementById('confirm-password').value;
             const username = localStorage.getItem('_temp_username');
 
-            if (!newPassword || !confirmPassword) { alert('Ingresa ambas contraseñas'); return; }
-            if (newPassword !== confirmPassword) { alert('Las contraseñas no coinciden'); return; }
-            if (newPassword.length < 6) { alert('La contraseña debe tener al menos 6 caracteres'); return; }
+            if (!newPassword || !confirmPassword) { mostrarToast('Ingresa ambas contraseñas', 'error'); return; }
+            if (newPassword !== confirmPassword) { mostrarToast('Las contraseñas no coinciden', 'error'); return; }
+            if (newPassword.length < 6) { mostrarToast('La contraseña debe tener al menos 6 caracteres', 'error'); return; }
 
             try {
                 const res = await fetch('/api/password-reset/change-temporary', {
@@ -2258,7 +2342,7 @@
                     body: JSON.stringify({ username, newPassword })
                 }).then(r => r.json());
                 if (res.ok) {
-                    alert('Contraseña cambiada correctamente. Ahora puedes iniciar sesión.');
+                    mostrarToast('Contraseña cambiada correctamente. Ahora puedes iniciar sesión.', 'success');
                     localStorage.removeItem('_temp_username');
                     document.getElementById('modal-change-temporary-password').classList.add('modal-hidden');
                     document.getElementById('modal-login').classList.remove('hidden');
@@ -2321,7 +2405,7 @@
                 renderUsuarios();
                 location.reload();
             } catch (e) {
-                alert('Error: ' + e.message);
+                mostrarToast('Error: ' + e.message, 'error');
             }
         }
 
