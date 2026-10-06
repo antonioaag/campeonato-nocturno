@@ -116,6 +116,128 @@ async function migrarSerie() {
   await exec('PRAGMA foreign_keys = ON');
 }
 
+// Migra a soporte multi-campeonato: crea la tabla 'campeonatos' y agrega
+// 'campeonato_id' a equipos/resoluciones/castigos. partidos, byes, jugadores,
+// reclamos y listas_inscripcion no necesitan la columna: siempre se consultan
+// con JOIN a equipos, así que alcanza con filtrar por equipos.campeonato_id.
+//
+// Si todavía no hay ningún campeonato (primera vez que corre esta función),
+// todo lo que ya existe en la base se agrupa en un campeonato histórico
+// marcado 'finalizado' (de solo lectura desde ahora en más), y se crea uno
+// nuevo vacío y 'activo' para seguir cargando. Es idempotente: si
+// equipos.campeonato_id ya existe, no hace nada.
+async function migrarCampeonatos() {
+  if (await columnExists('equipos', 'campeonato_id')) return;
+
+  await exec(`
+    CREATE TABLE IF NOT EXISTS campeonatos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT NOT NULL,
+      estado TEXT NOT NULL DEFAULT 'activo' CHECK(estado IN ('activo','finalizado')),
+      creado_at TEXT NOT NULL DEFAULT (datetime('now')),
+      finalizado_at TEXT
+    );
+  `);
+
+  const yaHayCampeonatos = await get('SELECT id FROM campeonatos LIMIT 1');
+  let historicoId;
+  if (!yaHayCampeonatos) {
+    const historico = await run(
+      `INSERT INTO campeonatos (nombre, estado, finalizado_at) VALUES (?, 'finalizado', datetime('now'))`,
+      ['Campeonato Nocturno 2026']
+    );
+    historicoId = historico.lastInsertRowid;
+    await run(`INSERT INTO campeonatos (nombre, estado) VALUES (?, 'activo')`, ['Campeonato Clausura 2026']);
+  } else {
+    historicoId = yaHayCampeonatos.id;
+  }
+
+  // DEFAULT con el id ya resuelto: las filas existentes (agregadas por ALTER
+  // TABLE) y cualquier INSERT futuro que no especifique la columna quedan
+  // igual en el campeonato histórico, pero toda ruta nueva debe pasar el
+  // campeonato activo explícito al insertar.
+  await exec(`ALTER TABLE equipos ADD COLUMN campeonato_id INTEGER NOT NULL DEFAULT ${historicoId} REFERENCES campeonatos(id)`);
+  await exec(`ALTER TABLE resoluciones ADD COLUMN campeonato_id INTEGER NOT NULL DEFAULT ${historicoId} REFERENCES campeonatos(id)`);
+  await exec(`ALTER TABLE castigos ADD COLUMN campeonato_id INTEGER NOT NULL DEFAULT ${historicoId} REFERENCES campeonatos(id)`);
+
+  console.log(`✓ Migración a multi-campeonato: histórico #${historicoId}, nuevo campeonato activo creado`);
+}
+
+// Amplía el CHECK(serie IN ('ADULTO','SENIOR')) de equipos/partidos/byes para
+// aceptar las 6 series de Clausura 2026 (Sub-13, Sub-15, Sub-17, Primera
+// Adulto, Segunda Adulto, Senior). SQLite no permite ampliar un CHECK con
+// ALTER TABLE, así que hay que reconstruir cada tabla igual que en
+// migrarSerie/migrarWalkover: crear la nueva -> copiar TODAS las filas tal
+// cual -> reemplazar. No se pierde ni se modifica ninguna fila existente.
+// Es idempotente: si el CHECK ya nombra 'SUB13', no hace nada.
+const SERIES_VALIDAS = `'ADULTO','SENIOR','SUB13','SUB15','SUB17','PRIMERA_ADULTO','SEGUNDA_ADULTO'`;
+
+async function migrarSeriesNuevas() {
+  const tablaEquipos = await get("SELECT sql FROM sqlite_master WHERE type='table' AND name='equipos'");
+  if (!tablaEquipos || /SUB13/.test(tablaEquipos.sql)) return;
+
+  await exec('PRAGMA foreign_keys = OFF');
+
+  await batch([
+    { sql: `CREATE TABLE equipos_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT NOT NULL,
+      serie TEXT NOT NULL DEFAULT 'ADULTO' CHECK(serie IN (${SERIES_VALIDAS})),
+      grupo TEXT NOT NULL,
+      orden INTEGER NOT NULL,
+      campeonato_id INTEGER NOT NULL REFERENCES campeonatos(id)
+    )`, args: [] },
+    { sql: `INSERT INTO equipos_new (id, nombre, serie, grupo, orden, campeonato_id)
+            SELECT id, nombre, serie, grupo, orden, campeonato_id FROM equipos`, args: [] },
+    { sql: 'DROP TABLE equipos', args: [] },
+    { sql: 'ALTER TABLE equipos_new RENAME TO equipos', args: [] },
+
+    { sql: `CREATE TABLE partidos_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      serie TEXT NOT NULL DEFAULT 'ADULTO' CHECK(serie IN (${SERIES_VALIDAS})),
+      grupo TEXT NOT NULL,
+      fecha INTEGER NOT NULL,
+      local_id INTEGER NOT NULL REFERENCES equipos(id),
+      visita_id INTEGER NOT NULL REFERENCES equipos(id),
+      goles_local INTEGER,
+      goles_visita INTEGER,
+      estado TEXT NOT NULL DEFAULT 'programado' CHECK(estado IN ('programado','jugado','aplazado')),
+      updated_by INTEGER REFERENCES usuarios(id),
+      updated_at TEXT,
+      fecha_partido TEXT,
+      hora TEXT,
+      estadio TEXT,
+      turno TEXT,
+      fase TEXT NOT NULL DEFAULT 'grupos',
+      llave INTEGER,
+      penales_local INTEGER,
+      penales_visita INTEGER
+    )`, args: [] },
+    { sql: `INSERT INTO partidos_new (id, serie, grupo, fecha, local_id, visita_id, goles_local, goles_visita,
+              estado, updated_by, updated_at, fecha_partido, hora, estadio, turno, fase, llave, penales_local, penales_visita)
+            SELECT id, serie, grupo, fecha, local_id, visita_id, goles_local, goles_visita,
+              estado, updated_by, updated_at, fecha_partido, hora, estadio, turno, fase, llave, penales_local, penales_visita
+            FROM partidos`, args: [] },
+    { sql: 'DROP TABLE partidos', args: [] },
+    { sql: 'ALTER TABLE partidos_new RENAME TO partidos', args: [] },
+
+    { sql: `CREATE TABLE byes_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      serie TEXT NOT NULL DEFAULT 'ADULTO' CHECK(serie IN (${SERIES_VALIDAS})),
+      grupo TEXT NOT NULL,
+      fecha INTEGER NOT NULL,
+      equipo_id INTEGER NOT NULL REFERENCES equipos(id)
+    )`, args: [] },
+    { sql: `INSERT INTO byes_new (id, serie, grupo, fecha, equipo_id)
+            SELECT id, serie, grupo, fecha, equipo_id FROM byes`, args: [] },
+    { sql: 'DROP TABLE byes', args: [] },
+    { sql: 'ALTER TABLE byes_new RENAME TO byes', args: [] },
+  ]);
+
+  await exec('PRAGMA foreign_keys = ON');
+  console.log('✓ equipos/partidos/byes aceptan ahora las 6 series de Clausura 2026');
+}
+
 let readyPromise = null;
 function init() {
   if (!readyPromise) {
@@ -269,6 +391,8 @@ function init() {
       await migrarFasePlayoffs();
       await migrarWalkover();
       await migrarEmailAlUsuarios();
+      await migrarCampeonatos();
+      await migrarSeriesNuevas();
     })();
   }
   return readyPromise;

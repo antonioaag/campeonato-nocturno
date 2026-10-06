@@ -3,7 +3,6 @@
 // /api/posiciones (para mostrar la tabla) como /api/playoffs (para sembrar
 // el cuadro de cuartos de final).
 const db = require('./db');
-const { SERIES } = require('./series');
 const { ajustesVigentes } = require('./resoluciones');
 
 // Orden estándar de desempate: puntos, diferencia de gol, goles a favor,
@@ -108,10 +107,13 @@ async function calcularTabla(serie, grupo, ajustes) {
 }
 
 async function calcularTodasLasTablas(serie) {
-  // Se leen una sola vez para todos los grupos de la serie.
+  // Los grupos se descubren desde los equipos ya cargados (no de una lista
+  // fija): la composición de grupos la define el sorteo de cada campeonato,
+  // no este módulo.
+  const filas = await db.all('SELECT DISTINCT grupo FROM equipos WHERE serie = ? ORDER BY grupo', [serie]);
   const ajustes = await ajustesVigentes(serie);
   const resultado = {};
-  for (const grupo of SERIES[serie].grupos) {
+  for (const { grupo } of filas) {
     resultado[grupo] = await calcularTabla(serie, grupo, ajustes);
   }
   return resultado;

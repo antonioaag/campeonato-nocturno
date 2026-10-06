@@ -44,10 +44,17 @@ async function limpiarSerie(serie) {
 }
 
 async function insertarEquipos(nombres, serie, grupo) {
+  // El seed siempre siembra en el campeonato activo: si no hay ninguno
+  // todavía (base de datos recién creada), db.init() ya lo crea antes de
+  // llegar acá.
+  const { id: campeonatoId } = await db.get("SELECT id FROM campeonatos WHERE estado = 'activo'");
   const ids = {};
   for (let i = 0; i < nombres.length; i++) {
     const nombre = nombres[i];
-    const info = await db.run('INSERT INTO equipos (nombre, serie, grupo, orden) VALUES (?, ?, ?, ?)', [nombre, serie, grupo, i]);
+    const info = await db.run(
+      'INSERT INTO equipos (nombre, serie, grupo, orden, campeonato_id) VALUES (?, ?, ?, ?, ?)',
+      [nombre, serie, grupo, i, campeonatoId]
+    );
     ids[nombre] = info.lastInsertRowid;
   }
   return ids;

@@ -59,6 +59,7 @@ async function start() {
   await resetearAdminPassword();
 
   app.use('/api/auth/login', loginLimiter);
+  app.use('/api/campeonatos', require('./routes/campeonatos'));
   app.use('/api/auth', require('./routes/auth'));
   app.use('/api/2fa', require('./routes/totp'));
   app.use('/api/password-reset', require('./routes/password-reset'));
@@ -89,6 +90,9 @@ async function start() {
     }
     if (err && /Solo se permiten archivos/.test(err.message || '')) {
       return res.status(400).json({ error: err.message });
+    }
+    if (err && Number.isInteger(err.status) && err.status >= 400 && err.status < 500) {
+      return res.status(err.status).json({ error: err.message });
     }
     console.error(err);
     res.status(500).json({ error: 'Error interno del servidor' });

@@ -32,4 +32,16 @@ function claveResolucionesPublicas(serie) {
   return `resoluciones_publicas_${serie}`;
 }
 
-module.exports = { leer, escribir, leerBooleano, clavePlayoffsPublicos, claveResolucionesPublicas };
+// Año de nacimiento desde el cual se puede jugar una serie juvenil (Sub-13,
+// Sub-15, Sub-17), para un campeonato puntual. Sube un año en cada temporada,
+// así que se guarda editable por campeonato en vez de quedar fijo en código;
+// series.js solo trae el valor de referencia del reglamento vigente al
+// momento de escribir esto, para precargarlo si el admin no definió otro.
+function claveCorteEdad(campeonatoId, serie) {
+  return `campeonato_${campeonatoId}_corte_edad_${serie}`;
+}
+
+module.exports = {
+  leer, escribir, leerBooleano,
+  clavePlayoffsPublicos, claveResolucionesPublicas, claveCorteEdad,
+};
