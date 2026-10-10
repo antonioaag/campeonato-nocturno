@@ -1,6 +1,6 @@
 # Catálogo de agentes (The Agency)
 
-282 agentes de [msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents), agrupados por división. Las descripciones vienen del repo original, en inglés.
+282 agentes de [msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents), agrupados por división. Las descripciones están traducidas al español; los nombres se dejan en inglés porque así los reconoce Claude al usarlos.
 
 ## Cómo activar uno
 
@@ -43,370 +43,370 @@ Otros comandos:
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `engineering-ai-data-remediation-engineer` | AI Data Remediation Engineer | Specialist in self-healing data pipelines — uses air-gapped local SLMs and semantic clustering to automatically detect, classify, and fix data anomalies at scale.… |
-| `engineering-ai-engineer` | AI Engineer | Expert AI/ML engineer specializing in machine learning model development, deployment, and integration into production systems. Focused on building intelligent… |
-| `engineering-api-platform-engineer` | API Platform Engineer | Expert API platform engineer for public and partner APIs — contract-first design (OpenAPI/gRPC), versioning and deprecation policy, SDK generation, API gateway… |
-| `engineering-ats-validator-architect` | ATS Validator Architect | Architect and validator for Applicant Tracking Systems (ATS) and resume parsers. Combines deterministic information retrieval (BM25/TF-IDF and n-grams without AI),… |
-| `engineering-autonomous-optimization-architect` | Autonomous Optimization Architect | Intelligent system governor that continuously shadow-tests APIs for performance while enforcing strict financial and security guardrails against runaway costs. |
-| `engineering-backend-architect` | Backend Architect | Senior backend architect specializing in scalable system design, database architecture, API development, and cloud infrastructure. Builds robust, secure, performant… |
-| `engineering-cms-developer` | CMS Developer | Drupal and WordPress specialist for theme development, custom plugins/modules, content architecture, and code-first CMS implementation |
-| `engineering-china-network-engineer` | China Network Engineer | Expert in mainland China's mainstream enterprise networking stacks — Huawei VRP, H3C Comware, Ruijie RGOS, and Hillstone StoneOS — covering routing, switching,… |
-| `engineering-code-reviewer` | Code Reviewer | Expert code reviewer who provides constructive, actionable feedback focused on correctness, maintainability, security, and performance — not style preferences. |
-| `engineering-codebase-onboarding-engineer` | Codebase Onboarding Engineer | Expert developer onboarding specialist who helps new engineers understand unfamiliar codebases fast by reading source code, tracing code paths, and stating only facts… |
-| `engineering-data-engineer` | Data Engineer | Expert data engineer specializing in building reliable data pipelines, lakehouse architectures, and scalable data infrastructure. Masters ETL/ELT, Apache Spark, dbt,… |
-| `engineering-data-visualization-engineer` | Data Visualization Engineer | Expert data visualization engineer — chart-type selection by data and question, perceptually honest encodings, colorblind-safe data palettes, accessible and… |
-| `engineering-database-optimizer` | Database Optimizer | Expert database specialist focusing on schema design, query optimization, indexing strategies, and performance tuning for PostgreSQL, MySQL, and modern databases like… |
-| `engineering-database-reliability-engineer` | Database Reliability Engineer | Expert database reliability engineer (DBRE) — high availability and replication, automated failover, backup and point-in-time recovery, zero-downtime online schema… |
-| `engineering-desktop-app-engineer` | Desktop App Engineer | Expert desktop application engineer for Electron and Tauri — secure IPC and process isolation, code signing and notarization, auto-update pipelines, native OS… |
-| `engineering-devops-automator` | DevOps Automator | Expert DevOps engineer specializing in infrastructure automation, CI/CD pipeline development, and cloud operations |
-| `engineering-developer-tooling-engineer` | Developer Tooling Engineer | Expert developer-tooling and CLI engineer — building command-line tools and internal developer platforms with great DX: intuitive command design, helpful errors,… |
-| `engineering-drupal-performance` | Drupal Performance Engineer | Expert Drupal 10/11 performance engineer specializing in Core Web Vitals, render and dynamic page caching, BigPipe, cache tags and contexts, database query and Views… |
-| `engineering-drupal-shopping-cart` | Drupal Shopping Cart Engineer | Expert Drupal e-commerce engineer specializing in Drupal Commerce for product catalog management, payment gateway integration, checkout workflow design, order… |
-| `engineering-email-intelligence-engineer` | Email Intelligence Engineer | Expert in extracting structured, reasoning-ready data from raw email threads for AI agents and automation systems |
-| `engineering-embedded-firmware-engineer` | Embedded Firmware Engineer | Specialist in bare-metal and RTOS firmware - ESP32/ESP-IDF, PlatformIO, Arduino, ARM Cortex-M, STM32 HAL/LL, Nordic nRF5/nRF Connect SDK, FreeRTOS, Zephyr |
-| `engineering-feishu-integration-developer` | Feishu Integration Developer | Full-stack integration expert specializing in the Feishu (Lark) Open Platform — proficient in Feishu bots, mini programs, approval workflows, Bitable… |
-| `engineering-filament-optimization-specialist` | Filament Optimization Specialist | Expert in restructuring and optimizing Filament PHP admin interfaces for maximum usability and efficiency. Focuses on impactful structural changes — not just cosmetic… |
-| `engineering-finops-engineer` | FinOps Engineer | Expert cloud cost engineer for AWS/GCP/Azure — cost allocation and tagging, rightsizing, commitment planning (reserved instances/savings plans), egress and storage… |
-| `engineering-frontend-developer` | Frontend Developer | Expert frontend developer specializing in modern web technologies, React/Vue/Angular frameworks, UI implementation, and performance optimization |
-| `engineering-gaussdb-expert` | GaussDB Expert Engineer | Expert database specialist focusing on GaussDB OLTP — Huawei's self-developed enterprise-grade relational database (NOT GaussDB(DWS) OLAP, NOT GaussDB(for openGauss)… |
-| `engineering-git-workflow-master` | Git Workflow Master | Expert in Git workflows, branching strategies, and version control best practices including conventional commits, rebasing, worktrees, and CI-friendly branch management. |
-| `engineering-it-service-manager` | IT Service Manager | Expert IT service management specialist using ITIL 4 framework for service catalog design, incident and problem management, change control, SLA governance, CMDB… |
-| `engineering-identity-access-engineer` | Identity & Access Engineer | Expert identity engineer for OAuth 2.0/OIDC flows, enterprise SSO (SAML/OIDC) and SCIM provisioning, passkeys/WebAuthn, session architecture, and multi-tenant… |
-| `engineering-incident-response-commander` | Incident Response Commander | Expert incident commander specializing in production incident management, structured response coordination, post-mortem facilitation, SLO/SLI tracking, and on-call… |
-| `engineering-i18n-engineer` | Internationalization Engineer | Expert i18n engineer for ICU MessageFormat, CLDR plural rules, RTL and bidirectional layouts, locale-aware date/number/currency formatting, string extraction… |
-| `engineering-iot-fleet-engineer` | IoT Fleet Engineer | Expert IoT and edge fleet engineer — device provisioning and identity, MQTT/telemetry pipelines, staged over-the-air (OTA) firmware updates with rollback, edge… |
-| `engineering-knowledge-graph-engineer` | Knowledge Graph Engineer | Structures information and capabilities into interconnected nodes (entities) and edges (relationships) — enabling dynamic context navigation, modular competency… |
-| `engineering-llm-post-training-engineer` | LLM Post-Training Engineer | Evidence-driven owner for SFT, preference optimization, RLHF/RLVR, MoE post-training, and the release gates that turn a checkpoint into a defensible model change. |
-| `engineering-minimal-change-engineer` | Minimal Change Engineer | Engineering specialist focused on minimum-viable diffs — fixes only what was asked, refuses scope creep, prefers three similar lines over a premature abstraction. The… |
-| `engineering-mobile-app-builder` | Mobile App Builder | Specialized mobile application developer with expertise in native iOS/Android development and cross-platform frameworks |
-| `engineering-mobile-release-engineer` | Mobile Release Engineer | Expert mobile release and distribution engineer for iOS and Android — code signing, provisioning, fastlane pipelines, App Store Connect and Play Console submission,… |
-| `engineering-multi-agent-systems-architect` | Multi-Agent Systems Architect | Systems architect specializing in the design, coordination, and governance of multi-agent AI pipelines — covering topology selection, context management, inter-agent… |
-| `engineering-network-engineer` | Network Engineer | Expert network engineer for Cisco IOS/IOS-XE, Cisco ASA/FTD, Juniper Junos, and Palo Alto PAN-OS routing, switching, firewalling, and troubleshooting. |
-| `engineering-orgscript-engineer` | OrgScript Engineer | Expert in designing, parsing, and implementing OrgScript grammar, AST validation, and business logic definitions. |
-| `engineering-pdf-engine-architect` | PDF Engine Architect | Architect and specialist in deterministic HTML-to-PDF document compilation, Playwright browser context pools, dynamic Euclidean page sizing, LayoutNG subpixel… |
-| `engineering-payments-billing-engineer` | Payments & Billing Engineer | Expert payments engineer for PSP integrations (Stripe, Adyen, Braintree, PayPal), idempotent payment flows, webhook processing, subscription billing, SCA/3DS, PCI… |
-| `engineering-platform-engineer` | Platform Engineer | Expert internal developer platform (IDP) engineer specializing in golden paths, paved roads, and self-serve infrastructure that multiplies engineering velocity. |
-| `engineering-privacy-engineer` | Privacy Engineer | Expert privacy engineer who implements privacy in code — PII discovery and classification, data minimization, consent enforcement at the API layer, automated DSAR and… |
-| `engineering-prompt-engineer` | Prompt Engineer | Specialist in crafting, testing, and systematically optimizing prompts for LLMs — turning vague instructions into reliable, production-grade AI behaviors. |
-| `engineering-rag-pipeline-engineer` | RAG Pipeline Engineer | Production RAG specialist focused on chunking strategy, retrieval quality, hybrid search, re-ranking, and eval-driven iteration. Builds pipelines that actually… |
-| `engineering-rapid-prototyper` | Rapid Prototyper | Specialized in ultra-fast proof-of-concept development and MVP creation using efficient tools and frameworks |
-| `engineering-realtime-collaboration-engineer` | Realtime Collaboration Engineer | Expert realtime systems engineer for WebSocket/SSE infrastructure, presence, CRDT and OT-based collaborative editing, offline-first sync engines, and fan-out scaling… |
-| `engineering-rust-refactoring-specialist` | Rust Refactoring Specialist | Expert Rust engineer for repository-scale refactoring, safe renames, module restructuring, duplication removal, panic hardening, ownership improvements, and compiler… |
-| `engineering-sre` | SRE (Site Reliability Engineer) | Expert site reliability engineer specializing in SLOs, error budgets, observability, chaos engineering, and toil reduction for production systems at scale. |
-| `engineering-search-relevance-engineer` | Search Relevance Engineer | Expert search engineer for Elasticsearch and OpenSearch — index and analyzer design, BM25 query tuning, hybrid lexical+vector retrieval, and judgment-based relevance… |
-| `engineering-section-508-specialist` | Section 508 Accessibility Specialist | Expert U.S. federal Section 508 accessibility engineer (the 508 legal baseline is WCAG 2.0 Level AA; WCAG 2.1/2.2 AA are recommended best practice, and ADA Title II… |
-| `engineering-senior-developer` | Senior Developer | Premium implementation specialist - Masters Laravel/Livewire/FluxUI, advanced CSS, Three.js integration |
-| `engineering-servicenow-developer-mentor` | ServiceNow Developer & Mentor | ServiceNow platform developer and step-by-step troubleshooter — Business Rules, Script Includes, GlideRecord/GlideAggregate, Flow Designer, ACLs, and "is this OOTB or… |
-| `engineering-software-architect` | Software Architect | Expert software architect specializing in system design, domain-driven design, architectural patterns, and technical decision-making for scalable, maintainable systems. |
-| `engineering-solidity-smart-contract-engineer` | Solidity Smart Contract Engineer | Expert Solidity developer specializing in EVM smart contract architecture, gas optimization, upgradeable proxy patterns, DeFi protocol development, and security-first… |
-| `engineering-technical-writer` | Technical Writer | Expert technical writer specializing in developer documentation, API references, README files, and tutorials. Transforms complex engineering concepts into clear,… |
-| `engineering-uswds-developer` | USWDS Developer | Expert U.S. Web Design System frontend developer specializing in USWDS components and design tokens, accessible-by-default patterns, responsive government UI, Sass… |
-| `engineering-universal-document-compiler` | Universal Document Compiler | Architect of schema-agnostic document ASTs, algorithmic data-shape layout inference, bidirectional CST-to-canvas synchronization, and universal paged document publishing. |
-| `engineering-video-streaming-engineer` | Video Streaming Engineer | Expert video streaming engineer for adaptive bitrate delivery — HLS/DASH packaging, ffmpeg transcode ladders, CMAF low-latency, DRM, CDN delivery, and QoE-driven… |
-| `engineering-voice-ai-integration-engineer` | Voice AI Integration Engineer | Expert in building end-to-end speech transcription pipelines using Whisper-style models and cloud ASR services — from raw audio ingestion through preprocessing,… |
-| `engineering-wechat-mini-program-developer` | WeChat Mini Program Developer | Expert WeChat Mini Program developer specializing in 小程序 development with WXML/WXSS/WXS, WeChat API integration, payment systems, subscription messaging, and the full… |
-| `engineering-webassembly-engineer` | WebAssembly Engineer | Expert WebAssembly engineer — compiling Rust/C++/Go to Wasm, JS interop and the boundary marshalling cost, WASI and server-side runtimes (Wasmtime/Wasmer), the… |
-| `engineering-wordpress-performance` | WordPress Performance Engineer | Expert WordPress performance engineer specializing in Core Web Vitals, object caching (Redis/Memcached), page caching, database and WP_Query optimization, the… |
-| `engineering-wordpress-shopping-cart` | WordPress Shopping Cart Engineer | Expert WordPress e-commerce engineer specializing in WooCommerce for product catalog management, payment gateway integration, checkout customization, order… |
+| `engineering-ai-data-remediation-engineer` | AI Data Remediation Engineer | Pipelines de datos que se reparan solos: detecta, clasifica y corrige anomalías en los datos con modelos locales, sin perder información. |
+| `engineering-ai-engineer` | AI Engineer | Ingeniero de IA/ML: desarrolla, despliega e integra modelos de machine learning en sistemas en producción. |
+| `engineering-api-platform-engineer` | API Platform Engineer | APIs públicas y para socios: diseño por contrato (OpenAPI/gRPC), versionado, SDKs, gateway (autenticación, límites de uso) y portal para desarrolladores. |
+| `engineering-ats-validator-architect` | ATS Validator Architect | Diseña y valida sistemas de seguimiento de postulantes (ATS) y lectores de currículums, con cumplimiento normativo. |
+| `engineering-autonomous-optimization-architect` | Autonomous Optimization Architect | Vigila APIs en segundo plano para medir rendimiento, con controles de costo y seguridad que evitan gastos descontrolados. |
+| `engineering-backend-architect` | Backend Architect | Arquitecto backend: diseño de sistemas escalables, bases de datos, APIs e infraestructura en la nube. |
+| `engineering-cms-developer` | CMS Developer | Especialista en Drupal y WordPress: temas, plugins/módulos a medida y estructura de contenidos. |
+| `engineering-china-network-engineer` | China Network Engineer | Redes empresariales en China continental (Huawei, H3C, Ruijie, Hillstone): ruteo, switching, firewall y normativa local. |
+| `engineering-code-reviewer` | Code Reviewer | Revisor de código: comentarios concretos sobre corrección, mantenibilidad, seguridad y rendimiento, no sobre gustos de estilo. |
+| `engineering-codebase-onboarding-engineer` | Codebase Onboarding Engineer | Ayuda a entender rápido un código desconocido: lee el código, sigue los flujos y solo afirma lo que el código respalda. |
+| `engineering-data-engineer` | Data Engineer | Ingeniero de datos: pipelines confiables, lakehouses, ETL/ELT, Spark, dbt y streaming. |
+| `engineering-data-visualization-engineer` | Data Visualization Engineer | Visualización de datos: elegir el gráfico correcto, codificaciones honestas, paletas aptas para daltonismo y gráficos interactivos. |
+| `engineering-database-optimizer` | Database Optimizer | Bases de datos: diseño de esquemas, optimización de consultas, índices y ajuste de rendimiento (PostgreSQL, MySQL, Supabase). |
+| `engineering-database-reliability-engineer` | Database Reliability Engineer | Confiabilidad de bases de datos: alta disponibilidad, réplicas, respaldos y restauración, migraciones sin cortes y simulacros de desastre. |
+| `engineering-desktop-app-engineer` | Desktop App Engineer | Apps de escritorio con Electron y Tauri: seguridad entre procesos, firma de código, actualizaciones automáticas e integración con el sistema operativo. |
+| `engineering-devops-automator` | DevOps Automator | DevOps: automatización de infraestructura, pipelines de CI/CD y operación en la nube. |
+| `engineering-developer-tooling-engineer` | Developer Tooling Engineer | Herramientas de línea de comandos y plataformas internas con buena experiencia: comandos claros, errores útiles, autocompletado y distribución. |
+| `engineering-drupal-performance` | Drupal Performance Engineer | Rendimiento de sitios Drupal 10/11: Core Web Vitals, cachés, consultas, imágenes y CDN. |
+| `engineering-drupal-shopping-cart` | Drupal Shopping Cart Engineer | Tiendas en línea con Drupal Commerce: catálogo, pasarelas de pago, checkout, pedidos, impuestos y promociones. |
+| `engineering-email-intelligence-engineer` | Email Intelligence Engineer | Extrae datos estructurados de hilos de correo para que los usen agentes de IA y automatizaciones. |
+| `engineering-embedded-firmware-engineer` | Embedded Firmware Engineer | Firmware embebido y RTOS: ESP32, STM32, Arduino, ARM Cortex-M, nRF, FreeRTOS y Zephyr. |
+| `engineering-feishu-integration-developer` | Feishu Integration Developer | Integraciones con Feishu (Lark): bots, mini programas, flujos de aprobación, webhooks, SSO y automatizaciones. |
+| `engineering-filament-optimization-specialist` | Filament Optimization Specialist | Reestructura paneles de administración hechos con Filament (PHP) para hacerlos más usables y eficientes. |
+| `engineering-finops-engineer` | FinOps Engineer | Costos de nube (AWS/GCP/Azure): asignación por etiquetas, dimensionamiento, reservas y paneles de costo por unidad de negocio. |
+| `engineering-frontend-developer` | Frontend Developer | Desarrollador frontend: tecnologías web modernas, React/Vue/Angular, implementación de interfaces y rendimiento. |
+| `engineering-gaussdb-expert` | GaussDB Expert Engineer | Experto en GaussDB OLTP (base de datos de Huawei): esquemas, tablas distribuidas, consultas, índices y rendimiento. |
+| `engineering-git-workflow-master` | Git Workflow Master | Flujos de trabajo con Git: ramas, commits convencionales, rebase, worktrees y buenas prácticas para CI. |
+| `engineering-it-service-manager` | IT Service Manager | Gestión de servicios de TI con ITIL 4: catálogo de servicios, incidentes, cambios, SLAs y mejora continua. |
+| `engineering-identity-access-engineer` | Identity & Access Engineer | Identidad y acceso: OAuth 2.0/OIDC, SSO empresarial, passkeys, sesiones y permisos por roles o atributos. |
+| `engineering-incident-response-commander` | Incident Response Commander | Dirige incidentes en producción: coordina la respuesta, conduce el post-mortem, define SLOs y diseña las guardias. |
+| `engineering-i18n-engineer` | Internationalization Engineer | Internacionalización: mensajes ICU, plurales, idiomas de derecha a izquierda y formatos de fecha, número y moneda por país. |
+| `engineering-iot-fleet-engineer` | IoT Fleet Engineer | Flotas de dispositivos IoT: alta e identidad de equipos, telemetría MQTT, actualizaciones remotas con vuelta atrás y monitoreo. |
+| `engineering-knowledge-graph-engineer` | Knowledge Graph Engineer | Organiza información como grafo de entidades y relaciones para navegar contexto, ahorrar tokens y reducir alucinaciones. |
+| `engineering-llm-post-training-engineer` | LLM Post-Training Engineer | Post-entrenamiento de modelos de lenguaje: SFT, RLHF/RLVR, optimización por preferencias y criterios para liberar un modelo. |
+| `engineering-minimal-change-engineer` | Minimal Change Engineer | Cambios mínimos: arregla solo lo pedido, rechaza agrandar el alcance y evita abstracciones prematuras. |
+| `engineering-mobile-app-builder` | Mobile App Builder | Desarrollo de apps móviles nativas (iOS/Android) y multiplataforma. |
+| `engineering-mobile-release-engineer` | Mobile Release Engineer | Publicación de apps móviles: firma, perfiles, fastlane, envío a App Store y Play Store, lanzamientos graduales y seguimiento de errores. |
+| `engineering-multi-agent-systems-architect` | Multi-Agent Systems Architect | Diseña sistemas de varios agentes de IA: topología, manejo de contexto, confianza entre agentes, recuperación de fallas y supervisión humana. |
+| `engineering-network-engineer` | Network Engineer | Ingeniero de redes: Cisco, Juniper y Palo Alto; ruteo, switching, firewalls y diagnóstico. |
+| `engineering-orgscript-engineer` | OrgScript Engineer | Diseña, analiza e implementa la gramática OrgScript y definiciones de reglas de negocio. |
+| `engineering-pdf-engine-architect` | PDF Engine Architect | Generación determinista de PDF desde HTML con Playwright, tamaños de página dinámicos y PDF accesibles (PDF/UA, PDF/A). |
+| `engineering-payments-billing-engineer` | Payments & Billing Engineer | Pagos y cobros: integración con Stripe/Adyen/PayPal, pagos idempotentes, webhooks, suscripciones, 3DS, PCI y conciliación. |
+| `engineering-platform-engineer` | Platform Engineer | Plataforma interna para desarrolladores: caminos estándar e infraestructura de autoservicio que aceleran al equipo. |
+| `engineering-privacy-engineer` | Privacy Engineer | Privacidad en el código: detección de datos personales, minimización, consentimiento, borrado automático y seudonimización. |
+| `engineering-prompt-engineer` | Prompt Engineer | Diseña, prueba y optimiza prompts para modelos de lenguaje hasta lograr comportamientos confiables. |
+| `engineering-rag-pipeline-engineer` | RAG Pipeline Engineer | Sistemas RAG en producción: fragmentación, calidad de recuperación, búsqueda híbrida, reordenamiento y evaluación. |
+| `engineering-rapid-prototyper` | Rapid Prototyper | Prototipos y MVPs ultrarrápidos para validar ideas. |
+| `engineering-realtime-collaboration-engineer` | Realtime Collaboration Engineer | Tiempo real: WebSocket/SSE, presencia, edición colaborativa (CRDT/OT), sincronización offline y reconexión segura. |
+| `engineering-rust-refactoring-specialist` | Rust Refactoring Specialist | Refactorización de proyectos Rust: renombres seguros, reestructuración de módulos, eliminar duplicación y corregir avisos de Clippy. |
+| `engineering-sre` | SRE (Site Reliability Engineer) | SRE: SLOs, presupuestos de error, observabilidad, ingeniería del caos y reducción de trabajo manual en producción. |
+| `engineering-search-relevance-engineer` | Search Relevance Engineer | Buscadores con Elasticsearch/OpenSearch: índices, analizadores, ajuste de consultas, búsqueda híbrida con vectores y medición de relevancia. |
+| `engineering-section-508-specialist` | Section 508 Accessibility Specialist | Accesibilidad según la norma federal de EE.UU. (Sección 508 / WCAG): ARIA, lectores de pantalla, teclado, contraste y auditorías. |
+| `engineering-senior-developer` | Senior Developer | Implementación de alto nivel: Laravel/Livewire/FluxUI, CSS avanzado e integración con Three.js. |
+| `engineering-servicenow-developer-mentor` | ServiceNow Developer & Mentor | Desarrollo en ServiceNow paso a paso: Business Rules, Script Includes, GlideRecord, Flow Designer y ACLs; aísla si el problema es de fábrica o de una personalización. |
+| `engineering-software-architect` | Software Architect | Arquitecto de software: diseño de sistemas, diseño guiado por el dominio, patrones y decisiones técnicas. |
+| `engineering-solidity-smart-contract-engineer` | Solidity Smart Contract Engineer | Contratos inteligentes en Solidity: arquitectura EVM, optimización de gas, proxies actualizables, DeFi y seguridad. |
+| `engineering-technical-writer` | Technical Writer | Redactor técnico: documentación para desarrolladores, referencias de API, READMEs y tutoriales. |
+| `engineering-uswds-developer` | USWDS Developer | Frontend con el sistema de diseño del gobierno de EE.UU. (USWDS): componentes accesibles y normas federales de sitios web. |
+| `engineering-universal-document-compiler` | Universal Document Compiler | Compilador de documentos independiente del formato: árboles de documento, diagramación automática y publicación paginada. |
+| `engineering-video-streaming-engineer` | Video Streaming Engineer | Streaming de video: HLS/DASH, transcodificación con ffmpeg, baja latencia, DRM, CDN y ajuste del reproductor. |
+| `engineering-voice-ai-integration-engineer` | Voice AI Integration Engineer | Transcripción de voz con Whisper y servicios en la nube: limpieza de audio, subtítulos, identificación de hablantes e integración. |
+| `engineering-wechat-mini-program-developer` | WeChat Mini Program Developer | Mini programas de WeChat: WXML/WXSS, APIs de WeChat, pagos y mensajes de suscripción. |
+| `engineering-webassembly-engineer` | WebAssembly Engineer | WebAssembly: compilar Rust/C++/Go a Wasm, interoperar con JavaScript, WASI, runtimes de servidor y rendimiento casi nativo. |
+| `engineering-wordpress-performance` | WordPress Performance Engineer | Rendimiento de WordPress: Core Web Vitals, cachés, consultas, imágenes, CDN y auditoría de plugins. |
+| `engineering-wordpress-shopping-cart` | WordPress Shopping Cart Engineer | Tiendas con WooCommerce: catálogo, pasarelas de pago, checkout, pedidos, impuestos y cupones. |
 
 ### Testing y QA (9)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `testing-api-tester` | API Tester | Expert API testing specialist focused on comprehensive API validation, performance testing, and quality assurance across all systems and third-party integrations |
-| `testing-accessibility-auditor` | Accessibility Auditor | Expert accessibility specialist who audits interfaces against WCAG standards, tests with assistive technologies, and ensures inclusive design. Defaults to finding… |
-| `testing-evidence-collector` | Evidence Collector | Screenshot-obsessed, fantasy-allergic QA specialist - Reports reproducible issues with evidence and marks untested scope honestly |
-| `testing-performance-benchmarker` | Performance Benchmarker | Expert performance testing and optimization specialist focused on measuring, analyzing, and improving system performance across all applications and infrastructure |
-| `testing-reality-checker` | Reality Checker | Stops fantasy approvals, evidence-based certification - Default to "NEEDS WORK", requires overwhelming proof for production readiness |
-| `testing-test-automation-engineer` | Test Automation Engineer | Expert end-to-end test automation engineer for Playwright and Cypress — resilient selectors, flake elimination, isolated test data, CI parallelization, and… |
-| `testing-test-results-analyzer` | Test Results Analyzer | Expert test analysis specialist focused on comprehensive test result evaluation, quality metrics analysis, and actionable insight generation from testing activities |
-| `testing-tool-evaluator` | Tool Evaluator | Expert technology assessment specialist focused on evaluating, testing, and recommending tools, software, and platforms for business use and productivity optimization |
-| `testing-workflow-optimizer` | Workflow Optimizer | Expert process improvement specialist focused on analyzing, optimizing, and automating workflows across all business functions for maximum productivity and efficiency |
+| `testing-api-tester` | API Tester | Pruebas de APIs: validación completa, rendimiento y control de calidad, incluidas integraciones de terceros. |
+| `testing-accessibility-auditor` | Accessibility Auditor | Auditor de accesibilidad: revisa interfaces contra WCAG y las prueba con tecnologías de asistencia como lectores de pantalla. |
+| `testing-evidence-collector` | Evidence Collector | QA basado en evidencia: reporta problemas reproducibles con capturas y declara con honestidad lo que no probó. |
+| `testing-performance-benchmarker` | Performance Benchmarker | Pruebas de rendimiento: mide, analiza y mejora el desempeño de aplicaciones e infraestructura. |
+| `testing-reality-checker` | Reality Checker | Frena aprobaciones optimistas: por defecto dice "falta trabajo" y exige pruebas contundentes antes de dar algo por listo. |
+| `testing-test-automation-engineer` | Test Automation Engineer | Pruebas end-to-end automatizadas con Playwright y Cypress: selectores robustos, eliminar pruebas inestables y paralelizar en CI. |
+| `testing-test-results-analyzer` | Test Results Analyzer | Analiza resultados de pruebas: métricas de calidad y conclusiones accionables. |
+| `testing-tool-evaluator` | Tool Evaluator | Evalúa, prueba y recomienda herramientas, software y plataformas para el negocio. |
+| `testing-workflow-optimizer` | Workflow Optimizer | Analiza, optimiza y automatiza procesos de trabajo de cualquier área para ganar productividad. |
 
 ### Diseño (10)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `design-brand-guardian` | Brand Guardian | Expert brand strategist and guardian specializing in brand identity development, consistency maintenance, and strategic brand positioning |
-| `design-image-prompt-engineer` | Image Prompt Engineer | Expert photography prompt engineer specializing in crafting detailed, evocative prompts for AI image generation. Masters the art of translating visual concepts into… |
-| `design-inclusive-visuals-specialist` | Inclusive Visuals Specialist | Representation expert who defeats systemic AI biases to generate culturally accurate, affirming, and non-stereotypical images and video. |
-| `design-persona-walkthrough` | Persona Walkthrough Specialist | Simulate cognitive walkthroughs of web pages from a defined persona's psychological perspective — captures emotional reactions and rational thought at each scroll… |
-| `design-ui-designer` | UI Designer | Expert UI designer specializing in visual design systems, component libraries, and pixel-perfect interface creation. Creates beautiful, consistent, accessible user… |
-| `design-ui-finish-gate-reviewer` | UI Finish-Gate Reviewer | Product-interface reviewer who catches generic, interchangeable UI before it ships by grounding critique in real product evidence, a written design contract, and a… |
-| `design-ux-architect` | UX Architect | Technical architecture and UX specialist who provides developers with solid foundations, CSS systems, and clear implementation guidance |
-| `design-ux-researcher` | UX Researcher | Expert user experience researcher specializing in user behavior analysis, usability testing, and data-driven design insights. Provides actionable research findings… |
-| `design-visual-storyteller` | Visual Storyteller | Expert visual communication specialist focused on creating compelling visual narratives, multimedia content, and brand storytelling through design. Specializes in… |
-| `design-whimsy-injector` | Whimsy Injector | Expert creative specialist focused on adding personality, delight, and playful elements to brand experiences. Creates memorable, joyful interactions that… |
+| `design-brand-guardian` | Brand Guardian | Guardián de marca: desarrolla la identidad, la mantiene consistente y define su posicionamiento. |
+| `design-image-prompt-engineer` | Image Prompt Engineer | Escribe prompts detallados para generar fotografías de calidad profesional con IA. |
+| `design-inclusive-visuals-specialist` | Inclusive Visuals Specialist | Corrige los sesgos de la IA al generar imágenes y video, para lograr representaciones culturalmente precisas y sin estereotipos. |
+| `design-persona-walkthrough` | Persona Walkthrough Specialist | Simula cómo un tipo de usuario recorre una página web (reacciones y razonamiento en cada tramo) y entrega un informe de conversión. |
+| `design-ui-designer` | UI Designer | Diseñador de interfaces: sistemas de diseño visual, librerías de componentes e interfaces consistentes y accesibles. |
+| `design-ui-finish-gate-reviewer` | UI Finish-Gate Reviewer | Revisa interfaces antes de publicarlas para atajar diseños genéricos, basándose en evidencia del producto y un contrato de diseño. |
+| `design-ux-architect` | UX Architect | Arquitectura técnica de UX: bases sólidas, sistemas de CSS y guías claras de implementación para desarrolladores. |
+| `design-ux-researcher` | UX Researcher | Investigación de usuarios: análisis de comportamiento, pruebas de usabilidad y hallazgos que mejoran el producto. |
+| `design-visual-storyteller` | Visual Storyteller | Narrativa visual: convierte información compleja en historias visuales y multimedia atractivas. |
+| `design-whimsy-injector` | Whimsy Injector | Agrega personalidad y detalles lúdicos a la experiencia para que sea memorable. |
 
 ### Seguridad (12)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `security-ai-generated-code-auditor` | AI-Generated Code Security Auditor | Security reviewer for AI-generated and vibe-coded apps — hunts the hardcoded secrets, broken row-level security, and prompt-injection sinks that coding assistants… |
-| `security-appsec-engineer` | Application Security Engineer | AppSec specialist who secures the software development lifecycle through threat modeling, secure code review, SAST/DAST integration, and developer security education… |
-| `security-blockchain-security-auditor` | Blockchain Security Auditor | Expert smart contract security auditor specializing in vulnerability detection, formal verification, exploit analysis, and comprehensive audit report writing for DeFi… |
-| `security-cloud-security-architect` | Cloud Security Architect | Cloud-native security specialist designing zero trust architectures, implementing defense-in-depth across AWS, Azure, and GCP, and securing infrastructure-as-code… |
-| `security-compliance-auditor` | Compliance Auditor | Expert technical compliance auditor specializing in SOC 2, ISO 27001, HIPAA, and PCI-DSS audits — from readiness assessment through evidence collection to certification. |
-| `security-incident-responder` | Incident Responder | Digital forensics and incident response specialist who leads breach investigations, contains active threats, coordinates crisis response, and writes post-mortems that… |
-| `security-penetration-tester` | Penetration Tester | Offensive security specialist conducting authorized penetration tests, red team operations, and vulnerability assessments across networks, web applications, and cloud… |
-| `security-secrets-credential-engineer` | Secrets & Credential Hygiene Engineer | Owns the full lifecycle of secrets and credentials — detection, prevention, vaulting, rotation, and leak response — so an application runs on short-lived,… |
-| `security-architect` | Security Architect | Expert security architect specializing in threat modeling, secure-by-design architecture, trust-boundary analysis, defense-in-depth, and risk-based security reviews… |
-| `security-senior-secops` | Senior SecOps Engineer | Defensive application security specialist who scans every code submission for secrets and sensitive data exposure before anything else, then implements or audits… |
-| `security-threat-detection-engineer` | Threat Detection Engineer | Expert detection engineer specializing in SIEM rule development, MITRE ATT&CK coverage mapping, threat hunting, alert tuning, and detection-as-code pipelines for… |
-| `security-threat-intelligence-analyst` | Threat Intelligence Analyst | Cyber threat intelligence specialist who tracks adversary groups, maps attack campaigns to MITRE ATT&CK, produces actionable intelligence reports, and builds… |
+| `security-ai-generated-code-auditor` | AI-Generated Code Security Auditor | Audita apps hechas con asistentes de IA: busca secretos expuestos, permisos por fila mal configurados e inyección de prompts; escanea, corrige y vuelve a escanear. |
+| `security-appsec-engineer` | Application Security Engineer | Seguridad de aplicaciones: modelado de amenazas, revisión de código seguro, análisis SAST/DAST y formación del equipo. |
+| `security-blockchain-security-auditor` | Blockchain Security Auditor | Auditoría de contratos inteligentes: vulnerabilidades, verificación formal, análisis de exploits e informes para protocolos DeFi. |
+| `security-cloud-security-architect` | Cloud Security Architect | Seguridad en la nube: arquitecturas de confianza cero, defensa en profundidad en AWS/Azure/GCP e infraestructura como código segura. |
+| `security-compliance-auditor` | Compliance Auditor | Auditoría de cumplimiento técnico (SOC 2, ISO 27001, HIPAA, PCI-DSS): desde la preparación hasta la certificación. |
+| `security-incident-responder` | Incident Responder | Respuesta a incidentes y forense digital: investiga brechas, contiene amenazas, coordina la crisis y escribe el post-mortem. |
+| `security-penetration-tester` | Penetration Tester | Pruebas de penetración autorizadas: red team y evaluación de vulnerabilidades en redes, aplicaciones web y nube. |
+| `security-secrets-credential-engineer` | Secrets & Credential Hygiene Engineer | Ciclo de vida de secretos y credenciales: detección, prevención, bóvedas, rotación y respuesta a filtraciones. |
+| `security-architect` | Security Architect | Arquitecto de seguridad: modelado de amenazas, diseño seguro, límites de confianza y revisiones basadas en riesgo. |
+| `security-senior-secops` | Senior SecOps Engineer | Seguridad defensiva: revisa cada cambio buscando secretos expuestos y luego audita autenticación, tokens, cookies, cabeceras, CORS, límites de uso y CSP. |
+| `security-threat-detection-engineer` | Threat Detection Engineer | Detección de amenazas: reglas SIEM, cobertura MITRE ATT&CK, búsqueda proactiva y ajuste de alertas. |
+| `security-threat-intelligence-analyst` | Threat Intelligence Analyst | Inteligencia de amenazas: sigue grupos atacantes, mapea campañas a MITRE ATT&CK y produce informes y reglas de detección. |
 
 ### Producto (6)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `product-behavioral-nudge-engine` | Behavioral Nudge Engine | Behavioral psychology specialist that adapts software interaction cadences and styles to maximize user motivation and success. |
-| `product-dx-engineer` | DX Engineer | Removes every unnecessary step between a developer and their first success — SDK samples, onboarding flows, error messages, and the feedback loops that make products… |
-| `product-feedback-synthesizer` | Feedback Synthesizer | Expert in collecting, analyzing, and synthesizing user feedback from multiple channels to extract actionable product insights. Transforms qualitative feedback into… |
-| `product-manager` | Product Manager | Holistic product leader who owns the full product lifecycle — from discovery and strategy through roadmap, stakeholder alignment, go-to-market, and outcome… |
-| `product-sprint-prioritizer` | Sprint Prioritizer | Expert product manager specializing in agile sprint planning, feature prioritization, and resource allocation. Focused on maximizing team velocity and business value… |
-| `product-trend-researcher` | Trend Researcher | Expert market intelligence analyst specializing in identifying emerging trends, competitive analysis, and opportunity assessment. Focused on providing actionable… |
+| `product-behavioral-nudge-engine` | Behavioral Nudge Engine | Psicología del comportamiento aplicada al software: adapta el ritmo y estilo de la interacción para motivar al usuario. |
+| `product-dx-engineer` | DX Engineer | Experiencia del desarrollador: elimina pasos innecesarios hasta el primer éxito (ejemplos, onboarding, mensajes de error). |
+| `product-feedback-synthesizer` | Feedback Synthesizer | Reúne y analiza comentarios de usuarios de varios canales y los convierte en prioridades de producto. |
+| `product-manager` | Product Manager | Product manager: todo el ciclo del producto, desde el descubrimiento y la estrategia hasta la hoja de ruta, el lanzamiento y la medición. |
+| `product-sprint-prioritizer` | Sprint Prioritizer | Planificación ágil de sprints: prioriza funcionalidades y reparte recursos para maximizar valor. |
+| `product-trend-researcher` | Trend Researcher | Inteligencia de mercado: detecta tendencias, analiza a la competencia y evalúa oportunidades. |
 
 ### Gestión de proyectos (7)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `project-management-experiment-tracker` | Experiment Tracker | Expert project manager specializing in experiment design, execution tracking, and data-driven decision making. Focused on managing A/B tests, feature experiments, and… |
-| `project-management-jira-workflow-steward` | Jira Workflow Steward | Expert delivery operations specialist who enforces Jira-linked Git workflows, traceable commits, structured pull requests, and release-safe branch strategy across… |
-| `project-management-meeting-notes-specialist` | Meeting Notes Specialist | Extract structured decisions, action items, and open questions from meeting transcripts or rough notes into a clean 4-section summary. |
-| `project-management-project-shepherd` | Project Shepherd | Expert project manager specializing in cross-functional project coordination, timeline management, and stakeholder alignment. Focused on shepherding projects from… |
-| `project-manager-senior` | Senior Project Manager | Converts specs to tasks and remembers previous projects. Focused on realistic scope, no background processes, exact spec requirements |
-| `project-management-studio-operations` | Studio Operations | Expert operations manager specializing in day-to-day studio efficiency, process optimization, and resource coordination. Focused on ensuring smooth operations,… |
-| `project-management-studio-producer` | Studio Producer | Senior strategic leader specializing in high-level creative and technical project orchestration, resource allocation, and multi-project portfolio management. Focused… |
+| `project-management-experiment-tracker` | Experiment Tracker | Gestiona experimentos y pruebas A/B: diseño, seguimiento y decisiones basadas en datos. |
+| `project-management-jira-workflow-steward` | Jira Workflow Steward | Enlaza Git con Jira: commits trazables, pull requests ordenados y ramas seguras para publicar. |
+| `project-management-meeting-notes-specialist` | Meeting Notes Specialist | Convierte transcripciones o notas de reuniones en un resumen con decisiones, tareas y preguntas abiertas. |
+| `project-management-project-shepherd` | Project Shepherd | Coordina proyectos entre áreas: plazos, recursos, riesgos y comunicación hasta terminar. |
+| `project-manager-senior` | Senior Project Manager | Convierte especificaciones en tareas con alcance realista y recuerda proyectos anteriores. |
+| `project-management-studio-operations` | Studio Operations | Operaciones del día a día de un estudio: eficiencia, procesos y coordinación de recursos. |
+| `project-management-studio-producer` | Studio Producer | Productor ejecutivo: orquesta proyectos creativos y técnicos, reparte recursos y alinea la visión con el negocio. |
 
 ### Soporte y operaciones (6)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `support-analytics-reporter` | Analytics Reporter | Expert data analyst transforming raw data into actionable business insights. Creates dashboards, performs statistical analysis, tracks KPIs, and provides strategic… |
-| `support-executive-summary-generator` | Executive Summary Generator | Consultant-grade AI specialist trained to think and communicate like a senior strategy consultant. Transforms complex business inputs into concise, actionable… |
-| `support-finance-tracker` | Finance Tracker | Expert financial analyst and controller specializing in financial planning, budget management, and business performance analysis. Maintains financial health,… |
-| `support-infrastructure-maintainer` | Infrastructure Maintainer | Expert infrastructure specialist focused on system reliability, performance optimization, and technical operations management. Maintains robust, scalable… |
-| `support-legal-compliance-checker` | Legal Compliance Checker | Expert legal and compliance specialist ensuring business operations, data handling, and content creation comply with relevant laws, regulations, and industry… |
-| `support-support-responder` | Support Responder | Expert customer support specialist delivering exceptional customer service, issue resolution, and user experience optimization. Specializes in multi-channel support,… |
+| `support-analytics-reporter` | Analytics Reporter | Analista de datos: paneles, análisis estadístico, KPIs y apoyo a decisiones. |
+| `support-executive-summary-generator` | Executive Summary Generator | Resúmenes ejecutivos al estilo consultora (McKinsey, BCG, Bain) para la alta dirección. |
+| `support-finance-tracker` | Finance Tracker | Control financiero: presupuestos, flujo de caja y análisis del desempeño del negocio. |
+| `support-infrastructure-maintainer` | Infrastructure Maintainer | Mantenimiento de infraestructura: confiabilidad, rendimiento, seguridad y costos de los sistemas. |
+| `support-legal-compliance-checker` | Legal Compliance Checker | Verifica que operaciones, manejo de datos y contenidos cumplan leyes y normas de distintas jurisdicciones. |
+| `support-support-responder` | Support Responder | Soporte al cliente multicanal: resuelve problemas y convierte cada contacto en una buena experiencia. |
 
 ### Marketing (37)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `marketing-aeo-foundations` | AEO Foundations Architect | Expert in AI Engine Optimization infrastructure — implements llms.txt, AI-aware robots.txt, token-budgeted content, structured Markdown availability, and agent… |
-| `marketing-ai-citation-strategist` | AI Citation Strategist | Expert in AI recommendation engine optimization (AEO/GEO) — audits brand visibility across ChatGPT, Claude, Gemini, and Perplexity, identifies why competitors get… |
-| `marketing-agentic-search-optimizer` | Agentic Search Optimizer | Expert in WebMCP readiness and agentic task completion — audits whether AI agents can actually accomplish tasks on your site (book, buy, register, subscribe),… |
-| `marketing-app-store-optimizer` | App Store Optimizer | Expert app store marketing specialist focused on App Store Optimization (ASO), conversion rate optimization, and app discoverability |
-| `marketing-baidu-seo-specialist` | Baidu SEO Specialist | Expert Baidu search optimization specialist focused on Chinese search engine ranking, Baidu ecosystem integration, ICP compliance, Chinese keyword research, and… |
-| `marketing-bilibili-content-strategist` | Bilibili Content Strategist | Expert Bilibili marketing specialist focused on UP主 growth, danmaku culture mastery, B站 algorithm optimization, community building, and branded content strategy for… |
-| `marketing-book-co-author` | Book Co-Author | Strategic thought-leadership book collaborator for founders, experts, and operators turning voice notes, fragments, and positioning into structured first-person chapters. |
-| `marketing-carousel-growth-engine` | Carousel Growth Engine | Autonomous TikTok and Instagram carousel generation specialist. Analyzes any website URL with Playwright, generates viral 6-slide carousels via Gemini image… |
-| `marketing-china-ecommerce-operator` | China E-Commerce Operator | Expert China e-commerce operations specialist covering Taobao, Tmall, Pinduoduo, and JD ecosystems with deep expertise in product listing optimization, live commerce,… |
-| `marketing-china-market-localization-strategist` | China Market Localization Strategist | Full-stack China market localization expert who transforms real-time trend signals into executable go-to-market strategies across Douyin, Xiaohongshu, WeChat,… |
-| `marketing-content-creator` | Content Creator | Expert content strategist and creator for multi-platform campaigns. Develops editorial calendars, creates compelling copy, manages brand storytelling, and optimizes… |
-| `marketing-cross-border-ecommerce` | Cross-Border E-Commerce Specialist | Full-funnel cross-border e-commerce strategist covering Amazon, Shopee, Lazada, AliExpress, Temu, and TikTok Shop operations, international logistics and overseas… |
-| `marketing-developer-community-builder` | Developer Community Builder | Grows and sustains developer communities — Discord servers, GitHub discussions, forums, and contributor programs — turning users into advocates and advocates into… |
-| `marketing-douyin-strategist` | Douyin Strategist | Short-video marketing expert specializing in the Douyin platform, with deep expertise in recommendation algorithm mechanics, viral video planning, livestream commerce… |
-| `marketing-email-strategist` | Email Marketing Strategist | Expert email marketing strategist for CRM-driven campaigns, lifecycle automation, segmentation architecture, and deliverability. Designs sequences (welcome, nurture,… |
-| `marketing-global-podcast-strategist` | Global Podcast Strategist | Expert podcast growth specialist focused on show positioning, audience development, content strategy, and monetisation. Transforms raw ideas into authoritative audio… |
-| `marketing-growth-hacker` | Growth Hacker | Expert growth strategist specializing in rapid user acquisition through data-driven experimentation. Develops viral loops, optimizes conversion funnels, and finds… |
-| `marketing-instagram-curator` | Instagram Curator | Expert Instagram marketing specialist focused on visual storytelling, community building, and multi-format content optimization. Masters aesthetic development and… |
-| `marketing-kuaishou-strategist` | Kuaishou Strategist | Expert Kuaishou marketing strategist specializing in short-video content for China's lower-tier city markets, live commerce operations, community trust building, and… |
-| `marketing-linkedin-content-creator` | LinkedIn Content Creator | Expert LinkedIn content strategist focused on thought leadership, personal brand building, and high-engagement professional content. Masters LinkedIn's algorithm and… |
-| `marketing-livestream-commerce-coach` | Livestream Commerce Coach | Veteran livestream e-commerce coach specializing in host training and live room operations across Douyin, Kuaishou, Taobao Live, and Channels, covering script design,… |
-| `marketing-multi-platform-publisher` | Multi-Platform Publisher | Expert orchestrator for one-click Chinese blog publishing. Routes a single article to 知乎 / 小红书 / CSDN / B站 / 公众号 / 掘金 via Wechatsync (main channel) with xhs-mcp and… |
-| `marketing-pr-communications-manager` | PR & Communications Manager | Strategic public relations and communications specialist for media relations, press releases, crisis communications, executive thought leadership, brand reputation… |
-| `marketing-podcast-strategist` | Podcast Strategist | Content strategy and operations expert for the Chinese podcast market, with deep expertise in Xiaoyuzhou, Ximalaya, and other major audio platforms, covering show… |
-| `marketing-private-domain-operator` | Private Domain Operator | Expert in building enterprise WeChat (WeCom) private domain ecosystems, with deep expertise in SCRM systems, segmented community operations, Mini Program commerce… |
-| `marketing-reddit-community-builder` | Reddit Community Builder | Expert Reddit marketing specialist focused on authentic community engagement, value-driven content creation, and long-term relationship building. Masters Reddit… |
-| `marketing-seo-specialist` | SEO Specialist | Expert search engine optimization strategist specializing in technical SEO, content optimization, link authority building, and organic search growth. Drives… |
-| `marketing-short-video-editing-coach` | Short-Video Editing Coach | Hands-on short-video editing coach covering the full post-production pipeline, with mastery of CapCut Pro, Premiere Pro, DaVinci Resolve, and Final Cut Pro across… |
-| `marketing-social-media-strategist` | Social Media Strategist | Expert social media strategist for LinkedIn, Twitter, and professional platforms. Creates cross-platform campaigns, builds communities, manages real-time engagement,… |
-| `marketing-tiktok-strategist` | TikTok Strategist | Expert TikTok marketing specialist focused on viral content creation, algorithm optimization, and community building. Masters TikTok's unique culture and features for… |
-| `marketing-twitter-engager` | Twitter Engager | Expert Twitter marketing specialist focused on real-time engagement, thought leadership building, and community-driven growth. Builds brand authority through… |
-| `marketing-video-optimization-specialist` | Video Optimization Specialist | Video marketing strategist specializing in YouTube algorithm optimization, audience retention, chaptering, thumbnail concepts, and cross-platform video syndication. |
-| `marketing-wechat-official-account` | WeChat Official Account Manager | Expert WeChat Official Account (OA) strategist specializing in content marketing, subscriber engagement, and conversion optimization. Masters multi-format content and… |
-| `marketing-weibo-strategist` | Weibo Strategist | Full-spectrum operations expert for Sina Weibo, with deep expertise in trending topic mechanics, Super Topic community management, public sentiment monitoring, fan… |
-| `marketing-x-twitter-intelligence-analyst` | X/Twitter Intelligence Analyst | Social intelligence specialist for X/Twitter research, trend detection, account monitoring, and evidence-backed audience insights using public signals and structured… |
-| `marketing-xiaohongshu-specialist` | Xiaohongshu Specialist | Expert Xiaohongshu marketing specialist focused on lifestyle content, trend-driven strategies, and authentic community engagement. Masters micro-content creation and… |
-| `marketing-zhihu-strategist` | Zhihu Strategist | Expert Zhihu marketing specialist focused on thought leadership, community credibility, and knowledge-driven engagement. Masters question-answering strategy and… |
+| `marketing-aeo-foundations` | AEO Foundations Architect | Prepara un sitio para buscadores de IA: llms.txt, robots.txt para IA, contenido en Markdown y archivos de descubrimiento para agentes. |
+| `marketing-ai-citation-strategist` | AI Citation Strategist | Mide si ChatGPT, Claude, Gemini y Perplexity citan tu marca, explica por qué citan a la competencia y propone cambios de contenido. |
+| `marketing-agentic-search-optimizer` | Agentic Search Optimizer | Revisa si los agentes de IA pueden completar tareas en tu sitio (comprar, reservar, registrarse) e implementa WebMCP. |
+| `marketing-app-store-optimizer` | App Store Optimizer | Optimización para tiendas de apps (ASO): visibilidad, conversión y descubrimiento. |
+| `marketing-baidu-seo-specialist` | Baidu SEO Specialist | SEO para Baidu, el buscador chino: palabras clave en chino, ecosistema Baidu, licencia ICP e indexación móvil. |
+| `marketing-bilibili-content-strategist` | Bilibili Content Strategist | Marketing en Bilibili (China): crecimiento de creadores, cultura de comentarios en pantalla, algoritmo y contenido de marca. |
+| `marketing-book-co-author` | Book Co-Author | Coautor de libros de liderazgo de opinión: convierte notas de voz e ideas sueltas en capítulos en primera persona. |
+| `marketing-carousel-growth-engine` | Carousel Growth Engine | Genera y publica carruseles para TikTok e Instagram a partir de un sitio web, mide resultados y mejora en cada ciclo. |
+| `marketing-china-ecommerce-operator` | China E-Commerce Operator | Comercio electrónico en China (Taobao, Tmall, Pinduoduo, JD): fichas de producto, ventas en vivo y campañas como 618 y 11.11. |
+| `marketing-china-market-localization-strategist` | China Market Localization Strategist | Convierte tendencias del mercado chino en estrategias de entrada en Douyin, Xiaohongshu, WeChat y Bilibili. |
+| `marketing-content-creator` | Content Creator | Estratega de contenidos multiplataforma: calendario editorial, textos, relato de marca y optimización para engagement. |
+| `marketing-cross-border-ecommerce` | Cross-Border E-Commerce Specialist | Comercio electrónico internacional (Amazon, Shopee, Temu, TikTok Shop): logística, impuestos, fichas multiidioma y tienda propia. |
+| `marketing-developer-community-builder` | Developer Community Builder | Hace crecer comunidades de desarrolladores (Discord, GitHub, foros) y convierte usuarios en contribuidores. |
+| `marketing-douyin-strategist` | Douyin Strategist | Videos cortos en Douyin (TikTok chino): algoritmo, videos virales, ventas en vivo y crecimiento de marca. |
+| `marketing-email-strategist` | Email Marketing Strategist | Email marketing: campañas desde el CRM, automatizaciones por etapa del cliente, segmentación y entregabilidad. |
+| `marketing-global-podcast-strategist` | Global Podcast Strategist | Hace crecer podcasts: posicionamiento, audiencia, contenido y monetización en Spotify, Apple Podcasts y YouTube. |
+| `marketing-growth-hacker` | Growth Hacker | Growth hacking: adquisición rápida de usuarios con experimentos, bucles virales y optimización de embudos. |
+| `marketing-instagram-curator` | Instagram Curator | Marketing en Instagram: narrativa visual, comunidad y contenido en todos sus formatos. |
+| `marketing-kuaishou-strategist` | Kuaishou Strategist | Marketing en Kuaishou (China): videos cortos para ciudades pequeñas, ventas en vivo y comunidad. |
+| `marketing-linkedin-content-creator` | LinkedIn Content Creator | Contenido para LinkedIn: liderazgo de opinión, marca personal y publicaciones que generan oportunidades. |
+| `marketing-livestream-commerce-coach` | Livestream Commerce Coach | Entrena a presentadores de ventas en vivo (Douyin, Kuaishou, Taobao Live): guiones, orden de productos y cierre de ventas. |
+| `marketing-multi-platform-publisher` | Multi-Platform Publisher | Publica un artículo en varias plataformas chinas adaptándolo a cada una; siempre deja borradores para revisión humana. |
+| `marketing-pr-communications-manager` | PR & Communications Manager | Relaciones públicas: prensa, comunicados, comunicación de crisis y reputación de marca. |
+| `marketing-podcast-strategist` | Podcast Strategist | Podcasts en el mercado chino (Xiaoyuzhou, Ximalaya): posicionamiento, producción, audiencia y monetización. |
+| `marketing-private-domain-operator` | Private Domain Operator | Ecosistemas propios en WeChat empresarial (WeCom): CRM social, comunidades segmentadas, mini programas y conversión. |
+| `marketing-reddit-community-builder` | Reddit Community Builder | Marketing en Reddit: participación auténtica en comunidades, contenido de valor y relaciones de largo plazo. |
+| `marketing-seo-specialist` | SEO Specialist | SEO: técnico, optimización de contenido, autoridad de enlaces y crecimiento del tráfico orgánico. |
+| `marketing-short-video-editing-coach` | Short-Video Editing Coach | Enseña a editar videos cortos (CapCut, Premiere, DaVinci, Final Cut): encuadre, color, audio, efectos, subtítulos y exportación. |
+| `marketing-social-media-strategist` | Social Media Strategist | Redes sociales profesionales (LinkedIn, Twitter): campañas cruzadas, comunidad y liderazgo de opinión. |
+| `marketing-tiktok-strategist` | TikTok Strategist | Marketing en TikTok: contenido viral, algoritmo y comunidad. |
+| `marketing-twitter-engager` | Twitter Engager | Twitter/X: participación en tiempo real, liderazgo de opinión e hilos virales. |
+| `marketing-video-optimization-specialist` | Video Optimization Specialist | Video en YouTube: algoritmo, retención de audiencia, capítulos, miniaturas y distribución en otras plataformas. |
+| `marketing-wechat-official-account` | WeChat Official Account Manager | Cuentas oficiales de WeChat: contenido, suscriptores y conversión. |
+| `marketing-weibo-strategist` | Weibo Strategist | Weibo (China): temas en tendencia, comunidades, monitoreo de opinión pública, fans y publicidad. |
+| `marketing-x-twitter-intelligence-analyst` | X/Twitter Intelligence Analyst | Investigación en X/Twitter: detección de tendencias, monitoreo de cuentas y análisis de audiencia con datos públicos. |
+| `marketing-xiaohongshu-specialist` | Xiaohongshu Specialist | Marketing en Xiaohongshu (China): contenido de estilo de vida, tendencias y comunidad. |
+| `marketing-zhihu-strategist` | Zhihu Strategist | Marketing en Zhihu (China): liderazgo de opinión respondiendo preguntas y credibilidad en la comunidad. |
 
 ### Publicidad pagada (7)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `paid-media-creative-strategist` | Ad Creative Strategist | Paid media creative specialist focused on ad copywriting, RSA optimization, asset group design, and creative testing frameworks across Google, Meta, Microsoft, and… |
-| `paid-media-ppc-strategist` | PPC Campaign Strategist | Senior paid media strategist specializing in large-scale search, shopping, and performance max campaign architecture across Google, Microsoft, and Amazon ad… |
-| `paid-media-auditor` | Paid Media Auditor | Comprehensive paid media auditor who systematically evaluates Google Ads, Microsoft Ads, and Meta accounts across 200+ checkpoints spanning account structure,… |
-| `paid-media-paid-social-strategist` | Paid Social Strategist | Cross-platform paid social advertising specialist covering Meta (Facebook/Instagram), LinkedIn, TikTok, Pinterest, X, and Snapchat. Designs full-funnel social ad… |
-| `paid-media-programmatic-buyer` | Programmatic & Display Buyer | Display advertising and programmatic media buying specialist covering managed placements, Google Display Network, DV360, trade desk platforms, partner media… |
-| `paid-media-search-query-analyst` | Search Query Analyst | Specialist in search term analysis, negative keyword architecture, and query-to-intent mapping. Turns raw search query data into actionable optimizations that… |
-| `paid-media-tracking-specialist` | Tracking & Measurement Specialist | Expert in conversion tracking architecture, tag management, and attribution modeling across Google Tag Manager, GA4, Google Ads, Meta CAPI, LinkedIn Insight Tag, and… |
+| `paid-media-creative-strategist` | Ad Creative Strategist | Creatividad publicitaria: textos de anuncios, activos y pruebas creativas en Google, Meta y Microsoft. |
+| `paid-media-ppc-strategist` | PPC Campaign Strategist | Campañas de búsqueda pagada a gran escala (Google, Microsoft, Amazon): estructura de cuentas, presupuestos y pujas. |
+| `paid-media-auditor` | Paid Media Auditor | Auditoría completa de cuentas de Google Ads, Microsoft Ads y Meta, con recomendaciones priorizadas. |
+| `paid-media-paid-social-strategist` | Paid Social Strategist | Publicidad pagada en redes sociales (Meta, LinkedIn, TikTok, Pinterest, X, Snapchat), del primer contacto al retargeting. |
+| `paid-media-programmatic-buyer` | Programmatic & Display Buyer | Compra programática y publicidad display: Google Display, DV360, medios de socios y campañas ABM. |
+| `paid-media-search-query-analyst` | Search Query Analyst | Analiza términos de búsqueda, arma listas de palabras negativas y elimina gasto inútil en búsqueda pagada. |
+| `paid-media-tracking-specialist` | Tracking & Measurement Specialist | Medición de conversiones: Google Tag Manager, GA4, Google Ads, Meta CAPI, LinkedIn y seguimiento del lado del servidor. |
 
 ### Ventas (9)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `sales-account-strategist` | Account Strategist | Expert post-sale account strategist specializing in land-and-expand execution, stakeholder mapping, QBR facilitation, and net revenue retention. Turns closed deals… |
-| `sales-deal-strategist` | Deal Strategist | Senior deal strategist specializing in MEDDPICC qualification, competitive positioning, and win planning for complex B2B sales cycles. Scores opportunities, exposes… |
-| `sales-discovery-coach` | Discovery Coach | Coaches sales teams on elite discovery methodology — question design, current-state mapping, gap quantification, and call structure that surfaces real buying motivation. |
-| `sales-offer-lead-gen-strategist` | Offer & Lead Gen Strategist | Top-of-funnel architect who designs irresistible offers and lead magnets that attract qualified buyers at scale. Specializes in value-equation offer construction,… |
-| `sales-outbound-strategist` | Outbound Strategist | Signal-based outbound specialist who designs multi-channel prospecting sequences, defines ICPs, and builds pipeline through research-driven personalization — not volume. |
-| `sales-pipeline-analyst` | Pipeline Analyst | Revenue operations analyst specializing in pipeline health diagnostics, deal velocity analysis, forecast accuracy, and data-driven sales coaching. Turns CRM data into… |
-| `sales-proposal-strategist` | Proposal Strategist | Strategic proposal architect who transforms RFPs and sales opportunities into compelling win narratives. Specializes in win theme development, competitive… |
-| `sales-coach` | Sales Coach | Expert sales coaching specialist focused on rep development, pipeline review facilitation, call coaching, deal strategy, and forecast accuracy. Makes every rep and… |
-| `sales-engineer` | Sales Engineer | Senior pre-sales engineer specializing in technical discovery, demo engineering, POC scoping, competitive battlecards, and bridging product capabilities to business… |
+| `sales-account-strategist` | Account Strategist | Gestión de cuentas después de la venta: expansión, mapa de interlocutores, revisiones trimestrales y retención de ingresos. |
+| `sales-deal-strategist` | Deal Strategist | Estrategia de negocios B2B complejos: calificación MEDDPICC, posicionamiento frente a la competencia y planes para ganar. |
+| `sales-discovery-coach` | Discovery Coach | Entrena a vendedores en reuniones de descubrimiento: preguntas, situación actual, brechas y motivación real de compra. |
+| `sales-offer-lead-gen-strategist` | Offer & Lead Gen Strategist | Diseña ofertas irresistibles e imanes de prospectos para atraer compradores calificados a escala. |
+| `sales-outbound-strategist` | Outbound Strategist | Prospección saliente basada en señales: secuencias multicanal, perfil de cliente ideal y personalización. |
+| `sales-pipeline-analyst` | Pipeline Analyst | Analiza el pipeline de ventas: salud, velocidad de cierre, precisión de pronósticos y coaching basado en datos del CRM. |
+| `sales-proposal-strategist` | Proposal Strategist | Convierte licitaciones y oportunidades en propuestas ganadoras: temas, posicionamiento y resumen ejecutivo. |
+| `sales-coach` | Sales Coach | Coach de ventas: desarrolla a los vendedores, revisa el pipeline, analiza llamadas y mejora los pronósticos. |
+| `sales-engineer` | Sales Engineer | Preventa técnica: descubrimiento, demos, pruebas de concepto y comparativas con la competencia. |
 
 ### Finanzas (5)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `finance-bookkeeper-controller` | Bookkeeper & Controller | Expert bookkeeper and controller specializing in day-to-day accounting operations, financial reconciliations, month-end close processes, and internal controls.… |
-| `finance-fpa-analyst` | FP&A Analyst | Expert Financial Planning & Analysis (FP&A) analyst specializing in budgeting, variance analysis, financial planning, rolling forecasts, and strategic decision… |
-| `finance-financial-analyst` | Financial Analyst | Expert financial analyst specializing in financial modeling, forecasting, scenario analysis, and data-driven decision support. Transforms raw financial data into… |
-| `finance-investment-researcher` | Investment Researcher | Expert investment researcher specializing in market research, due diligence, portfolio analysis, and asset valuation. Conducts rigorous fundamental and quantitative… |
-| `finance-tax-strategist` | Tax Strategist | Expert tax strategist specializing in tax optimization, multi-jurisdictional compliance, transfer pricing, and strategic tax planning. Navigates complex tax codes to… |
+| `finance-bookkeeper-controller` | Bookkeeper & Controller | Contabilidad diaria y control: conciliaciones, cierre de mes, controles internos y preparación para auditorías. |
+| `finance-fpa-analyst` | FP&A Analyst | Planificación financiera (FP&A): presupuestos, análisis de desviaciones y pronósticos continuos. |
+| `finance-financial-analyst` | Financial Analyst | Análisis financiero: modelos, pronósticos, escenarios y apoyo a decisiones. |
+| `finance-investment-researcher` | Investment Researcher | Investigación de inversiones: estudio de mercado, due diligence, análisis de carteras y valorización de activos. |
+| `finance-tax-strategist` | Tax Strategist | Estrategia tributaria: optimización de impuestos, cumplimiento en varias jurisdicciones y precios de transferencia. |
 
 ### Académicos (6)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `academic-anthropologist` | Anthropologist | Expert in cultural systems, rituals, kinship, belief systems, and ethnographic method — builds culturally coherent societies that feel lived-in rather than invented |
-| `academic-geographer` | Geographer | Expert in physical and human geography, climate systems, cartography, and spatial analysis — builds geographically coherent worlds where terrain, climate, resources,… |
-| `academic-historian` | Historian | Expert in historical analysis, periodization, material culture, and historiography — validates historical coherence and enriches settings with authentic period detail… |
-| `academic-narratologist` | Narratologist | Expert in narrative theory, story structure, character arcs, and literary analysis — grounds advice in established frameworks from Propp to Campbell to modern narratology |
-| `academic-psychologist` | Psychologist | Expert in human behavior, personality theory, motivation, and cognitive patterns — builds psychologically credible characters and interactions grounded in clinical… |
-| `academic-statistician` | Statistician | Expert in quantitative research methodology, experimental design, and statistical inference — pressure-tests claims, designs sound studies, and separates real signal… |
+| `academic-anthropologist` | Anthropologist | Antropología: sistemas culturales, rituales, parentesco y creencias para crear sociedades verosímiles. |
+| `academic-geographer` | Geographer | Geografía física y humana, clima y cartografía para que un mundo tenga sentido científico. |
+| `academic-historian` | Historian | Historia: análisis, periodización, cultura material y detalles de época basados en fuentes. |
+| `academic-narratologist` | Narratologist | Teoría narrativa: estructura del relato, arcos de personajes y análisis literario. |
+| `academic-psychologist` | Psychologist | Psicología: comportamiento, personalidad, motivación y patrones cognitivos para personajes creíbles. |
+| `academic-statistician` | Statistician | Estadística: metodología cuantitativa, diseño experimental e inferencia; separa la señal real del ruido y el sesgo. |
 
 ### Investigación (1)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `research-synthesist` | Research Synthesist | Expert in literature review, source evaluation, and evidence synthesis — turns a scattered pile of sources into a structured, honestly-weighted map of what the… |
+| `research-synthesist` | Research Synthesist | Revisa literatura, evalúa fuentes y sintetiza qué respalda realmente la evidencia. |
 
 ### Salud (3)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `healthcare-clinical-evidence-agent` | Clinical Evidence Agent | Evidence standards and clinical credibility framework for AI agents |
-| `healthcare-innovation-strategist` | Healthcare Innovation Strategist | Strategic narrative architect for healthcare founders operating at |
-| `healthcare-sovereign-health-systems-agent` | Sovereign Health Systems Agent | Government health mandate engagement framework for AI agents |
+| `healthcare-clinical-evidence-agent` | Clinical Evidence Agent | Estándares de evidencia clínica para agentes de IA en salud: distingue afirmaciones validadas de las que no lo están. |
+| `healthcare-innovation-strategist` | Healthcare Innovation Strategist | Relato estratégico para fundadores en salud: coherencia ante inversionistas, reguladores, gobiernos y médicos. |
+| `healthcare-sovereign-health-systems-agent` | Sovereign Health Systems Agent | Relación con ministerios de salud y políticas de cobertura universal para lanzar tecnología sanitaria en mercados regulados y emergentes. |
 
 ### GIS y mapas (13)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `gis-3d-scene-developer` | 3D & Scene Developer | Web 3D visualization specialist who creates immersive 3D scenes, terrain models, point cloud visualizations, and interactive web experiences using Cesium, ArcGIS… |
-| `gis-bim-specialist` | BIM/GIS Specialist | Integration specialist who bridges Building Information Modeling and Geographic Information Systems — Revit/IFC data conversion, indoor mapping, digital twin… |
-| `gis-cartography-designer` | Cartography Designer | Map aesthetics specialist who designs beautiful, readable, and effective maps — color theory, typography, label placement, basemap selection, and visual hierarchy for… |
-| `gis-drone-reality-mapping` | Drone/Reality Mapping Specialist | Photogrammetry and reality capture expert who processes drone imagery into orthomosaics, digital terrain models, point clouds, and 3D meshes — bridging field capture… |
-| `gis-analyst` | GIS Analyst | Day-to-day GIS operator who creates maps, manages layers, performs spatial queries, and maintains geospatial data integrity across desktop and web environments. |
-| `gis-qa-engineer` | GIS QA Engineer | Quality assurance specialist who validates geospatial data integrity — topology checks, metadata audits, CRS consistency, accuracy assessment, and compliance… |
-| `gis-geoai-ml-engineer` | GeoAI/ML Engineer | Geospatial machine learning specialist who builds models for feature extraction, object detection, image segmentation, and land cover classification from satellite… |
-| `gis-geoprocessing-specialist` | Geoprocessing Specialist | ArcPy and Python toolbox expert who automates spatial workflows — builds .pyt toolboxes, Model Builder processes, batch geoprocessing automation, and custom analysis… |
-| `gis-solution-engineer` | Solution Engineer | Hands-on GIS prototype builder who takes strategy from Technical Consultant and turns it into working demos, proof-of-concepts, and technical validations across the… |
-| `gis-spatial-data-engineer` | Spatial Data Engineer | ETL specialist who transforms messy geospatial data from any source into clean, standardized, production-ready datasets — format conversion, CRS reprojection,… |
-| `gis-spatial-data-scientist` | Spatial Data Scientist | Advanced spatial analytics specialist who applies statistical modeling, spatial econometrics, clustering, and predictive analytics to geospatial data — finding… |
-| `gis-technical-consultant` | Technical Consultant | Strategic GIS advisor who translates business problems into geospatial solutions — gap analysis, technology roadmaps, RFP responses, and digital transformation… |
-| `gis-web-gis-developer` | Web GIS Developer | Full-stack web GIS engineer who builds interactive mapping applications — MapLibre GL JS, ArcGIS JS API, Leaflet, real-time dashboards, REST API integration, and… |
+| `gis-3d-scene-developer` | 3D & Scene Developer | Escenas 3D web: modelos de terreno, nubes de puntos y experiencias interactivas con Cesium y ArcGIS. |
+| `gis-bim-specialist` | BIM/GIS Specialist | Integra modelos de edificios (BIM) con sistemas geográficos (GIS): Revit/IFC, mapas de interiores y gemelos digitales. |
+| `gis-cartography-designer` | Cartography Designer | Diseño de mapas: color, tipografía, etiquetas, mapas base y jerarquía visual, para impresión y web. |
+| `gis-drone-reality-mapping` | Drone/Reality Mapping Specialist | Fotogrametría con drones: ortomosaicos, modelos de terreno, nubes de puntos y mallas 3D. |
+| `gis-analyst` | GIS Analyst | Analista GIS: mapas, capas, consultas espaciales e integridad de datos geográficos. |
+| `gis-qa-engineer` | GIS QA Engineer | Control de calidad de datos geográficos: topología, metadatos, sistemas de coordenadas y precisión. |
+| `gis-geoai-ml-engineer` | GeoAI/ML Engineer | Machine learning sobre imágenes satelitales y aéreas: detección de objetos, segmentación y clasificación de suelo. |
+| `gis-geoprocessing-specialist` | Geoprocessing Specialist | Automatiza flujos geoespaciales en ArcGIS Pro con ArcPy, toolboxes de Python y Model Builder. |
+| `gis-solution-engineer` | Solution Engineer | Construye prototipos y demos GIS funcionales con Esri y herramientas de código abierto. |
+| `gis-spatial-data-engineer` | Spatial Data Engineer | ETL de datos geográficos: conversión de formatos, reproyección, normalización y pipelines automáticos. |
+| `gis-spatial-data-scientist` | Spatial Data Scientist | Análisis espacial avanzado: modelos estadísticos, econometría espacial, clustering y predicción. |
+| `gis-technical-consultant` | Technical Consultant | Asesor GIS: traduce problemas de negocio a soluciones geoespaciales, hojas de ruta y respuestas a licitaciones. |
+| `gis-web-gis-developer` | Web GIS Developer | Aplicaciones de mapas web interactivas con MapLibre, ArcGIS JS y Leaflet, paneles en tiempo real y servicios geoespaciales. |
 
 ### Desarrollo de videojuegos (21)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `blender-addon-engineer` | Blender Add-on Engineer | Blender tooling specialist - Builds Python add-ons, asset validators, exporters, and pipeline automations that turn repetitive DCC work into reliable one-click workflows |
-| `economy-designer` | Economy Designer | Virtual economy architect - Masters currency systems, sources and sinks, monetization modeling, inflation control, and data-driven economic balancing for live games |
-| `game-audio-engineer` | Game Audio Engineer | Interactive audio specialist - Masters FMOD/Wwise integration, adaptive music systems, spatial audio, and audio performance budgeting across all game engines |
-| `game-designer` | Game Designer | Systems and mechanics architect - Masters GDD authorship, player psychology, economy balancing, and gameplay loop design across all engines and genres |
-| `godot-gameplay-scripter` | Godot Gameplay Scripter | Composition and signal integrity specialist - Masters GDScript 2.0, C# integration, node-based architecture, and type-safe signal design for Godot 4 projects |
-| `godot-multiplayer-engineer` | Godot Multiplayer Engineer | Godot 4 networking specialist - Masters the MultiplayerAPI, scene replication, ENet/WebRTC transport, RPCs, and authority models for real-time multiplayer games |
-| `godot-shader-developer` | Godot Shader Developer | Godot 4 visual effects specialist - Masters the Godot Shading Language (GLSL-like), VisualShader editor, CanvasItem and Spatial shaders, post-processing, and… |
-| `level-designer` | Level Designer | Spatial storytelling and flow specialist - Masters layout theory, pacing architecture, encounter design, and environmental narrative across all game engines |
-| `narrative-designer` | Narrative Designer | Story systems and dialogue architect - Masters GDD-aligned narrative design, branching dialogue, lore architecture, and environmental storytelling across all game engines |
-| `roblox-avatar-creator` | Roblox Avatar Creator | Roblox UGC and avatar pipeline specialist - Masters Roblox's avatar system, UGC item creation, accessory rigging, texture standards, and the Creator Marketplace… |
-| `roblox-experience-designer` | Roblox Experience Designer | Roblox platform UX and monetization specialist - Masters engagement loop design, DataStore-driven progression, Roblox monetization systems (Passes, Developer… |
-| `roblox-systems-scripter` | Roblox Systems Scripter | Roblox platform engineering specialist - Masters Luau, the client-server security model, RemoteEvents/RemoteFunctions, DataStore, and module architecture for scalable… |
-| `technical-artist` | Technical Artist | Art-to-engine pipeline specialist - Masters shaders, VFX systems, LOD pipelines, performance budgeting, and cross-engine asset optimization |
-| `unity-architect` | Unity Architect | Data-driven modularity specialist - Masters ScriptableObjects, decoupled systems, and single-responsibility component design for scalable Unity projects |
-| `unity-editor-tool-developer` | Unity Editor Tool Developer | Unity editor automation specialist - Masters custom EditorWindows, PropertyDrawers, AssetPostprocessors, ScriptedImporters, and pipeline automation that saves teams… |
-| `unity-multiplayer-engineer` | Unity Multiplayer Engineer | Networked gameplay specialist - Masters Netcode for GameObjects, Unity Gaming Services (Relay/Lobby), client-server authority, lag compensation, and state synchronization |
-| `unity-shader-graph-artist` | Unity Shader Graph Artist | Visual effects and material specialist - Masters Unity Shader Graph, HLSL, URP/HDRP rendering pipelines, and custom pass authoring for real-time visual effects |
-| `unreal-multiplayer-architect` | Unreal Multiplayer Architect | Unreal Engine networking specialist - Masters Actor replication, GameMode/GameState architecture, server-authoritative gameplay, network prediction, and dedicated… |
-| `unreal-systems-engineer` | Unreal Systems Engineer | Performance and hybrid architecture specialist - Masters C++/Blueprint continuum, Nanite geometry, Lumen GI, and Gameplay Ability System for AAA-grade Unreal Engine… |
-| `unreal-technical-artist` | Unreal Technical Artist | Unreal Engine visual pipeline specialist - Masters the Material Editor, Niagara VFX, Procedural Content Generation, and the art-to-engine pipeline for UE5 projects |
-| `unreal-world-builder` | Unreal World Builder | Open-world and environment specialist - Masters UE5 World Partition, Landscape, procedural foliage, HLOD, and large-scale level streaming for seamless open-world… |
+| `blender-addon-engineer` | Blender Add-on Engineer | Add-ons de Blender en Python: validadores, exportadores y automatizaciones del pipeline 3D. |
+| `economy-designer` | Economy Designer | Economías de videojuegos: monedas, entradas y salidas de recursos, monetización e inflación. |
+| `game-audio-engineer` | Game Audio Engineer | Audio interactivo para juegos: FMOD/Wwise, música adaptativa, audio espacial y rendimiento. |
+| `game-designer` | Game Designer | Diseño de juegos: documento de diseño, mecánicas, psicología del jugador, economía y ciclos de juego. |
+| `godot-gameplay-scripter` | Godot Gameplay Scripter | Programación de jugabilidad en Godot 4 con GDScript y C#, arquitectura por nodos y señales. |
+| `godot-multiplayer-engineer` | Godot Multiplayer Engineer | Multijugador en Godot 4: replicación de escenas, ENet/WebRTC, RPCs y autoridad. |
+| `godot-shader-developer` | Godot Shader Developer | Efectos visuales en Godot 4: shaders, VisualShader, posprocesado y rendimiento 2D/3D. |
+| `level-designer` | Level Designer | Diseño de niveles: distribución del espacio, ritmo, encuentros y narrativa del entorno. |
+| `narrative-designer` | Narrative Designer | Narrativa de videojuegos: diálogos ramificados, lore y narrativa del entorno. |
+| `roblox-avatar-creator` | Roblox Avatar Creator | Avatares y contenido de usuarios (UGC) en Roblox: creación de accesorios, rigging, texturas y publicación en el marketplace. |
+| `roblox-experience-designer` | Roblox Experience Designer | Experiencias en Roblox: ciclos de enganche, progresión, monetización y retención de jugadores. |
+| `roblox-systems-scripter` | Roblox Systems Scripter | Programación en Roblox con Luau: seguridad cliente-servidor, RemoteEvents, DataStore y módulos. |
+| `technical-artist` | Technical Artist | Artista técnico: shaders, efectos visuales, niveles de detalle y optimización de assets entre motores. |
+| `unity-architect` | Unity Architect | Arquitectura en Unity: ScriptableObjects, sistemas desacoplados y componentes de responsabilidad única. |
+| `unity-editor-tool-developer` | Unity Editor Tool Developer | Herramientas para el editor de Unity: ventanas personalizadas, importadores y automatización del pipeline. |
+| `unity-multiplayer-engineer` | Unity Multiplayer Engineer | Multijugador en Unity: Netcode for GameObjects, Relay/Lobby, autoridad del servidor y compensación de latencia. |
+| `unity-shader-graph-artist` | Unity Shader Graph Artist | Efectos y materiales en Unity: Shader Graph, HLSL y pipelines URP/HDRP. |
+| `unreal-multiplayer-architect` | Unreal Multiplayer Architect | Multijugador en Unreal Engine 5: replicación, GameMode/GameState, predicción y servidores dedicados. |
+| `unreal-systems-engineer` | Unreal Systems Engineer | Sistemas en Unreal Engine 5: C++ y Blueprints, Nanite, Lumen y Gameplay Ability System. |
+| `unreal-technical-artist` | Unreal Technical Artist | Pipeline visual de Unreal Engine 5: materiales, efectos Niagara y generación procedural. |
+| `unreal-world-builder` | Unreal World Builder | Mundos abiertos en Unreal Engine 5: World Partition, terrenos, vegetación procedural y carga por zonas. |
 
 ### Computación espacial (XR) (6)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `terminal-integration-specialist` | Terminal Integration Specialist | Terminal emulation, text rendering optimization, and SwiftTerm integration for modern Swift applications |
-| `xr-cockpit-interaction-specialist` | XR Cockpit Interaction Specialist | Specialist in designing and developing immersive cockpit-based control systems for XR environments |
-| `xr-immersive-developer` | XR Immersive Developer | Expert WebXR and immersive technology developer with specialization in browser-based AR/VR/XR applications |
-| `xr-interface-architect` | XR Interface Architect | Spatial interaction designer and interface strategist for immersive AR/VR/XR environments |
-| `macos-spatial-metal-engineer` | macOS Spatial/Metal Engineer | Native Swift and Metal specialist building high-performance 3D rendering systems and spatial computing experiences for macOS and Vision Pro |
-| `visionos-spatial-engineer` | visionOS Spatial Engineer | Native visionOS spatial computing, SwiftUI volumetric interfaces, and Liquid Glass design implementation |
+| `terminal-integration-specialist` | Terminal Integration Specialist | Emulación de terminal y renderizado de texto en apps Swift con SwiftTerm. |
+| `xr-cockpit-interaction-specialist` | XR Cockpit Interaction Specialist | Diseña y desarrolla controles de cabina inmersivos para entornos de realidad extendida (XR). |
+| `xr-immersive-developer` | XR Immersive Developer | Desarrollo de realidad aumentada y virtual en el navegador con WebXR. |
+| `xr-interface-architect` | XR Interface Architect | Diseño de interacción e interfaces para realidad aumentada, virtual y mixta. |
+| `macos-spatial-metal-engineer` | macOS Spatial/Metal Engineer | Swift y Metal nativos: renderizado 3D de alto rendimiento para macOS y Vision Pro. |
+| `visionos-spatial-engineer` | visionOS Spatial Engineer | Desarrollo nativo para visionOS (Apple Vision Pro): interfaces volumétricas con SwiftUI y diseño Liquid Glass. |
 
 ### Especializados (varios) (59)
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `accounts-payable-agent` | Accounts Payable Agent | Autonomous payment processing specialist that executes vendor payments, contractor invoices, and recurring bills across any payment rail — crypto, fiat, stablecoins.… |
-| `agentic-identity-trust` | Agentic Identity & Trust Architect | Designs identity, authentication, and trust verification systems for autonomous AI agents operating in multi-agent environments. Ensures agents can prove who they… |
-| `agents-orchestrator` | Agents Orchestrator | Autonomous pipeline manager that orchestrates the entire development workflow. You are the leader of this process. |
-| `healthcare-aging-parent-care-companion` | Aging Parent Care Companion | Compassionate, HIPAA-aligned care coordination and decision-support agent for family caregivers managing an aging parent's appointments, medications, care team… |
-| `automation-governance-architect` | Automation Governance Architect | Governance-first architect for business automations (n8n-first) who audits value, risk, and maintainability before implementation. |
-| `business-strategist` | Business Strategist | Senior management consulting specialist for competitive analysis, market entry strategy, business model design, growth planning, organizational strategy, and… |
-| `change-management-consultant` | Change Management Consultant | Expert change management specialist using ADKAR, Kotter, and Prosci frameworks to guide organizations through technology implementations, restructuring, culture… |
-| `chief-financial-officer` | Chief Financial Officer | Strategic finance executive who governs capital allocation, treasury operations, financial planning, M&A finance, investor relations, and board reporting —… |
-| `specialized-chief-of-staff` | Chief of Staff | Master coordinator for founders and executives — filters noise, owns processes, enforces consistency, routes decisions, and positions outputs for impact so the boss… |
-| `specialized-civil-engineer` | Civil Engineer | Expert civil and structural engineer with global standards coverage — Eurocode, DIN, ACI, AISC, ASCE, AS/NZS, CSA, GB, IS, AIJ, and more. Specializes in structural… |
-| `specialized-codebase-archaeologist` | Codebase Archaeologist | Multi-session, multi-tool drift detection specialist who audits codebases touched by several AI coding tools (Claude, Cursor, Copilot, Windsurf, etc.) over time,… |
-| `corporate-training-designer` | Corporate Training Designer | Expert in enterprise training system design and curriculum development — proficient in training needs analysis, instructional design methodology, blended learning… |
-| `specialized-cultural-intelligence-strategist` | Cultural Intelligence Strategist | CQ specialist that detects invisible exclusion, researches global context, and ensures software resonates authentically across intersectional identities. |
-| `customer-service` | Customer Service | Friendly, professional customer service specialist for any industry — handling inquiries, complaints, account support, FAQs, and seamless escalation with warmth,… |
-| `customer-success-manager` | Customer Success Manager | Strategic customer success specialist for onboarding, health scoring, QBR facilitation, churn prevention, expansion identification, and renewal management — driving… |
-| `data-consolidation-agent` | Data Consolidation Agent | AI agent that consolidates extracted sales data into live reporting dashboards with territory, rep, and pipeline summaries |
-| `data-privacy-officer` | Data Privacy Officer | Corporate data privacy specialist and DPO who builds GDPR, CCPA, and global privacy compliance programs — covering data mapping, privacy impact assessments, consent… |
-| `specialized-developer-advocate` | Developer Advocate | Expert developer advocate specializing in building developer communities, creating compelling technical content, optimizing developer experience (DX), and driving… |
-| `specialized-document-generator` | Document Generator | Expert document creation specialist who generates professional PDF, PPTX, DOCX, and XLSX files using code-based approaches with proper formatting, charts, and data… |
-| `esg-sustainability-officer` | ESG & Sustainability Officer | Corporate sustainability strategist and ESG reporting specialist who builds environmental, social, and governance programs, manages disclosures, drives… |
-| `specialized-fedramp-rmf-compliance` | FedRAMP & RMF Compliance Engineer | Expert FedRAMP and NIST Risk Management Framework compliance engineer specializing in both FedRAMP authorization pathways — the traditional Rev5 path (NIST 800-53 Rev… |
-| `specialized-focus-music-architect` | Focus Music Architect | Instrumental focus music specialist and neuroacoustic prompt engineer — crafts high-yield prompts, soundscape architectures, BPM curves, and binaural layers for deep… |
-| `specialized-french-consulting-market` | French Consulting Market Navigator | Navigate the French ESN/SI freelance ecosystem — margin models, platform mechanics (Malt, collective.work), portage salarial, rate positioning, and payment cycle… |
-| `government-digital-presales-consultant` | Government Digital Presales Consultant | Presales expert for China's government digital transformation market (ToG), proficient in policy interpretation, solution design, bid document preparation, POC… |
-| `grant-writer` | Grant Writer | Expert grant writing specialist for nonprofits, research institutions, and social enterprises — covering prospect research, letter of inquiry writing, full proposal… |
-| `hr-onboarding` | HR Onboarding | Comprehensive HR onboarding specialist for employee orientation, documentation management, compliance tracking, benefits enrollment, culture integration, and new hire… |
-| `healthcare-customer-service` | Healthcare Customer Service | Empathetic healthcare customer service specialist for patient support, billing inquiries, appointment management, insurance questions, complaint resolution, and… |
-| `healthcare-marketing-compliance` | Healthcare Marketing Compliance Specialist | Expert in healthcare marketing compliance in China, proficient in the Advertising Law, Medical Advertisement Management Measures, Drug Administration Law, and related… |
-| `hospitality-guest-services` | Hospitality Guest Services | Comprehensive hospitality guest services specialist for hotels, resorts, restaurants, and event venues — covering reservations, check-in/check-out, concierge… |
-| `identity-graph-operator` | Identity Graph Operator | Operates a shared identity graph that multiple AI agents resolve against. Ensures every agent in a multi-agent system gets the same canonical answer for "who is this… |
-| `specialized-korean-business-navigator` | Korean Business Navigator | Korean business culture for foreign professionals — 품의 decision process, nunchi reading, KakaoTalk business etiquette, hierarchy navigation, and relationship-first… |
-| `lsp-index-engineer` | LSP/Index Engineer | Language Server Protocol specialist building unified code intelligence systems through LSP client orchestration and semantic indexing |
-| `language-translator` | Language Translator | Real-time Spanish ↔ English translation specialist with cultural context, regional dialect awareness, travel phrase guidance, and tone-appropriate communication for… |
-| `legal-billing-time-tracking` | Legal Billing & Time Tracking | Comprehensive legal billing and time tracking specialist for accurate time capture, invoice generation, billing narrative writing, collections management, trust… |
-| `legal-client-intake` | Legal Client Intake | Comprehensive legal client intake specialist for qualifying prospects, collecting case information, scheduling consultations, managing conflict checks, and delivering… |
-| `legal-document-review` | Legal Document Review | Comprehensive legal document review specialist for contracts, litigation documents, and real estate agreements — summarizing documents, flagging risk clauses,… |
-| `loan-officer-assistant` | Loan Officer Assistant | Comprehensive loan officer assistant for mortgage and lending professionals — covering borrower intake, pre-qualification, document collection, pipeline management,… |
-| `ma-integration-manager` | M&A Integration Manager | Mergers and acquisitions integration specialist who designs and executes post-merger integration programs — covering Day 1 readiness, 100-day planning, synergy… |
-| `specialized-mcp-builder` | MCP Builder | Expert Model Context Protocol developer who designs, builds, and tests MCP servers that extend AI agent capabilities with custom tools, resources, and prompts. |
-| `specialized-master-plan-architect` | Master Plan Architect | Master planning architect, technical educator, and ruthless plan critic who specializes in deep architectural teaching, Red Teaming / risk critique, and crafting… |
-| `medical-billing-coding-specialist` | Medical Billing & Coding Specialist | Expert medical billing and coding specialist for ICD-10-CM/PCS, CPT, and HCPCS coding, claim submission, denial management, revenue cycle optimization, compliance… |
-| `specialized-model-qa` | Model QA Specialist | Independent model QA expert who audits ML and statistical models end-to-end - from documentation review and data reconstruction to replication, calibration testing,… |
-| `operations-manager` | Operations Manager | Business operations specialist who applies Lean, Six Sigma, and systems thinking to process mapping, capacity planning, KPI governance, vendor management, and… |
-| `organizational-psychologist` | Organizational Psychologist | Applied organizational psychologist who diagnoses team dynamics, psychological safety, burnout risk, and culture health — using evidence-based frameworks to help… |
-| `personal-growth-mentor` | Personal Growth Mentor | Cross-domain personal development mentor for goal clarity, habit design, strategic decisions, and accountability without motivational fluff. |
-| `specialized-pricing-analyst` | Pricing Analyst | Specialized pricing analyst who develops optimal pricing models through market research, competitor analysis, cost structure evaluation, and margin optimization —… |
-| `real-estate-buyer-seller` | Real Estate Buyer & Seller | Comprehensive real estate agent assistant for buyer representation, seller representation, listing management, offer negotiation, transaction coordination, and… |
-| `recruitment-specialist` | Recruitment Specialist | Expert recruitment operations and talent acquisition specialist — skilled in China's major hiring platforms, talent assessment frameworks, and labor law compliance.… |
-| `report-distribution-agent` | Report Distribution Agent | AI agent that automates distribution of consolidated sales reports to representatives based on territorial parameters |
-| `resume-tailor` | Resume Tailor | Candidate-side resume optimization specialist who analyzes job descriptions, maps real experience to role requirements, improves ATS keyword alignment, and rewrites… |
-| `retail-customer-returns` | Retail Customer Returns | Comprehensive retail customer returns specialist for processing returns, exchanges, and refunds across in-store, online, and omnichannel retail — handling policy… |
-| `sales-data-extraction-agent` | Sales Data Extraction Agent | AI agent specialized in monitoring Excel files and extracting key sales metrics (MTD, YTD, Year End) for internal live reporting |
-| `sales-outreach` | Sales Outreach | Consultative B2B sales outreach specialist for cold prospecting, lead follow-up, objection handling, proposal writing, and pipeline management — combining data-driven… |
-| `specialized-salesforce-architect` | Salesforce Architect | Solution architecture for Salesforce platform — multi-cloud design, integration patterns, governor limits, deployment strategy, and data model governance for… |
-| `specialized-strategy-duel-agent` | Strategy Duel Agent | Conducts live strategy duels using game theory and the 36 Chinese stratagems |
-| `study-abroad-advisor` | Study Abroad Advisor | Full-spectrum study abroad planning expert covering the US, UK, Canada, Australia, Europe, Hong Kong, and Singapore — proficient in undergraduate, master's, and PhD… |
-| `supply-chain-strategist` | Supply Chain Strategist | Expert supply chain management and procurement strategy specialist — skilled in supplier development, strategic sourcing, quality control, and supply chain… |
-| `specialized-workflow-architect` | Workflow Architect | Workflow design specialist who maps complete workflow trees for every system, user journey, and agent interaction — covering happy paths, all branch conditions,… |
-| `zk-steward` | ZK Steward | Knowledge-base steward in the spirit of Niklas Luhmann's Zettelkasten. Default perspective: Luhmann; switches to domain experts (Feynman, Munger, Ogilvy, etc.) by… |
+| `accounts-payable-agent` | Accounts Payable Agent | Procesa pagos a proveedores, contratistas y cuentas recurrentes por cualquier medio (cripto, dinero tradicional, stablecoins). |
+| `agentic-identity-trust` | Agentic Identity & Trust Architect | Identidad y confianza para agentes de IA autónomos: demostrar quiénes son, qué pueden hacer y qué hicieron. |
+| `agents-orchestrator` | Agents Orchestrator | Coordina de forma autónoma todo el flujo de desarrollo, dirigiendo a los demás agentes. |
+| `healthcare-aging-parent-care-companion` | Aging Parent Care Companion | Apoya a familiares que cuidan a un padre o madre mayor: citas médicas, remedios, equipo de salud y el bienestar del cuidador. |
+| `automation-governance-architect` | Automation Governance Architect | Evalúa valor, riesgo y mantenibilidad de automatizaciones de negocio (sobre todo n8n) antes de construirlas. |
+| `business-strategist` | Business Strategist | Consultor de estrategia: análisis competitivo, entrada a mercados, modelo de negocio y planes de crecimiento. |
+| `change-management-consultant` | Change Management Consultant | Gestión del cambio (ADKAR, Kotter, Prosci) en implementaciones tecnológicas, reestructuraciones y fusiones. |
+| `chief-financial-officer` | Chief Financial Officer | Gerente de finanzas (CFO): asignación de capital, tesorería, planificación, fusiones, inversionistas y directorio. |
+| `specialized-chief-of-staff` | Chief of Staff | Jefe de gabinete para fundadores y ejecutivos: filtra el ruido, ordena procesos y enruta decisiones. |
+| `specialized-civil-engineer` | Civil Engineer | Ingeniería civil y estructural con normas internacionales: cálculo estructural, geotecnia, documentación y cumplimiento de códigos. |
+| `specialized-codebase-archaeologist` | Codebase Archaeologist | Revisa código tocado por varias herramientas de IA a lo largo del tiempo y encuentra contradicciones, código muerto y documentación desactualizada. |
+| `corporate-training-designer` | Corporate Training Designer | Diseña programas de capacitación corporativa: diagnóstico de necesidades, diseño instruccional, formación de líderes y evaluación. |
+| `specialized-cultural-intelligence-strategist` | Cultural Intelligence Strategist | Detecta exclusiones invisibles y adapta el software para que funcione bien en distintas culturas e identidades. |
+| `customer-service` | Customer Service | Atención al cliente para cualquier industria: consultas, reclamos, cuentas, preguntas frecuentes y derivaciones. |
+| `customer-success-manager` | Customer Success Manager | Éxito del cliente: onboarding, salud de las cuentas, revisiones trimestrales, prevención de bajas y renovaciones. |
+| `data-consolidation-agent` | Data Consolidation Agent | Consolida datos de ventas en paneles en vivo con resúmenes por territorio, vendedor y pipeline. |
+| `data-privacy-officer` | Data Privacy Officer | Delegado de protección de datos: programas de cumplimiento GDPR/CCPA, evaluaciones de impacto, consentimiento y brechas. |
+| `specialized-developer-advocate` | Developer Advocate | Developer advocate: comunidades de desarrolladores, contenido técnico y experiencia del desarrollador para impulsar la adopción. |
+| `specialized-document-generator` | Document Generator | Genera documentos profesionales en PDF, PPTX, DOCX y XLSX con código, incluidos gráficos. |
+| `esg-sustainability-officer` | ESG & Sustainability Officer | Sostenibilidad y ESG: programas ambientales y sociales, reportes, descarbonización y gobierno corporativo. |
+| `specialized-fedramp-rmf-compliance` | FedRAMP & RMF Compliance Engineer | Cumplimiento FedRAMP y NIST RMF para vender servicios en la nube al gobierno de EE.UU. |
+| `specialized-focus-music-architect` | Focus Music Architect | Escribe prompts para generar música instrumental de concentración: paisajes sonoros, ritmo y capas binaurales. |
+| `specialized-french-consulting-market` | French Consulting Market Navigator | Guía para trabajar como consultor freelance en Francia: márgenes, plataformas, portage salarial, tarifas y plazos de pago. |
+| `government-digital-presales-consultant` | Government Digital Presales Consultant | Preventa de proyectos de TI para el gobierno chino: interpretación de políticas, diseño de soluciones, licitaciones y cumplimiento. |
+| `grant-writer` | Grant Writer | Redacción de postulaciones a fondos para ONGs e instituciones: búsqueda de fondos, propuestas, presupuestos y reportes. |
+| `hr-onboarding` | HR Onboarding | Incorporación de personal: orientación, documentos, cumplimiento, beneficios e integración cultural. |
+| `healthcare-customer-service` | Healthcare Customer Service | Atención a pacientes: facturación, citas, seguros, reclamos y derivación al personal clínico o administrativo. |
+| `healthcare-marketing-compliance` | Healthcare Marketing Compliance Specialist | Cumplimiento de la normativa china de publicidad en salud: medicamentos, dispositivos médicos, estética y suplementos. |
+| `hospitality-guest-services` | Hospitality Guest Services | Atención a huéspedes en hoteles, restaurantes y eventos: reservas, check-in/check-out, conserjería, reclamos y fidelización. |
+| `identity-graph-operator` | Identity Graph Operator | Mantiene un grafo de identidad compartido para que todos los agentes de un sistema resuelvan igual "quién es esta entidad". |
+| `specialized-korean-business-navigator` | Korean Business Navigator | Cultura de negocios coreana para extranjeros: toma de decisiones, jerarquías, etiqueta en KakaoTalk y relaciones. |
+| `lsp-index-engineer` | LSP/Index Engineer | Language Server Protocol: inteligencia de código unificada orquestando clientes LSP e indexación semántica. |
+| `language-translator` | Language Translator | Traductor español ↔ inglés en tiempo real, con contexto cultural, variantes regionales y tono adecuado. |
+| `legal-billing-time-tracking` | Legal Billing & Time Tracking | Facturación legal: registro de horas, emisión de facturas, cobranza y cumplimiento de cuentas fiduciarias. |
+| `legal-client-intake` | Legal Client Intake | Recepción de clientes en estudios jurídicos: calificación, datos del caso, agenda, conflictos de interés y resumen para el abogado. |
+| `legal-document-review` | Legal Document Review | Revisión de documentos legales: resume contratos, marca cláusulas riesgosas, compara versiones y verifica cumplimiento. |
+| `loan-officer-assistant` | Loan Officer Assistant | Asistente de créditos e hipotecas: datos del solicitante, precalificación, documentos, pipeline, cumplimiento y cierre. |
+| `ma-integration-manager` | M&A Integration Manager | Integración post-fusión: preparación del primer día, plan de 100 días, sinergias, cultura y acuerdos de transición. |
+| `specialized-mcp-builder` | MCP Builder | Diseña, construye y prueba servidores MCP que agregan herramientas y recursos a agentes de IA. |
+| `specialized-master-plan-architect` | Master Plan Architect | Planificación y crítica de planes: enseña arquitectura, identifica riesgos y escribe planes de implementación en Markdown sin ejecutar código. |
+| `medical-billing-coding-specialist` | Medical Billing & Coding Specialist | Codificación y facturación médica (CIE-10, CPT, HCPCS): reclamos, rechazos, ciclo de ingresos y auditorías. |
+| `specialized-model-qa` | Model QA Specialist | Auditoría independiente de modelos estadísticos y de ML: documentación, replicación, calibración, interpretabilidad y monitoreo. |
+| `operations-manager` | Operations Manager | Operaciones de negocio con Lean y Six Sigma: mapeo de procesos, capacidad, KPIs y proveedores. |
+| `organizational-psychologist` | Organizational Psychologist | Psicología organizacional: dinámica de equipos, seguridad psicológica, riesgo de burnout y salud de la cultura. |
+| `personal-growth-mentor` | Personal Growth Mentor | Mentor de desarrollo personal: claridad de metas, hábitos, decisiones y seguimiento, sin frases motivacionales vacías. |
+| `specialized-pricing-analyst` | Pricing Analyst | Fijación de precios: investigación de mercado, competencia, estructura de costos y márgenes. |
+| `real-estate-buyer-seller` | Real Estate Buyer & Seller | Asistente de corretaje inmobiliario: compradores y vendedores, publicaciones, ofertas, negociación y cierre. |
+| `recruitment-specialist` | Recruitment Specialist | Reclutamiento con foco en China: plataformas de empleo, evaluación de talento, legislación laboral y marca empleadora. |
+| `report-distribution-agent` | Report Distribution Agent | Distribuye automáticamente reportes de ventas consolidados a cada vendedor según su territorio. |
+| `resume-tailor` | Resume Tailor | Adapta tu currículum a una oferta de trabajo: mapea tu experiencia real, mejora palabras clave para ATS y reescribe sin inventar. |
+| `retail-customer-returns` | Retail Customer Returns | Devoluciones en retail: cambios y reembolsos en tienda y online, políticas, prevención de fraude y fidelización. |
+| `sales-data-extraction-agent` | Sales Data Extraction Agent | Vigila planillas Excel y extrae métricas de ventas (mes, año y cierre anual) para reportes en vivo. |
+| `sales-outreach` | Sales Outreach | Prospección B2B consultiva: contacto en frío, seguimiento, objeciones, propuestas y pipeline. |
+| `specialized-salesforce-architect` | Salesforce Architect | Arquitectura en Salesforce: diseño multi-nube, integraciones, límites de la plataforma, despliegues y modelo de datos. |
+| `specialized-strategy-duel-agent` | Strategy Duel Agent | Duelos de estrategia en vivo usando teoría de juegos y las 36 estratagemas chinas. |
+| `study-abroad-advisor` | Study Abroad Advisor | Asesoría para estudiar en el extranjero (EE.UU., Reino Unido, Canadá, Australia, Europa, Asia): postulación, ensayos, exámenes y visas. |
+| `supply-chain-strategist` | Supply Chain Strategist | Cadena de suministro y compras: desarrollo de proveedores, abastecimiento, control de calidad y digitalización. |
+| `specialized-workflow-architect` | Workflow Architect | Mapea flujos completos de sistemas y usuarios (caminos felices, fallas, recuperación) como especificación lista para construir y probar. |
+| `zk-steward` | ZK Steward | Gestiona una base de conocimiento al estilo Zettelkasten: notas atómicas, conexiones entre ellas y descomposición de tareas complejas. |
