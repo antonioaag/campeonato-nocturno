@@ -124,10 +124,14 @@ async function migrarSerie() {
 // Si todavía no hay ningún campeonato (primera vez que corre esta función),
 // todo lo que ya existe en la base se agrupa en un campeonato histórico
 // marcado 'finalizado' (de solo lectura desde ahora en más), y se crea uno
-// nuevo vacío y 'activo' para seguir cargando. Es idempotente: si
-// equipos.campeonato_id ya existe, no hace nada.
+// nuevo vacío y 'activo' para seguir cargando. Es idempotente: si las tres
+// columnas ya existen, no hace nada; si alguna quedó a medias (por ejemplo,
+// el proceso se cayó entre una y otra), retoma solo lo que falta.
 async function migrarCampeonatos() {
-  if (await columnExists('equipos', 'campeonato_id')) return;
+  const yaMigrado = await columnExists('equipos', 'campeonato_id')
+    && await columnExists('resoluciones', 'campeonato_id')
+    && await columnExists('castigos', 'campeonato_id');
+  if (yaMigrado) return;
 
   await exec(`
     CREATE TABLE IF NOT EXISTS campeonatos (
@@ -152,13 +156,21 @@ async function migrarCampeonatos() {
     historicoId = yaHayCampeonatos.id;
   }
 
-  // DEFAULT con el id ya resuelto: las filas existentes (agregadas por ALTER
-  // TABLE) y cualquier INSERT futuro que no especifique la columna quedan
-  // igual en el campeonato histórico, pero toda ruta nueva debe pasar el
-  // campeonato activo explícito al insertar.
-  await exec(`ALTER TABLE equipos ADD COLUMN campeonato_id INTEGER NOT NULL DEFAULT ${historicoId} REFERENCES campeonatos(id)`);
-  await exec(`ALTER TABLE resoluciones ADD COLUMN campeonato_id INTEGER NOT NULL DEFAULT ${historicoId} REFERENCES campeonatos(id)`);
-  await exec(`ALTER TABLE castigos ADD COLUMN campeonato_id INTEGER NOT NULL DEFAULT ${historicoId} REFERENCES campeonatos(id)`);
+  // SQLite no permite agregar con ALTER TABLE una columna NOT NULL DEFAULT
+  // <valor> cuando además es REFERENCES: "Cannot add a REFERENCES column
+  // with non-NULL default value". Esto solo se nota cuando la tabla YA tiene
+  // filas (en una tabla vacía no hace falta rellenar nada, por eso pasó
+  // inadvertido en pruebas locales con la base recién creada). La forma que
+  // sí funciona: agregar la columna sin default (nullable) y rellenarla
+  // aparte con UPDATE. Las filas existentes quedan en el campeonato
+  // histórico; toda ruta nueva debe pasar el campeonato activo explícito al
+  // insertar, igual que antes.
+  for (const tabla of ['equipos', 'resoluciones', 'castigos']) {
+    if (!(await columnExists(tabla, 'campeonato_id'))) {
+      await exec(`ALTER TABLE ${tabla} ADD COLUMN campeonato_id INTEGER REFERENCES campeonatos(id)`);
+    }
+    await run(`UPDATE ${tabla} SET campeonato_id = ? WHERE campeonato_id IS NULL`, [historicoId]);
+  }
 
   console.log(`✓ Migración a multi-campeonato: histórico #${historicoId}, nuevo campeonato activo creado`);
 }
