@@ -13,7 +13,7 @@ const ORIGENES = ['oficio', 'reclamo'];
 
 const SELECT_RESOLUCIONES = `
   SELECT
-    r.id, r.serie, r.tipo, r.origen,
+    r.id, r.campeonato_id AS campeonatoId, r.serie, r.tipo, r.origen,
     r.equipo_id AS equipoId, e.nombre AS equipo,
     r.partido_id AS partidoId,
     r.puntos_ajuste AS puntosAjuste,
@@ -36,9 +36,9 @@ const SELECT_RESOLUCIONES = `
   LEFT JOIN equipos pv  ON pv.id = p.visita_id
 `;
 
-async function listar(serie, { soloVigentes = false } = {}) {
-  const condiciones = ['r.serie = ?'];
-  const params = [serie];
+async function listar(campeonatoId, serie, { soloVigentes = false } = {}) {
+  const condiciones = ['r.campeonato_id = ?', 'r.serie = ?'];
+  const params = [campeonatoId, serie];
   if (soloVigentes) condiciones.push("r.estado = 'vigente'");
   return db.all(
     `${SELECT_RESOLUCIONES} WHERE ${condiciones.join(' AND ')}
@@ -55,8 +55,8 @@ async function obtenerPorId(id) {
 // calcular la tabla: los descuentos agrupados por equipo, las homologaciones
 // indexadas por partido, los equipos descalificados por WO y los partidos que
 // un WO dejó sin efecto para todos.
-async function ajustesVigentes(serie) {
-  const vigentes = await listar(serie, { soloVigentes: true });
+async function ajustesVigentes(campeonatoId, serie) {
+  const vigentes = await listar(campeonatoId, serie, { soloVigentes: true });
 
   const porEquipo = {};
   const porPartido = {};

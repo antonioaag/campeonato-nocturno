@@ -30,8 +30,11 @@ function compararConDescalificados(a, b) {
 // datos guardados: un partido homologado conserva su marcador de cancha en la
 // base y se computa con el homologado; un descuento de puntos se resta al
 // final y queda anotado en el equipo para poder mostrarlo aparte.
-async function calcularTabla(serie, grupo, ajustes) {
-  const equipos = await db.all('SELECT * FROM equipos WHERE serie = ? AND grupo = ? ORDER BY orden', [serie, grupo]);
+async function calcularTabla(campeonatoId, serie, grupo, ajustes) {
+  const equipos = await db.all(
+    'SELECT * FROM equipos WHERE campeonato_id = ? AND serie = ? AND grupo = ? ORDER BY orden',
+    [campeonatoId, serie, grupo]
+  );
   const stats = {};
   equipos.forEach(e => {
     stats[e.id] = {
@@ -43,9 +46,11 @@ async function calcularTabla(serie, grupo, ajustes) {
 
   // Se traen todos los partidos del grupo, no solo los jugados: uno homologado
   // por no presentarse nunca llegó a jugarse y aun así tiene que computar.
+  // Los partidos no guardan el campeonato: se sabe por el equipo local.
   const partidos = await db.all(
-    "SELECT * FROM partidos WHERE serie = ? AND grupo = ? AND fase = 'grupos'",
-    [serie, grupo]
+    `SELECT p.* FROM partidos p JOIN equipos l ON l.id = p.local_id
+     WHERE l.campeonato_id = ? AND p.serie = ? AND p.grupo = ? AND p.fase = 'grupos'`,
+    [campeonatoId, serie, grupo]
   );
 
   partidos.forEach(p => {
@@ -106,15 +111,18 @@ async function calcularTabla(serie, grupo, ajustes) {
   return Object.values(stats).sort(compararConDescalificados);
 }
 
-async function calcularTodasLasTablas(serie) {
+async function calcularTodasLasTablas(campeonatoId, serie) {
   // Los grupos se descubren desde los equipos ya cargados (no de una lista
   // fija): la composición de grupos la define el sorteo de cada campeonato,
   // no este módulo.
-  const filas = await db.all('SELECT DISTINCT grupo FROM equipos WHERE serie = ? ORDER BY grupo', [serie]);
-  const ajustes = await ajustesVigentes(serie);
+  const filas = await db.all(
+    'SELECT DISTINCT grupo FROM equipos WHERE campeonato_id = ? AND serie = ? ORDER BY grupo',
+    [campeonatoId, serie]
+  );
+  const ajustes = await ajustesVigentes(campeonatoId, serie);
   const resultado = {};
   for (const { grupo } of filas) {
-    resultado[grupo] = await calcularTabla(serie, grupo, ajustes);
+    resultado[grupo] = await calcularTabla(campeonatoId, serie, grupo, ajustes);
   }
   return resultado;
 }
@@ -150,7 +158,9 @@ function marcarClasificadosSenior(tablasPorGrupo) {
 }
 
 // ADULTO (grupos A de 7 y B de 6): clasifican los 4 primeros de cada grupo.
-function marcarClasificadosAdulto(tablasPorGrupo) {
+// Lo mismo vale para el formato 'semis' de Liga Dávila, que tiene un solo
+// grupo por serie y manda a sus 4 primeros a semifinales.
+function marcarCuatroPrimeros(tablasPorGrupo) {
   Object.values(tablasPorGrupo).forEach(tabla => {
     tabla.forEach(eq => { eq.clasificado = false; eq.clasificaVia = null; });
     enCarrera(tabla).slice(0, 4).forEach(eq => {
@@ -161,10 +171,13 @@ function marcarClasificadosAdulto(tablasPorGrupo) {
   return tablasPorGrupo;
 }
 
-function marcarClasificados(serie, tablasPorGrupo) {
-  return serie === 'SENIOR'
+// La regla depende del formato del campeonato y no solo de la serie: SENIOR
+// clasifica con mejores terceros en el Nocturno 2026 y con los 4 primeros de
+// un grupo único en Clausura 2026.
+function marcarClasificados(formato, serie, tablasPorGrupo) {
+  return formato === 'cuartos' && serie === 'SENIOR'
     ? marcarClasificadosSenior(tablasPorGrupo)
-    : marcarClasificadosAdulto(tablasPorGrupo);
+    : marcarCuatroPrimeros(tablasPorGrupo);
 }
 
 module.exports = {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Campeonato nocturno 2026 "Francisco Moraga Gallegos"</title>
+    <title>Asociación Liga Dávila</title>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -177,20 +177,32 @@
         <div class="header-content">
             <img src="/logo-liga.png" alt="Liga Dávila" class="logo-asociacion">
             <div class="header-text">
-                <h1 class="text-2xl sm:text-3xl font-extrabold uppercase tracking-wide">Campeonato nocturno 2026</h1>
-                <h2 class="text-lg sm:text-xl mt-2 italic text-noc-goldlight">"Francisco Moraga Gallegos"</h2>
+                <h1 id="titulo-principal" class="text-2xl sm:text-3xl font-extrabold uppercase tracking-wide">Asociación Liga Dávila</h1>
+                <h2 id="subtitulo-principal" class="text-lg sm:text-xl mt-2 italic text-noc-goldlight">Campeonatos</h2>
             </div>
         </div>
     </header>
 
-    <!-- Selector de Serie -->
-    <div class="bg-noc-black/60 border-b border-noc-purple2 flex justify-center gap-2 py-3 px-4 sticky top-0 z-20">
-        <button id="serie-btn-ADULTO" class="serie-btn px-6 py-2 rounded-full font-bold uppercase tracking-wide text-sm transition">Adultos</button>
-        <button id="serie-btn-SENIOR" class="serie-btn px-6 py-2 rounded-full font-bold uppercase tracking-wide text-sm transition">Seniors</button>
+    <!-- Portada: los campeonatos de la asociación. No es un <section>:
+         showTab() oculta todos los <section> al cambiar de pestaña. -->
+    <div id="vista-portada" class="hidden container mx-auto p-4 max-w-5xl">
+        <div id="lista-campeonatos" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            <p class="text-white/50 italic">Cargando...</p>
+        </div>
     </div>
 
+    <div id="vista-campeonato" class="hidden">
+    <!-- Barra del campeonato: volver a la portada y, si está oculto, avisarle al admin -->
+    <div class="bg-noc-black/80 border-b border-noc-purple2 px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-sm">
+        <a href="#" class="text-noc-goldlight hover:text-white">← Todos los campeonatos</a>
+        <span id="aviso-campeonato" class="text-xs"></span>
+    </div>
+
+    <!-- Selector de Serie: los botones se arman según las series del campeonato -->
+    <div id="selector-series" class="bg-noc-black/60 border-b border-noc-purple2 flex justify-center flex-wrap gap-2 py-3 px-4"></div>
+
     <!-- Navegación por Pestañas -->
-    <nav class="bg-noc-dark shadow flex justify-center flex-wrap gap-1 px-4 py-2 sticky top-[52px] z-10 border-b border-noc-purple2">
+    <nav class="bg-noc-dark shadow flex justify-center flex-wrap gap-1 px-4 py-2 sticky top-0 z-10 border-b border-noc-purple2">
         <button id="btn-equipos" data-tab="tab-equipos" class="tab-btn active px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Equipos</button>
         <button id="btn-partidos" data-tab="tab-partidos" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Partidos</button>
         <button id="btn-eliminatorias" data-tab="tab-eliminatorias" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition hidden">Eliminatorias</button>
@@ -249,7 +261,7 @@
         <!-- Pestaña: Eliminatorias -->
         <section id="tab-eliminatorias" class="hidden bg-noc-dark/80 p-6 rounded-lg shadow-md border border-noc-purple2">
             <h3 class="text-2xl font-bold mb-1 border-b border-noc-purple2 pb-2 text-noc-goldlight">Fase de Eliminación Directa</h3>
-            <p class="text-xs text-white/50 mb-4">Cuartos de final, semifinales y final. Todos los partidos son a partido único.</p>
+            <p id="playoffs-descripcion" class="text-xs text-white/50 mb-4"></p>
             <div id="playoffs-acciones" class="mb-5"></div>
             <div id="playoffs-container" class="space-y-6">
                 <p class="text-white/50 italic">Cargando...</p>
@@ -420,6 +432,7 @@
             <div id="lista-usuarios" class="space-y-2"></div>
         </section>
     </main>
+    </div>
 
     <!-- Modal de Login -->
     <div id="modal-login" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
@@ -619,6 +632,10 @@
         async function api(path, options = {}) {
             const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
             if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
+            // Todo lo que se consulta (fixture, tabla, resoluciones...) es del
+            // campeonato que se está mirando. Va en una cabecera para que
+            // ninguna llamada pueda olvidarse de mandarlo.
+            if (CAMPEONATO) headers['X-Campeonato-Id'] = String(CAMPEONATO.id);
             const res = await fetch('/api' + path, Object.assign({}, options, { headers }));
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
@@ -638,9 +655,142 @@
         function esAdmin() { return USUARIO && USUARIO.rol === 'admin'; }
 
 
-        // --- SERIE (Adultos / Seniors) ---
-        const SERIES_GRUPOS = { ADULTO: ['A', 'B'], SENIOR: ['1', '2', '3'] };
-        let serieActual = 'ADULTO';
+        // --- CAMPEONATOS (portada de la asociación) ---
+        // CAMPEONATO es el que se está mirando; null mientras se está en la
+        // portada. La URL lo guarda como #campeonato/<id> para que se pueda
+        // compartir el enlace y para que recargar no devuelva a la portada.
+        let CAMPEONATO = null;
+
+        const NOMBRE_SERIE = {
+            ADULTO: 'Adultos', SENIOR: 'Seniors', SUB13: 'Sub-13', SUB15: 'Sub-15', SUB17: 'Sub-17',
+            SEGUNDA_ADULTO: 'Segunda', PRIMERA_ADULTO: 'Primera',
+        };
+        // Mismo orden que la planilla de inscripción de la asociación.
+        const ORDEN_SERIES = ['ADULTO', 'SUB13', 'SUB15', 'SUB17', 'SENIOR', 'SEGUNDA_ADULTO', 'PRIMERA_ADULTO'];
+
+        // El nombre del campeonato del 2026 nocturno lleva el homenaje en el
+        // subtítulo, como siempre se mostró.
+        const SUBTITULO_CAMPEONATO = { 'Campeonato Nocturno 2026': '"Francisco Moraga Gallegos"' };
+
+        function seriesOrdenadas(c) {
+            return c.series.map(s => s.serie).sort((a, b) => ORDEN_SERIES.indexOf(a) - ORDEN_SERIES.indexOf(b));
+        }
+
+        function campeonatoDeLaUrl() {
+            const m = location.hash.match(/^#campeonato\/(\d+)/);
+            return m ? Number(m[1]) : null;
+        }
+
+        async function irSegunUrl() {
+            const id = campeonatoDeLaUrl();
+            if (id) await abrirCampeonato(id);
+            else await mostrarPortada();
+        }
+
+        async function mostrarPortada() {
+            CAMPEONATO = null;
+            document.title = 'Asociación Liga Dávila';
+            document.getElementById('subtitulo-principal').textContent = 'Campeonatos';
+            document.getElementById('vista-campeonato').classList.add('hidden');
+            document.getElementById('vista-portada').classList.remove('hidden');
+            const cont = document.getElementById('lista-campeonatos');
+            try {
+                const lista = await api('/campeonatos');
+                cont.innerHTML = lista.length
+                    ? lista.map(pintarTarjetaCampeonato).join('')
+                    : '<p class="text-white/50 italic">Todavía no hay campeonatos publicados.</p>';
+            } catch (e) {
+                cont.innerHTML = `<p class="text-red-400">${escapeHtml(e.message)}</p>`;
+            }
+        }
+
+        function pintarTarjetaCampeonato(c) {
+            const enCurso = c.estado === 'activo';
+            const series = seriesOrdenadas(c);
+            const equipos = c.series.reduce((n, s) => n + s.equipos, 0);
+            return `
+                <div class="bg-noc-dark/80 border ${enCurso ? 'border-noc-gold' : 'border-noc-purple2'} rounded-lg shadow-md p-5 flex flex-col gap-3">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <h3 class="text-xl font-bold text-noc-goldlight">${escapeHtml(c.nombre)}</h3>
+                            ${SUBTITULO_CAMPEONATO[c.nombre] ? `<p class="text-sm italic text-white/60">${escapeHtml(SUBTITULO_CAMPEONATO[c.nombre])}</p>` : ''}
+                        </div>
+                        <span class="badge ${enCurso ? 'badge-jugado' : 'badge-programado'} shrink-0">${enCurso ? 'En curso' : 'Finalizado'}</span>
+                    </div>
+                    <p class="text-sm text-white/60">
+                        ${series.length ? `${series.map(x => NOMBRE_SERIE[x] || x).join(' · ')} — ${equipos} equipos` : 'Sin equipos inscritos todavía'}
+                    </p>
+                    ${esAdmin() && enCurso ? `
+                        <div class="flex flex-wrap items-center justify-between gap-2 p-2 rounded border ${c.publico ? 'border-green-700/60 bg-green-900/20' : 'border-noc-gold/40 bg-noc-gold/10'}">
+                            <span class="text-xs ${c.publico ? 'text-green-300' : 'text-noc-goldlight'}">
+                                ${c.publico ? '● Visible para todo el público' : '○ Oculto: solo lo ves tú'}
+                            </span>
+                            <button onclick="publicarCampeonato(${c.id}, ${c.publico ? 'false' : 'true'})"
+                                    class="${c.publico ? 'bg-noc-purple2 hover:bg-noc-purple' : 'bg-green-700 hover:bg-green-600'} text-white text-xs px-3 py-1 rounded transition">
+                                ${c.publico ? 'Ocultar del público' : 'Publicar'}
+                            </button>
+                        </div>` : ''}
+                    <a href="#campeonato/${c.id}" class="mt-auto text-center bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded hover:bg-noc-goldlight transition">Ver campeonato</a>
+                </div>`;
+        }
+
+        async function publicarCampeonato(id, publico) {
+            const texto = publico
+                ? 'El campeonato va a quedar visible para cualquier visitante del sitio: equipos, fixture y tabla. Las pestañas Eliminatorias y Resoluciones siguen con su propio interruptor. ¿Publicar?'
+                : 'El campeonato deja de verse para el público. ¿Ocultarlo?';
+            if (!(await confirmarAccion(texto, publico ? 'Publicar' : 'Ocultar'))) return;
+            try {
+                await api(`/campeonatos/${id}/publicar`, { method: 'POST', body: JSON.stringify({ publico }) });
+                mostrarToast(publico ? 'Campeonato publicado.' : 'Campeonato oculto.', 'success');
+                mostrarPortada();
+            } catch (e) { mostrarToast(e.message, 'error'); }
+        }
+
+        async function abrirCampeonato(id) {
+            let c;
+            try {
+                // Se pide la lista (y no /campeonatos/:id) porque ya trae las
+                // series y la visibilidad, y respeta lo que puede ver cada uno.
+                c = (await api('/campeonatos')).find(x => x.id === id);
+            } catch (e) { c = null; }
+            if (!c) {
+                mostrarToast('Ese campeonato no existe o todavía no está publicado.', 'error');
+                location.hash = '';
+                return;
+            }
+            CAMPEONATO = c;
+            GRUPOS_CACHE = {};
+            document.title = c.nombre + ' · Liga Dávila';
+            document.getElementById('subtitulo-principal').textContent = c.nombre + (SUBTITULO_CAMPEONATO[c.nombre] ? ' ' + SUBTITULO_CAMPEONATO[c.nombre] : '');
+            document.getElementById('vista-portada').classList.add('hidden');
+            document.getElementById('vista-campeonato').classList.remove('hidden');
+
+            const aviso = document.getElementById('aviso-campeonato');
+            aviso.className = 'text-xs ' + (!c.publico ? 'text-noc-goldlight' : 'text-white/40');
+            aviso.textContent = !c.publico
+                ? '○ Campeonato oculto: solo lo ves tú. Se publica desde la portada.'
+                : (c.estado === 'finalizado' ? 'Campeonato finalizado: solo lectura' : '');
+
+            const series = seriesOrdenadas(c);
+            document.getElementById('selector-series').innerHTML = series.length
+                ? series.map(x => `<button id="serie-btn-${x}" onclick="cambiarSerie('${x}')" class="serie-btn px-5 py-2 rounded-full font-bold uppercase tracking-wide text-sm transition">${escapeHtml(NOMBRE_SERIE[x] || x)}</button>`).join('')
+                : '<span class="text-sm text-white/50">Este campeonato todavía no tiene equipos inscritos.</span>';
+            if (!series.includes(serieActual)) serieActual = series[0] || null;
+            if (serieActual) cambiarSerie(serieActual);
+        }
+
+        function campeonatoEditable() {
+            return !!(CAMPEONATO && CAMPEONATO.estado !== 'finalizado');
+        }
+
+        // Los encargados y el admin cargan resultados, pero no en un
+        // campeonato finalizado: ahí la tabla solo se mira.
+        function puedeCargarResultados() {
+            return estaLogueado() && campeonatoEditable();
+        }
+
+        // --- SERIE ---
+        let serieActual = null;
         function cambiarSerie(serie) {
             serieActual = serie;
             document.querySelectorAll('.serie-btn').forEach(b => b.classList.remove('active'));
@@ -649,6 +799,38 @@
             // Cada serie publica su cuadro por separado.
             actualizarVisibilidadPestanas();
             mostrarTabActual();
+        }
+
+        // Los grupos no son fijos: salen de los equipos inscritos en la serie
+        // (A/B y 1/2/3 en el Nocturno 2026, un grupo único en Liga Dávila).
+        let GRUPOS_CACHE = {};
+        async function gruposDeSerie() {
+            const clave = CAMPEONATO.id + '|' + serieActual;
+            if (!GRUPOS_CACHE[clave]) {
+                const equipos = await api(`/equipos?serie=${serieActual}`);
+                GRUPOS_CACHE[clave] = [...new Set(equipos.map(e => e.grupo))].sort();
+            }
+            return GRUPOS_CACHE[clave];
+        }
+
+        // El grupo único de Liga Dávila se guarda como 'U'. No tiene sentido
+        // mostrar "Grupo U": esa serie es una sola tabla, así que cada vista
+        // pasa el título que le corresponde en ese caso.
+        const GRUPO_UNICO = 'U';
+        function tituloGrupo(g, siEsUnico) {
+            return g === GRUPO_UNICO ? siEsUnico : `Grupo ${g}`;
+        }
+        function sufijoGrupo(g) {
+            return g === GRUPO_UNICO ? '' : ` (Grupo ${g})`;
+        }
+
+        // 'YYYY-MM-DD' -> 'vie 23/10/2026'. Otros formatos se muestran tal cual.
+        function formatearDia(fecha) {
+            const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(fecha || '');
+            if (!m) return fecha || '';
+            const dias = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+            const dia = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).getUTCDay();
+            return `${dias[dia]} ${m[3]}/${m[2]}/${m[1]}`;
         }
 
         // --- ESCUDOS ---
@@ -703,7 +885,9 @@
             TOKEN = null; USUARIO = null;
             localStorage.removeItem('cn_token'); localStorage.removeItem('cn_usuario');
             renderAuthBox();
-            mostrarTabActual();
+            // Si estaba mirando un campeonato oculto, como visitante ya no lo
+            // puede ver: se vuelve a resolver la URL, que lo manda a la portada.
+            irSegunUrl();
         }
 
         // --- EDITAR PARTIDOS (detalles) ---
@@ -767,6 +951,10 @@
             mostrarTabActual();
         }
         function mostrarTabActual() {
+            // En la portada no hay pestañas: se vuelve a pintar la lista (por
+            // ejemplo, al salir de la sesión, para esconder lo que es solo del admin).
+            if (!CAMPEONATO) { mostrarPortada(); return; }
+            if (!serieActual && tabActual !== 'tab-usuarios') return;
             if (tabActual === 'tab-equipos') renderEquipos();
             if (tabActual === 'tab-partidos') renderPartidos();
             if (tabActual === 'tab-eliminatorias') renderPlayoffs();
@@ -782,27 +970,79 @@
             ADULTO: 'Grupo A: 7 equipos (1 queda libre por fecha). Grupo B: 6 equipos.',
             SENIOR: 'Serie Seniors: 3 grupos de 4 equipos. Clasifican los 2 primeros de cada grupo y los 2 mejores terceros (por puntaje, diferencia de gol, goles a favor y goles en contra).',
         };
-        async function renderEquipos() {
-            const grupos = SERIES_GRUPOS[serieActual];
-            document.getElementById('equipos-descripcion').textContent = DESCRIPCION_SERIE[serieActual];
+        // Formato Liga Dávila (Clausura 2026 en adelante).
+        function descripcionSemis(cantidad) {
+            return `${cantidad} equipos en una sola tabla. Cada equipo juega 6 partidos en 7 fechas y queda libre en una (no es todos contra todos: los cruces salieron por sorteo). Los 4 primeros pasan a semifinales: 1º vs 4º y 2º vs 3º, a partido único.`;
+        }
 
+        async function renderEquipos() {
+            const grupos = await gruposDeSerie();
             const listas = await Promise.all(grupos.map(g => api(`/equipos?serie=${serieActual}&grupo=${g}`)));
+            const formatoSemis = CAMPEONATO.formato === 'semis';
+            document.getElementById('equipos-descripcion').textContent = formatoSemis
+                ? descripcionSemis(listas.flat().length)
+                : (DESCRIPCION_SERIE[serieActual] || '');
 
             const cont = document.getElementById('equipos-grupos-container');
             cont.className = 'grid grid-cols-1 ' + (grupos.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2') + ' gap-6';
             cont.innerHTML = grupos.map(g => `
                 <div>
-                    <h4 class="font-bold text-lg text-noc-gold mb-2">Grupo ${g}</h4>
+                    <h4 class="font-bold text-lg text-noc-gold mb-2">${tituloGrupo(g, 'Equipos inscritos')}</h4>
                     <div id="lista-grupo-${g}" class="space-y-2"></div>
                 </div>
             `).join('');
             grupos.forEach((g, i) => pintarListaEquipos('lista-grupo-' + g, listas[i]));
 
+            // Un campeonato finalizado es de solo lectura: el backend igual lo
+            // rechaza, pero no tiene sentido ofrecer botones que van a fallar.
             const acciones = document.getElementById('acciones-admin-equipos');
-            acciones.innerHTML =
-                grupos.map(g => `<button onclick="generarFixture('${g}')" class="bg-green-700 text-white px-4 py-2 rounded shadow hover:bg-green-600 transition">Regenerar Fixture Grupo ${g}</button>`).join('') +
-                grupos.map(g => `<button onclick="reiniciarResultados('${g}')" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition">Reiniciar Resultados ${g}</button>`).join('');
+            if (!campeonatoEditable()) {
+                acciones.innerHTML = '<p class="text-xs text-white/40">Campeonato finalizado: el fixture y los resultados ya no se modifican.</p>';
+            } else if (formatoSemis) {
+                acciones.innerHTML = pintarFormSorteo();
+            } else {
+                acciones.innerHTML =
+                    grupos.map(g => `<button onclick="generarFixture('${g}')" class="bg-green-700 text-white px-4 py-2 rounded shadow hover:bg-green-600 transition">Regenerar Fixture Grupo ${g}</button>`).join('') +
+                    grupos.map(g => `<button onclick="reiniciarResultados('${g}')" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition">Reiniciar Resultados ${g}</button>`).join('');
+            }
             acciones.classList.toggle('hidden', !esAdmin());
+        }
+
+        function pintarFormSorteo() {
+            const serie = NOMBRE_SERIE[serieActual] || serieActual;
+            return `
+                <form onsubmit="sortearFixture(event)" class="w-full space-y-3">
+                    <p class="text-sm text-white/70">
+                        <span class="font-semibold text-noc-goldlight">Sorteo del fixture de ${escapeHtml(serie)}.</span>
+                        Cada equipo queda con 6 partidos y un libre, en 7 fechas semanales desde el día de inicio.
+                        La misma semilla da siempre el mismo fixture: publícala junto al fixture para que cualquier club pueda comprobar el sorteo.
+                        Si la serie ya tiene un resultado cargado no se puede volver a sortear.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="${CLASE_LABEL}">Fecha 1 (día de inicio)</label>
+                            <input id="sorteo-inicio" type="date" value="2026-10-23" required class="${CLASE_INPUT}">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="${CLASE_LABEL}">Semilla del sorteo</label>
+                            <input id="sorteo-semilla" type="text" required value="Liga Dávila · ${escapeHtml(CAMPEONATO.nombre.replace(/^Campeonato /, ''))} · ${escapeHtml(serieActual)}" class="${CLASE_INPUT}">
+                        </div>
+                    </div>
+                    <button type="submit" class="bg-green-700 text-white px-4 py-2 rounded shadow hover:bg-green-600 transition">Sortear fixture de ${escapeHtml(serie)}</button>
+                </form>`;
+        }
+
+        async function sortearFixture(ev) {
+            ev.preventDefault();
+            const fechaInicio = document.getElementById('sorteo-inicio').value;
+            const semilla = document.getElementById('sorteo-semilla').value.trim();
+            const serie = NOMBRE_SERIE[serieActual] || serieActual;
+            if (!(await confirmarAccion(`Se va a reemplazar el fixture de ${serie} (si había uno) por el que salga del sorteo. ¿Continuar?`, 'Sortear'))) return;
+            try {
+                await api('/fixture/sortear', { method: 'POST', body: JSON.stringify({ serie: serieActual, fechaInicio, semilla }) });
+                mostrarToast(`Fixture de ${serie} sorteado.`, 'success');
+                showTab('tab-partidos');
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
         function pintarListaEquipos(contId, equipos) {
             const cont = document.getElementById(contId);
@@ -845,7 +1085,7 @@
         // --- 4. PARTIDOS ---
         async function renderPartidos() {
             const container = document.getElementById('fixture-container');
-            const grupos = SERIES_GRUPOS[serieActual];
+            const grupos = await gruposDeSerie();
             const partidosPorGrupo = await Promise.all(grupos.map(g => api(`/partidos?serie=${serieActual}&grupo=${g}`)));
             const libresPorGrupo = await Promise.all(grupos.map(g => api(`/partidos/libres?serie=${serieActual}&grupo=${g}`)));
             partidosPorGrupo.forEach(cachearPartidos);
@@ -853,7 +1093,10 @@
         }
 
         function pintarGrupoPartidos(grupo, partidos, libres) {
-            let html = `<h4 class="text-xl font-bold bg-noc-purple text-noc-goldlight p-2 mt-6 rounded">Grupo ${grupo}</h4>`;
+            if (!partidos.length) {
+                return `<p class="text-white/50 italic">Todavía no hay fixture para esta serie.</p>`;
+            }
+            let html = `<h4 class="text-xl font-bold bg-noc-purple text-noc-goldlight p-2 mt-6 rounded">${tituloGrupo(grupo, 'Fixture')}</h4>`;
             html += `<div class="overflow-x-auto mt-4">
                 <table class="w-full text-sm border-collapse min-w-[800px]">
                     <thead>
@@ -865,13 +1108,29 @@
                             <th class="border border-noc-purple p-2 text-left">Visita</th>
                             <th class="border border-noc-purple p-2 text-left">Estadio</th>
                             <th class="border border-noc-purple p-2 text-center">Estado</th>
-                            ${estaLogueado() ? '<th class="border border-noc-purple p-2 text-center">Acciones</th>' : ''}
+                            ${puedeCargarResultados() ? '<th class="border border-noc-purple p-2 text-center">Acciones</th>' : ''}
                         </tr>
                     </thead>
                     <tbody>`;
 
-            partidos.forEach(p => {
-                html += pintarFilaPartidoTabla(p);
+            // Una franja por fecha con el día y quién queda libre: con libres
+            // repartidos por sorteo, saber quién descansa es parte del fixture.
+            const columnas = puedeCargarResultados() ? 8 : 7;
+            const fechas = [...new Set(partidos.map(p => p.fecha))].sort((a, b) => a - b);
+            fechas.forEach(f => {
+                const deLaFecha = partidos.filter(p => p.fecha === f);
+                const dias = [...new Set(deLaFecha.map(p => p.fechaPartido).filter(Boolean))];
+                const libresFecha = libres.filter(l => l.fecha === f).map(l => l.nombre);
+                html += `
+                    <tr class="bg-noc-black/60">
+                        <td colspan="${columnas}" class="border border-noc-purple p-2">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <span class="font-bold text-noc-goldlight">Fecha ${f}${dias.length === 1 ? ' · ' + escapeHtml(formatearDia(dias[0])) : ''}</span>
+                                ${libresFecha.length ? `<span class="text-xs text-white/60">Libre: <span class="text-white font-semibold">${libresFecha.map(escapeHtml).join(', ')}</span></span>` : ''}
+                            </div>
+                        </td>
+                    </tr>`;
+                deLaFecha.forEach(p => { html += pintarFilaPartidoTabla(p); });
             });
 
             html += `</tbody></table></div>`;
@@ -879,14 +1138,14 @@
         }
 
         function pintarFilaPartidoTabla(p) {
-            const logueado = estaLogueado();
+            const logueado = puedeCargarResultados();
             const esAdministrador = esAdmin();
             const badgeClass = p.estado === 'jugado' ? 'badge-jugado' : (p.estado === 'aplazado' ? 'badge-aplazado' : 'badge-programado');
             const badgeTexto = p.estado === 'jugado' ? 'Jugado' : (p.estado === 'aplazado' ? 'Aplazado' : 'Pendiente');
 
             return `
                 <tr class="border-b border-noc-purple hover:bg-noc-purple/20 transition">
-                    <td class="border border-noc-purple p-2">${p.fechaPartido || '-'}</td>
+                    <td class="border border-noc-purple p-2 whitespace-nowrap">${p.fechaPartido ? escapeHtml(formatearDia(p.fechaPartido)) : '-'}</td>
                     <td class="border border-noc-purple p-2">${p.hora || '-'}</td>
                     <td class="border border-noc-purple p-2"><div class="flex items-center gap-2">${escudoImg(p.local, '')} <span>${escapeHtml(p.local)}</span></div></td>
                     <td class="border border-noc-purple p-2 text-center font-bold">
@@ -934,7 +1193,7 @@
         }
 
         function pintarFilaPartido(p) {
-            const logueado = estaLogueado();
+            const logueado = puedeCargarResultados();
             const badgeClass = p.estado === 'jugado' ? 'badge-jugado' : (p.estado === 'aplazado' ? 'badge-aplazado' : 'badge-programado');
             const badgeTexto = p.estado === 'jugado' ? 'Jugado' : (p.estado === 'aplazado' ? 'Aplazado' : 'Pendiente');
             return `
@@ -1019,16 +1278,16 @@
 
             document.getElementById('resoluciones-form-admin').innerHTML =
                 esAdmin()
-                    ? pintarInterruptorResoluciones(estado, resoluciones) + pintarFormResolucion(equipos, partidos)
+                    ? pintarInterruptorResoluciones(estado, resoluciones) + (campeonatoEditable() ? pintarFormResolucion(equipos, partidos) : '')
                     : '';
             document.getElementById('resoluciones-lista').innerHTML = pintarListaResoluciones(resoluciones);
             document.getElementById('reclamos-form').innerHTML =
-                estaLogueado() ? pintarFormReclamo(equipos, partidos) : '';
+                puedeCargarResultados() ? pintarFormReclamo(equipos, partidos) : '';
             document.getElementById('reclamos-lista').innerHTML = pintarListaReclamos(reclamos, resoluciones);
         }
 
         async function cargarPartidosDeLaSerie() {
-            const grupos = SERIES_GRUPOS[serieActual];
+            const grupos = await gruposDeSerie();
             const porGrupo = await Promise.all(grupos.map(g => api(`/partidos?serie=${serieActual}&grupo=${g}`)));
             const partidos = porGrupo.flat();
             cachearPartidos(partidos);
@@ -1036,7 +1295,7 @@
         }
 
         function opcionesEquipos(equipos) {
-            return equipos.map(e => `<option value="${e.id}">${escapeHtml(e.nombre)} (Grupo ${escapeHtml(e.grupo)})</option>`).join('');
+            return equipos.map(e => `<option value="${e.id}">${escapeHtml(e.nombre + sufijoGrupo(e.grupo))}</option>`).join('');
         }
 
         function opcionesPartidos(partidos) {
@@ -1106,7 +1365,7 @@
                                 <select id="res-tipo" onchange="cambiarTipoResolucion()" class="${CLASE_INPUT}">
                                     <option value="descuento_puntos">Descuento de puntos</option>
                                     <option value="partido_homologado">Partido ganado por secretaría</option>
-                                    <option value="walkover">WO — no se presentó (descalifica del torneo)</option>
+                                    ${CAMPEONATO.formato === 'cuartos' ? '<option value="walkover">WO — no se presentó (descalifica del torneo)</option>' : ''}
                                 </select>
                             </div>
                             <div>
@@ -1491,6 +1750,7 @@
         ];
 
         async function actualizarVisibilidadPestanas() {
+            if (!CAMPEONATO || !serieActual) return;
             for (const p of PESTANAS_PUBLICABLES) {
                 const boton = document.getElementById(p.boton);
                 if (!boton) continue;
@@ -1512,6 +1772,9 @@
             try {
                 const cuadro = await api(`/playoffs?serie=${serieActual}`);
                 ORDEN_FASES.forEach(f => cachearPartidos(cuadro.fases[f]));
+                const fases = (cuadro.ordenFases || ORDEN_FASES).map(f => cuadro.nombresFase[f].toLowerCase());
+                document.getElementById('playoffs-descripcion').textContent =
+                    `${fases.join(', ').replace(/, ([^,]*)$/, ' y $1')}. Todos los partidos son a partido único; si terminan empatados se definen por penales.`.replace(/^./, c => c.toUpperCase());
                 acciones.innerHTML = pintarAccionesPlayoffs(cuadro);
                 container.innerHTML = pintarCuadroPlayoffs(cuadro, cuadro.descalificados || {});
             } catch (e) {
@@ -1550,6 +1813,7 @@
                     </button>
                 </div>`;
 
+            if (!campeonatoEditable()) return html;
             html += '<div class="flex flex-wrap items-center gap-3">';
             if (siguiente && siguiente.fase) {
                 const etiqueta = `Generar ${nombresFase[siguiente.fase].toLowerCase()}`;
@@ -1622,7 +1886,7 @@
         }
 
         function pintarLlavePlayoff(p, descalificados = {}) {
-            const logueado = estaLogueado();
+            const logueado = puedeCargarResultados();
             const jugado = p.estado === 'jugado';
             const idGanador = ganadorDeLlave(p);
             const empatado = jugado && p.golesLocal === p.golesVisita;
@@ -1873,19 +2137,24 @@
             </tr>
         `;
         async function renderTablas() {
-            const grupos = SERIES_GRUPOS[serieActual];
+            const grupos = await gruposDeSerie();
             const tablas = await Promise.all(grupos.map(g => api(`/posiciones?serie=${serieActual}&grupo=${g}`)));
 
             const cont = document.getElementById('posiciones-container');
             cont.innerHTML = grupos.map(g => `
                 <div class="bg-noc-dark/80 p-6 rounded-lg shadow-md overflow-x-auto border border-noc-purple2">
-                    <h3 class="text-2xl font-bold mb-4 text-noc-goldlight border-b border-noc-purple2 pb-2">Tabla de Posiciones - Grupo ${g}</h3>
+                    <h3 class="text-2xl font-bold mb-4 text-noc-goldlight border-b border-noc-purple2 pb-2">Tabla de Posiciones${g === GRUPO_UNICO ? '' : ' - Grupo ' + g}</h3>
                     <table class="w-full text-left border-collapse min-w-[700px]">
                         <thead>${COLUMNAS_TABLA_POSICIONES}</thead>
                         <tbody id="tabla-pos-${g}" class="text-sm"></tbody>
                     </table>
                 </div>
-            `).join('') + (serieActual === 'SENIOR' ? `
+            `).join('') + (CAMPEONATO.formato === 'semis' ? `
+                <div class="bg-noc-dark/80 p-4 rounded-lg border border-noc-purple2 text-sm text-white/70 flex flex-wrap gap-x-6 gap-y-2">
+                    <span class="flex items-center gap-2"><span class="inline-block w-4 h-4 rounded fila-clasifica"></span> Pasa a semifinales (los 4 primeros: 1º vs 4º y 2º vs 3º)</span>
+                    <span class="text-white/50">Desempate: puntos, diferencia de gol, goles a favor, goles en contra.</span>
+                </div>
+            ` : '') + (CAMPEONATO.formato === 'cuartos' && serieActual === 'SENIOR' ? `
                 <div class="bg-noc-dark/80 p-4 rounded-lg border border-noc-purple2 text-sm text-white/70 flex flex-wrap gap-x-6 gap-y-2">
                     <span class="flex items-center gap-2"><span class="inline-block w-4 h-4 rounded fila-clasifica"></span> Clasifica directo (1° o 2° del grupo)</span>
                     <span class="flex items-center gap-2"><span class="inline-block w-4 h-4 rounded fila-mejor-tercero"></span> Clasifica por mejor tercero</span>
@@ -1986,13 +2255,13 @@
 
         // --- 6. JUGADORES ---
         async function poblarSelectEquipos(selectEl, incluirTodos) {
-            const grupos = SERIES_GRUPOS[serieActual];
+            const grupos = await gruposDeSerie();
             const listas = await Promise.all(grupos.map(g => api(`/equipos?serie=${serieActual}&grupo=${g}`)));
             const equipos = listas.flat();
             const valorPrevio = selectEl.value;
             selectEl.innerHTML =
                 (incluirTodos ? '<option value="">Todos los equipos</option>' : '') +
-                equipos.map(e => `<option value="${e.id}">${escapeHtml(e.nombre)} (Grupo ${e.grupo})</option>`).join('');
+                equipos.map(e => `<option value="${e.id}">${escapeHtml(e.nombre + sufijoGrupo(e.grupo))}</option>`).join('');
             if ([...selectEl.options].some(o => o.value === valorPrevio)) selectEl.value = valorPrevio;
             return equipos;
         }
@@ -2425,13 +2694,8 @@
 
         window.onload = () => {
             renderAuthBox();
-            document.getElementById('serie-btn-' + serieActual).classList.add('active');
-            actualizarVisibilidadPestanas();
-            showTab('tab-equipos');
-
-            // Agregar event listeners a los botones de serie
-            document.getElementById('serie-btn-ADULTO').addEventListener('click', () => cambiarSerie('ADULTO'));
-            document.getElementById('serie-btn-SENIOR').addEventListener('click', () => cambiarSerie('SENIOR'));
+            irSegunUrl();
+            window.addEventListener('hashchange', irSegunUrl);
 
             // Agregar event listeners a los botones de navegación de tabs
             document.querySelectorAll('[data-tab]').forEach(btn => {

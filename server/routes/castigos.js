@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db');
-const { requireAuth, requireAdmin } = require('../auth');
+const { requireAuth, requireAdmin, authOpcional } = require('../auth');
+const { campeonatoDeLaPeticion } = require('../campeonatos');
 const asyncHandler = require('../asyncHandler');
 const { esRutValido, formatearRut } = require('../rut');
 const { normalizarFecha } = require('../csv');
@@ -13,11 +14,13 @@ const SELECT_CASTIGOS = `
   FROM castigos c JOIN equipos e ON e.id = c.equipo_id
 `;
 
-// Pública: cualquiera puede ver el listado de castigados.
-router.get('/', asyncHandler(async (req, res) => {
+// Pública: cualquiera puede ver el listado de castigados del campeonato que
+// está mirando. Las suspensiones que vienen de un campeonato anterior todavía
+// no se trasladan (pendiente: traslado por RUT).
+router.get('/', authOpcional, campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
   const { serie, equipoId, estado } = req.query;
-  const condiciones = [];
-  const params = [];
+  const condiciones = ['e.campeonato_id = ?'];
+  const params = [req.campeonato.id];
   if (serie) { condiciones.push('e.serie = ?'); params.push(serie); }
   if (equipoId) { condiciones.push('c.equipo_id = ?'); params.push(Number(equipoId)); }
   if (estado) { condiciones.push('c.estado = ?'); params.push(estado); }

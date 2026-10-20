@@ -1,4 +1,12 @@
 #!/usr/bin/env node
+// Script de una sola vez del Nocturno 2026, que ya terminó. Borraba las
+// eliminatorias de SENIOR filtrando solo por serie, y desde Clausura 2026
+// SENIOR también existe en el campeonato en curso: correrlo ahora borraría
+// sus semifinales. Las eliminatorias se generan desde la pestaña
+// Eliminatorias, que ya filtra por campeonato.
+console.error('Este script era del Campeonato Nocturno 2026 (finalizado) y ya no se debe correr. Usa la pestaña Eliminatorias.');
+process.exit(1);
+
 require('dotenv').config();
 const db = require('./server/db');
 const { armarCuartos, GRUPO_PLAYOFF, JORNADA_POR_FASE } = require('./server/playoffs');

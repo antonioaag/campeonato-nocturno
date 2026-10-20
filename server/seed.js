@@ -37,17 +37,28 @@ const SENIOR_GRUPO_1 = ['FLAMENGO', 'INDEPENDIENTE', 'PLATENSE', 'VECINAL'];
 const SENIOR_GRUPO_2 = ['10 DE MARZO', 'SAO PAULO', 'J. OVALLE', 'ESTOCOLMO'];
 const SENIOR_GRUPO_3 = ['BOROA', 'CHAYAIHUE', 'PICHANGA', 'JORGE MONTT'];
 
+// El seed es el Campeonato Nocturno 2026 y solo toca ese campeonato. Antes
+// borraba por serie a secas, y con SENIOR también en Clausura 2026 eso se
+// habría llevado por delante los equipos y partidos del campeonato en curso.
+// db.init() ya creó el histórico; acá se le fija el formato porque en una
+// base vacía la migración no tenía equipos ADULTO con los cuales reconocerlo.
+async function campeonatoDelSeed() {
+  const c = await db.get("SELECT id FROM campeonatos WHERE nombre = 'Campeonato Nocturno 2026'");
+  if (!c) throw new Error('No existe el campeonato "Campeonato Nocturno 2026" para sembrar');
+  await db.run("UPDATE campeonatos SET formato = 'cuartos' WHERE id = ?", [c.id]);
+  return c.id;
+}
+
 async function limpiarSerie(serie) {
-  await db.run('DELETE FROM byes WHERE serie = ?', [serie]);
-  await db.run('DELETE FROM partidos WHERE serie = ?', [serie]);
-  await db.run('DELETE FROM equipos WHERE serie = ?', [serie]);
+  const campeonatoId = await campeonatoDelSeed();
+  const equipos = 'SELECT id FROM equipos WHERE campeonato_id = ? AND serie = ?';
+  await db.run(`DELETE FROM byes WHERE equipo_id IN (${equipos})`, [campeonatoId, serie]);
+  await db.run(`DELETE FROM partidos WHERE local_id IN (${equipos})`, [campeonatoId, serie]);
+  await db.run('DELETE FROM equipos WHERE campeonato_id = ? AND serie = ?', [campeonatoId, serie]);
 }
 
 async function insertarEquipos(nombres, serie, grupo) {
-  // El seed siempre siembra en el campeonato activo: si no hay ninguno
-  // todavía (base de datos recién creada), db.init() ya lo crea antes de
-  // llegar acá.
-  const { id: campeonatoId } = await db.get("SELECT id FROM campeonatos WHERE estado = 'activo'");
+  const campeonatoId = await campeonatoDelSeed();
   const ids = {};
   for (let i = 0; i < nombres.length; i++) {
     const nombre = nombres[i];

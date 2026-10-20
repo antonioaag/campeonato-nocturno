@@ -6,56 +6,57 @@ const { esSerieValida } = require('../series');
 const { listar, obtenerPorId, validar } = require('../resoluciones');
 const { contarPartidosDeGrupo, efectosDeWalkover, explicarAlcance } = require('../walkover');
 const { leerBooleano, escribir, claveResolucionesPublicas } = require('../configuracion');
+const { campeonatoDeLaPeticion, exigirEditable, obtenerPorId: campeonatoPorId } = require('../campeonatos');
 
 const router = express.Router();
 
-async function estadoDeVisibilidad(serie, usuario) {
-  const publico = await leerBooleano(claveResolucionesPublicas(serie), false);
+async function estadoDeVisibilidad(campeonatoId, serie, usuario) {
+  const publico = await leerBooleano(claveResolucionesPublicas(campeonatoId, serie), false);
   const esAdmin = !!(usuario && usuario.rol === 'admin');
   return { publico, esAdmin, visible: publico || esAdmin };
 }
 
 // Estado de visibilidad, para que el front decida si muestra la pestaña.
-router.get('/estado', authOpcional, asyncHandler(async (req, res) => {
+router.get('/estado', authOpcional, campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
   const serie = req.query.serie || 'ADULTO';
   if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
-  const { publico, visible } = await estadoDeVisibilidad(serie, req.usuario);
+  const { publico, visible } = await estadoDeVisibilidad(req.campeonato.id, serie, req.usuario);
   res.json({ serie, publico, visible });
 }));
 
 // El listado de resoluciones es lo que permite auditar la tabla, así que una
 // vez publicado lo puede ver cualquiera, incluidas las revocadas. Mientras el
 // registro no esté publicado, solo lo ve el admin.
-router.get('/', authOpcional, asyncHandler(async (req, res) => {
+router.get('/', authOpcional, campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
   const serie = req.query.serie || 'ADULTO';
   if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
 
-  const { visible } = await estadoDeVisibilidad(serie, req.usuario);
+  const { visible } = await estadoDeVisibilidad(req.campeonato.id, serie, req.usuario);
   if (!visible) return res.json([]);
 
   const soloVigentes = req.query.vigentes === '1';
-  res.json(await listar(serie, { soloVigentes }));
+  res.json(await listar(req.campeonato.id, serie, { soloVigentes }));
 }));
 
 // Publica u oculta el registro de sanciones y reclamos de la serie. Solo admin.
-router.post('/publicar', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+router.post('/publicar', requireAuth, requireAdmin, campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
   const serie = (req.body && req.body.serie) || 'ADULTO';
   const publico = !!(req.body && req.body.publico);
   if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
-  await escribir(claveResolucionesPublicas(serie), publico ? '1' : '0');
+  await escribir(claveResolucionesPublicas(req.campeonato.id, serie), publico ? '1' : '0');
   res.json({ ok: true, serie, publico });
 }));
 
 // Qué pasaría si se registra este WO. Un WO puede anular media fase de grupos,
 // así que el admin tiene que poder verlo ANTES de confirmarlo y no descubrirlo
 // después mirando la tabla. Solo admin, igual que el registro.
-router.get('/walkover/previsualizar', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+router.get('/walkover/previsualizar', requireAuth, requireAdmin, campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
   const serie = req.query.serie || 'ADULTO';
   const partidoId = Number(req.query.partidoId);
   const equipoId = Number(req.query.equipoId);
   if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
 
-  const problema = await revisarWalkover(serie, partidoId, equipoId);
+  const problema = await revisarWalkover(req.campeonato, serie, partidoId, equipoId);
   if (problema) return res.status(problema.status).json({ error: problema.error });
 
   const { jugados, total, corte } = await contarPartidosDeGrupo(equipoId);
@@ -88,9 +89,21 @@ router.get('/walkover/previsualizar', requireAuth, requireAdmin, asyncHandler(as
 
 // Comprobaciones comunes a previsualizar y registrar un WO. Devuelve null si
 // todo está en orden, o el error a responder.
-async function revisarWalkover(serie, partidoId, equipoId) {
-  const partido = await db.get('SELECT id, serie, fase, local_id, visita_id FROM partidos WHERE id = ?', [partidoId]);
+async function revisarWalkover(campeonato, serie, partidoId, equipoId) {
+  // La descalificación por WO es la regla del Nocturno 2026. En Liga Dávila
+  // un WO se multa y, acumulando 2 seguidos o 3 por rueda, el equipo baja de
+  // serie (reglamento, art. 57): eso todavía no está implementado, y aplicar
+  // la regla vieja descalificaría a un equipo que el reglamento no
+  // descalifica. Mientras tanto el partido se homologa a mano.
+  if (campeonato.formato !== 'cuartos') {
+    return { status: 400, error: 'En este campeonato el WO no descalifica: homologa el partido a favor del equipo que se presentó (resolución "Partido homologado").' };
+  }
+  const partido = await db.get(`
+    SELECT p.id, p.serie, p.fase, p.local_id, p.visita_id, l.campeonato_id AS campeonatoId
+    FROM partidos p JOIN equipos l ON l.id = p.local_id WHERE p.id = ?
+  `, [partidoId]);
   if (!partido) return { status: 400, error: 'Partido no encontrado' };
+  if (partido.campeonatoId !== campeonato.id) return { status: 400, error: 'El partido no pertenece a este campeonato' };
   if (partido.serie !== serie) return { status: 400, error: 'El partido no pertenece a esa serie' };
   if (partido.fase !== 'grupos') {
     return { status: 400, error: 'Por ahora el WO solo se registra en la fase de grupos. En una llave de eliminatorias, homologa el partido a favor del equipo que se presentó.' };
@@ -119,7 +132,9 @@ async function revisarWalkover(serie, partidoId, equipoId) {
 }
 
 // Registrar una resolución. Solo admin.
-router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+router.post('/', requireAuth, requireAdmin, campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
+  const campeonato = req.campeonato;
+  exigirEditable(campeonato);
   const {
     serie, tipo, origen, equipoId, partidoId, puntosAjuste,
     golesLocalHom, golesVisitaHom, articulo, motivo, numeroActa, fechaResolucion,
@@ -136,8 +151,9 @@ router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
   // El equipo o el partido tienen que existir y pertenecer a la serie, para
   // que no se pueda sancionar a un equipo de otro campeonato por error.
   if (tipo === 'descuento_puntos') {
-    const equipo = await db.get('SELECT id, serie FROM equipos WHERE id = ?', [Number(equipoId)]);
+    const equipo = await db.get('SELECT id, serie, campeonato_id AS campeonatoId FROM equipos WHERE id = ?', [Number(equipoId)]);
     if (!equipo) return res.status(400).json({ error: 'Equipo no encontrado' });
+    if (equipo.campeonatoId !== campeonato.id) return res.status(400).json({ error: 'El equipo no pertenece a este campeonato' });
     if (equipo.serie !== serie) return res.status(400).json({ error: 'El equipo no pertenece a esa serie' });
   }
 
@@ -145,15 +161,19 @@ router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
   // depende si sus resultados siguen valiendo, y no puede cambiar después.
   let conteoWo = { jugados: null, total: null, corte: null };
   if (tipo === 'walkover') {
-    const problema = await revisarWalkover(serie, Number(partidoId), Number(equipoId));
+    const problema = await revisarWalkover(campeonato, serie, Number(partidoId), Number(equipoId));
     if (problema) return res.status(problema.status).json({ error: problema.error });
     conteoWo = await contarPartidosDeGrupo(Number(equipoId));
   }
 
   let partido = null;
   if (tipo === 'partido_homologado') {
-    partido = await db.get('SELECT id, serie FROM partidos WHERE id = ?', [Number(partidoId)]);
+    partido = await db.get(`
+      SELECT p.id, p.serie, l.campeonato_id AS campeonatoId
+      FROM partidos p JOIN equipos l ON l.id = p.local_id WHERE p.id = ?
+    `, [Number(partidoId)]);
     if (!partido) return res.status(400).json({ error: 'Partido no encontrado' });
+    if (partido.campeonatoId !== campeonato.id) return res.status(400).json({ error: 'El partido no pertenece a este campeonato' });
     if (partido.serie !== serie) return res.status(400).json({ error: 'El partido no pertenece a esa serie' });
 
     const yaHomologado = await db.get(
@@ -169,12 +189,12 @@ router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
 
   const info = await db.run(`
     INSERT INTO resoluciones
-      (serie, tipo, origen, equipo_id, partido_id, puntos_ajuste,
+      (campeonato_id, serie, tipo, origen, equipo_id, partido_id, puntos_ajuste,
        goles_local_hom, goles_visita_hom, articulo, motivo, numero_acta,
        fecha_resolucion, estado, wo_jugados, wo_total, wo_corte, creada_por)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'vigente', ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'vigente', ?, ?, ?, ?)
   `, [
-    serie, tipo, origen,
+    campeonato.id, serie, tipo, origen,
     tipo === 'descuento_puntos' || tipo === 'walkover' ? Number(equipoId) : null,
     tipo === 'partido_homologado' || tipo === 'walkover' ? Number(partidoId) : null,
     tipo === 'descuento_puntos' ? Number(puntosAjuste) : null,
@@ -198,8 +218,9 @@ router.post('/:id/revocar', requireAuth, requireAdmin, asyncHandler(async (req, 
     return res.status(400).json({ error: 'Hay que indicar el motivo de la revocación' });
   }
 
-  const actual = await db.get('SELECT id, estado FROM resoluciones WHERE id = ?', [id]);
+  const actual = await db.get('SELECT id, estado, campeonato_id AS campeonatoId FROM resoluciones WHERE id = ?', [id]);
   if (!actual) return res.status(404).json({ error: 'Resolución no encontrada' });
+  exigirEditable(await campeonatoPorId(actual.campeonatoId));
   if (actual.estado === 'revocada') return res.status(409).json({ error: 'Esa resolución ya está revocada' });
 
   await db.run(`

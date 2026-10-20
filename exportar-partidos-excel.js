@@ -55,7 +55,7 @@ async function main() {
       [campeonato.id, serie]
     );
 
-    const { porPartido, anulados } = await ajustesVigentes(serie);
+    const { porPartido, anulados } = await ajustesVigentes(campeonato.id, serie);
 
     partidos.forEach(p => {
       const homologacion = porPartido[p.id] || null;
