@@ -1118,17 +1118,27 @@
             const columnas = puedeCargarResultados() ? 8 : 7;
             const fechas = [...new Set(partidos.map(p => p.fecha))].sort((a, b) => a - b);
             fechas.forEach(f => {
-                const deLaFecha = partidos.filter(p => p.fecha === f);
-                const dias = [...new Set(deLaFecha.map(p => p.fechaPartido).filter(Boolean))];
+                // Una fecha puede repartirse en varios días (viernes a domingo):
+                // se muestra en el orden en que se juega, no en el de carga.
+                const deLaFecha = partidos.filter(p => p.fecha === f)
+                    .sort((x, y) => `${x.fechaPartido || ''} ${x.hora || ''}`.localeCompare(`${y.fechaPartido || ''} ${y.hora || ''}`));
+                const dias = [...new Set(deLaFecha.map(p => p.fechaPartido).filter(Boolean))].sort();
+                const rangoDias = dias.length === 1
+                    ? formatearDia(dias[0])
+                    : (dias.length > 1 ? `${formatearDia(dias[0])} al ${formatearDia(dias[dias.length - 1])}` : '');
+                // El botón corre la fecha completa desde su primer día pendiente.
+                const pendientesIso = deLaFecha
+                    .filter(p => p.estado !== 'jugado' && /^\d{4}-\d{2}-\d{2}$/.test(p.fechaPartido || ''))
+                    .map(p => p.fechaPartido).sort();
                 const libresFecha = libres.filter(l => l.fecha === f).map(l => l.nombre);
                 html += `
                     <tr class="bg-noc-black/60">
                         <td colspan="${columnas}" class="border border-noc-purple p-2">
                             <div class="flex flex-wrap items-center justify-between gap-2">
-                                <span class="font-bold text-noc-goldlight">Fecha ${f}${dias.length === 1 ? ' · ' + escapeHtml(formatearDia(dias[0])) : ''}</span>
+                                <span class="font-bold text-noc-goldlight">Fecha ${f}${rangoDias ? ' · ' + escapeHtml(rangoDias) : ''}</span>
                                 ${libresFecha.length ? `<span class="text-xs text-white/60">Libre: <span class="text-white font-semibold">${libresFecha.map(escapeHtml).join(', ')}</span></span>` : ''}
-                                ${esAdmin() && campeonatoEditable() && dias.length === 1 && /^\d{4}-\d{2}-\d{2}$/.test(dias[0]) && deLaFecha.some(p => p.estado !== 'jugado')
-                                    ? `<button onclick="correrDia('${dias[0]}')" class="text-xs bg-noc-purple2 text-white px-2 py-1 rounded hover:bg-noc-purple">Suspender este día</button>`
+                                ${esAdmin() && campeonatoEditable() && pendientesIso.length
+                                    ? `<button onclick="correrDia('${pendientesIso[0]}')" class="text-xs bg-noc-purple2 text-white px-2 py-1 rounded hover:bg-noc-purple">Suspender esta fecha</button>`
                                     : ''}
                             </div>
                         </td>
@@ -1144,7 +1154,7 @@
         // jugó desde ese día, en todas las series, porque todas juegan el
         // mismo día. Sin esto había que editar partido por partido.
         async function correrDia(dia) {
-            const texto = `Se suspende el ${formatearDia(dia)}: todos los partidos sin jugar de ese día en adelante, de TODAS las series de ${CAMPEONATO.nombre}, se corren 7 días. Los que ya se jugaron no se tocan. ¿Continuar?`;
+            const texto = `Se suspende desde el ${formatearDia(dia)}: todos los partidos sin jugar de ese día en adelante (el resto del fin de semana y las fechas siguientes), de TODAS las series de ${CAMPEONATO.nombre}, se corren 7 días. Los que ya se jugaron no se tocan. ¿Continuar?`;
             if (!(await confirmarAccion(texto, 'Correr una semana'))) return;
             try {
                 const r = await api('/fixture/correr-dias', { method: 'POST', body: JSON.stringify({ desde: dia, dias: 7 }) });
