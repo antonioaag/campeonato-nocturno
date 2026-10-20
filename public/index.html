@@ -1127,6 +1127,9 @@
                             <div class="flex flex-wrap items-center justify-between gap-2">
                                 <span class="font-bold text-noc-goldlight">Fecha ${f}${dias.length === 1 ? ' · ' + escapeHtml(formatearDia(dias[0])) : ''}</span>
                                 ${libresFecha.length ? `<span class="text-xs text-white/60">Libre: <span class="text-white font-semibold">${libresFecha.map(escapeHtml).join(', ')}</span></span>` : ''}
+                                ${esAdmin() && campeonatoEditable() && dias.length === 1 && /^\d{4}-\d{2}-\d{2}$/.test(dias[0]) && deLaFecha.some(p => p.estado !== 'jugado')
+                                    ? `<button onclick="correrDia('${dias[0]}')" class="text-xs bg-noc-purple2 text-white px-2 py-1 rounded hover:bg-noc-purple">Suspender este día</button>`
+                                    : ''}
                             </div>
                         </td>
                     </tr>`;
@@ -1135,6 +1138,19 @@
 
             html += `</tbody></table></div>`;
             return html;
+        }
+
+        // Lluvia u otra suspensión: se corre una semana todo lo que no se
+        // jugó desde ese día, en todas las series, porque todas juegan el
+        // mismo día. Sin esto había que editar partido por partido.
+        async function correrDia(dia) {
+            const texto = `Se suspende el ${formatearDia(dia)}: todos los partidos sin jugar de ese día en adelante, de TODAS las series de ${CAMPEONATO.nombre}, se corren 7 días. Los que ya se jugaron no se tocan. ¿Continuar?`;
+            if (!(await confirmarAccion(texto, 'Correr una semana'))) return;
+            try {
+                const r = await api('/fixture/correr-dias', { method: 'POST', body: JSON.stringify({ desde: dia, dias: 7 }) });
+                mostrarToast(`${r.partidosMovidos} partido(s) corridos una semana.`, 'success');
+                renderPartidos();
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         function pintarFilaPartidoTabla(p) {

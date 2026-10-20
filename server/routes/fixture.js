@@ -66,6 +66,31 @@ router.post('/sortear', asyncHandler(async (req, res) => {
   res.json(await sortearYGuardar(req.campeonato.id, serie, { fechaInicio, semilla }));
 }));
 
+// Corre el calendario cuando se suspende un día (lluvia, cancha): todo lo
+// que no se jugó desde 'desde' en adelante, en todas las series del
+// campeonato, se mueve 'dias' días. Va por día calendario y no por número de
+// fecha porque la suspensión es del día: afecta a todas las series que
+// jugaban ese viernes. Los partidos jugados no se mueven: su día es historia.
+router.post('/correr-dias', asyncHandler(async (req, res) => {
+  const { desde } = req.body || {};
+  const dias = Number((req.body && req.body.dias) || 7);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(desde || ''))) {
+    return res.status(400).json({ error: 'desde debe tener formato YYYY-MM-DD' });
+  }
+  if (!Number.isInteger(dias) || dias < 1 || dias > 60) {
+    return res.status(400).json({ error: 'dias debe ser un entero entre 1 y 60' });
+  }
+  // Solo las fechas en formato ISO: las escritas a mano de otra forma no se
+  // pueden comparar ni sumar con seguridad, y se dejan como están.
+  const info = await db.run(`
+    UPDATE partidos SET fecha_partido = date(fecha_partido, ?)
+    WHERE ${DEL_CAMPEONATO} AND estado != 'jugado'
+      AND fecha_partido GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
+      AND fecha_partido >= ?
+  `, [`+${dias} days`, req.campeonato.id, desde]);
+  res.json({ ok: true, partidosMovidos: info.changes });
+}));
+
 // Deja todos los partidos de un grupo (misma serie) como 'programado' (sin
 // resultado), sin tocar la estructura del fixture ni los nombres de
 // equipos/usuarios.
