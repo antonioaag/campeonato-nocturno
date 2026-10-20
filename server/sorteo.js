@@ -155,7 +155,9 @@ function sortearFixture(equipos, { partidosPorEquipo, fechas, semilla }) {
 
 // Comprueba que un fixture cumpla las reglas. Se usa en las pruebas y antes
 // de guardar, para no confiar a ciegas en el sorteo.
-function validarFixture(equipos, fixture, partidosPorEquipo) {
+// exigirLocalia en false sirve para un fixture armado a mano o con todas las
+// series a la vez, donde la asociación decidió no equilibrar la localía.
+function validarFixture(equipos, fixture, partidosPorEquipo, { exigirLocalia = true } = {}) {
   const jugados = new Map(equipos.map(e => [e, 0]));
   const locales = new Map(equipos.map(e => [e, 0]));
   const libres = new Map(equipos.map(e => [e, 0]));
@@ -183,7 +185,7 @@ function validarFixture(equipos, fixture, partidosPorEquipo) {
   for (const e of equipos) {
     if (jugados.get(e) !== partidosPorEquipo) return `${e} juega ${jugados.get(e)} partidos`;
     if (libres.get(e) !== 1) return `${e} queda libre ${libres.get(e)} veces`;
-    if (locales.get(e) !== partidosPorEquipo / 2) return `${e} es local ${locales.get(e)} veces`;
+    if (exigirLocalia && locales.get(e) !== partidosPorEquipo / 2) return `${e} es local ${locales.get(e)} veces`;
   }
   return null;
 }

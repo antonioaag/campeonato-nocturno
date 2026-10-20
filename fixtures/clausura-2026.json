@@ -1,0 +1,1016 @@
+{
+ "series": {
+  "SUB13": [
+   {
+    "numero": 1,
+    "partidos": [
+     [
+      "CHAYAIHUE",
+      "FLAMENGO"
+     ],
+     [
+      "ESTOCOLMO",
+      "INDEPENDIENTE"
+     ],
+     [
+      "PLATENSE",
+      "VECINAL"
+     ]
+    ],
+    "libres": [
+     "BOROA",
+     "10 DE MARZO"
+    ]
+   },
+   {
+    "numero": 2,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "ESTOCOLMO"
+     ],
+     [
+      "BOROA",
+      "VECINAL"
+     ],
+     [
+      "INDEPENDIENTE",
+      "PLATENSE"
+     ]
+    ],
+    "libres": [
+     "CHAYAIHUE",
+     "FLAMENGO"
+    ]
+   },
+   {
+    "numero": 3,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "FLAMENGO"
+     ],
+     [
+      "BOROA",
+      "INDEPENDIENTE"
+     ],
+     [
+      "CHAYAIHUE",
+      "VECINAL"
+     ]
+    ],
+    "libres": [
+     "ESTOCOLMO",
+     "PLATENSE"
+    ]
+   },
+   {
+    "numero": 4,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "INDEPENDIENTE"
+     ],
+     [
+      "BOROA",
+      "PLATENSE"
+     ],
+     [
+      "CHAYAIHUE",
+      "ESTOCOLMO"
+     ],
+     [
+      "FLAMENGO",
+      "VECINAL"
+     ]
+    ],
+    "libres": []
+   },
+   {
+    "numero": 5,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "PLATENSE"
+     ],
+     [
+      "BOROA",
+      "CHAYAIHUE"
+     ],
+     [
+      "ESTOCOLMO",
+      "FLAMENGO"
+     ]
+    ],
+    "libres": [
+     "INDEPENDIENTE",
+     "VECINAL"
+    ]
+   },
+   {
+    "numero": 6,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "CHAYAIHUE"
+     ],
+     [
+      "BOROA",
+      "FLAMENGO"
+     ],
+     [
+      "ESTOCOLMO",
+      "PLATENSE"
+     ],
+     [
+      "INDEPENDIENTE",
+      "VECINAL"
+     ]
+    ],
+    "libres": []
+   },
+   {
+    "numero": 7,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "BOROA"
+     ],
+     [
+      "CHAYAIHUE",
+      "PLATENSE"
+     ],
+     [
+      "ESTOCOLMO",
+      "VECINAL"
+     ],
+     [
+      "FLAMENGO",
+      "INDEPENDIENTE"
+     ]
+    ],
+    "libres": []
+   }
+  ],
+  "SUB15": [
+   {
+    "numero": 1,
+    "partidos": [
+     [
+      "CHAYAIHUE",
+      "FLAMENGO"
+     ],
+     [
+      "ESTOCOLMO",
+      "INDEPENDIENTE"
+     ],
+     [
+      "PICHANGA",
+      "VECINAL"
+     ]
+    ],
+    "libres": [
+     "BOROA",
+     "10 DE MARZO"
+    ]
+   },
+   {
+    "numero": 2,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "ESTOCOLMO"
+     ],
+     [
+      "BOROA",
+      "VECINAL"
+     ],
+     [
+      "INDEPENDIENTE",
+      "PICHANGA"
+     ]
+    ],
+    "libres": [
+     "CHAYAIHUE",
+     "FLAMENGO"
+    ]
+   },
+   {
+    "numero": 3,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "FLAMENGO"
+     ],
+     [
+      "BOROA",
+      "INDEPENDIENTE"
+     ],
+     [
+      "CHAYAIHUE",
+      "VECINAL"
+     ]
+    ],
+    "libres": [
+     "ESTOCOLMO",
+     "PICHANGA"
+    ]
+   },
+   {
+    "numero": 4,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "INDEPENDIENTE"
+     ],
+     [
+      "BOROA",
+      "PICHANGA"
+     ],
+     [
+      "CHAYAIHUE",
+      "ESTOCOLMO"
+     ],
+     [
+      "FLAMENGO",
+      "VECINAL"
+     ]
+    ],
+    "libres": []
+   },
+   {
+    "numero": 5,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "PICHANGA"
+     ],
+     [
+      "BOROA",
+      "CHAYAIHUE"
+     ],
+     [
+      "ESTOCOLMO",
+      "FLAMENGO"
+     ]
+    ],
+    "libres": [
+     "INDEPENDIENTE",
+     "VECINAL"
+    ]
+   },
+   {
+    "numero": 6,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "CHAYAIHUE"
+     ],
+     [
+      "BOROA",
+      "FLAMENGO"
+     ],
+     [
+      "ESTOCOLMO",
+      "PICHANGA"
+     ],
+     [
+      "INDEPENDIENTE",
+      "VECINAL"
+     ]
+    ],
+    "libres": []
+   },
+   {
+    "numero": 7,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "BOROA"
+     ],
+     [
+      "CHAYAIHUE",
+      "PICHANGA"
+     ],
+     [
+      "ESTOCOLMO",
+      "VECINAL"
+     ],
+     [
+      "FLAMENGO",
+      "INDEPENDIENTE"
+     ]
+    ],
+    "libres": []
+   }
+  ],
+  "SUB17": [
+   {
+    "numero": 1,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "SAO PAULO"
+     ],
+     [
+      "CHAYAIHUE",
+      "FLAMENGO"
+     ],
+     [
+      "ESTOCOLMO",
+      "INDEPENDIENTE"
+     ]
+    ],
+    "libres": [
+     "J. OVALLE",
+     "PLATENSE"
+    ]
+   },
+   {
+    "numero": 2,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "J. OVALLE"
+     ],
+     [
+      "ESTOCOLMO",
+      "SAO PAULO"
+     ],
+     [
+      "FLAMENGO",
+      "PLATENSE"
+     ]
+    ],
+    "libres": [
+     "INDEPENDIENTE",
+     "CHAYAIHUE"
+    ]
+   },
+   {
+    "numero": 3,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "FLAMENGO"
+     ],
+     [
+      "CHAYAIHUE",
+      "INDEPENDIENTE"
+     ],
+     [
+      "ESTOCOLMO",
+      "J. OVALLE"
+     ],
+     [
+      "PLATENSE",
+      "SAO PAULO"
+     ]
+    ],
+    "libres": []
+   },
+   {
+    "numero": 4,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "INDEPENDIENTE"
+     ],
+     [
+      "CHAYAIHUE",
+      "ESTOCOLMO"
+     ],
+     [
+      "J. OVALLE",
+      "PLATENSE"
+     ]
+    ],
+    "libres": [
+     "FLAMENGO",
+     "SAO PAULO"
+    ]
+   },
+   {
+    "numero": 5,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "PLATENSE"
+     ],
+     [
+      "CHAYAIHUE",
+      "J. OVALLE"
+     ],
+     [
+      "ESTOCOLMO",
+      "FLAMENGO"
+     ],
+     [
+      "INDEPENDIENTE",
+      "SAO PAULO"
+     ]
+    ],
+    "libres": []
+   },
+   {
+    "numero": 6,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "CHAYAIHUE"
+     ],
+     [
+      "ESTOCOLMO",
+      "PLATENSE"
+     ],
+     [
+      "FLAMENGO",
+      "SAO PAULO"
+     ],
+     [
+      "INDEPENDIENTE",
+      "J. OVALLE"
+     ]
+    ],
+    "libres": []
+   },
+   {
+    "numero": 7,
+    "partidos": [
+     [
+      "CHAYAIHUE",
+      "PLATENSE"
+     ],
+     [
+      "FLAMENGO",
+      "INDEPENDIENTE"
+     ],
+     [
+      "J. OVALLE",
+      "SAO PAULO"
+     ]
+    ],
+    "libres": [
+     "ESTOCOLMO",
+     "10 DE MARZO"
+    ]
+   }
+  ],
+  "SENIOR": [
+   {
+    "numero": 1,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "SAO PAULO"
+     ],
+     [
+      "BOROA",
+      "J. OVALLE"
+     ],
+     [
+      "CHAYAIHUE",
+      "FLAMENGO"
+     ],
+     [
+      "INDEPENDIENTE",
+      "PLATENSE"
+     ],
+     [
+      "PICHANGA",
+      "VECINAL"
+     ]
+    ],
+    "libres": [
+     "ESTOCOLMO"
+    ]
+   },
+   {
+    "numero": 2,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "J. OVALLE"
+     ],
+     [
+      "BOROA",
+      "VECINAL"
+     ],
+     [
+      "ESTOCOLMO",
+      "SAO PAULO"
+     ],
+     [
+      "FLAMENGO",
+      "PLATENSE"
+     ],
+     [
+      "INDEPENDIENTE",
+      "PICHANGA"
+     ]
+    ],
+    "libres": [
+     "CHAYAIHUE"
+    ]
+   },
+   {
+    "numero": 3,
+    "partidos": [
+     [
+      "BOROA",
+      "INDEPENDIENTE"
+     ],
+     [
+      "CHAYAIHUE",
+      "VECINAL"
+     ],
+     [
+      "ESTOCOLMO",
+      "J. OVALLE"
+     ],
+     [
+      "FLAMENGO",
+      "PICHANGA"
+     ],
+     [
+      "PLATENSE",
+      "SAO PAULO"
+     ]
+    ],
+    "libres": [
+     "10 DE MARZO"
+    ]
+   },
+   {
+    "numero": 4,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "INDEPENDIENTE"
+     ],
+     [
+      "BOROA",
+      "PICHANGA"
+     ],
+     [
+      "CHAYAIHUE",
+      "ESTOCOLMO"
+     ],
+     [
+      "FLAMENGO",
+      "VECINAL"
+     ],
+     [
+      "J. OVALLE",
+      "PLATENSE"
+     ]
+    ],
+    "libres": [
+     "SAO PAULO"
+    ]
+   },
+   {
+    "numero": 5,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "PLATENSE"
+     ],
+     [
+      "BOROA",
+      "CHAYAIHUE"
+     ],
+     [
+      "ESTOCOLMO",
+      "FLAMENGO"
+     ],
+     [
+      "INDEPENDIENTE",
+      "SAO PAULO"
+     ],
+     [
+      "J. OVALLE",
+      "PICHANGA"
+     ]
+    ],
+    "libres": [
+     "VECINAL"
+    ]
+   },
+   {
+    "numero": 6,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "CHAYAIHUE"
+     ],
+     [
+      "ESTOCOLMO",
+      "PLATENSE"
+     ],
+     [
+      "FLAMENGO",
+      "SAO PAULO"
+     ],
+     [
+      "INDEPENDIENTE",
+      "VECINAL"
+     ]
+    ],
+    "libres": [
+     "J. OVALLE",
+     "BOROA",
+     "PICHANGA"
+    ]
+   },
+   {
+    "numero": 7,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "BOROA"
+     ],
+     [
+      "CHAYAIHUE",
+      "PICHANGA"
+     ],
+     [
+      "ESTOCOLMO",
+      "VECINAL"
+     ],
+     [
+      "J. OVALLE",
+      "SAO PAULO"
+     ]
+    ],
+    "libres": [
+     "INDEPENDIENTE",
+     "FLAMENGO",
+     "PLATENSE"
+    ]
+   }
+  ],
+  "SEGUNDA_ADULTO": [
+   {
+    "numero": 1,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "SAO PAULO"
+     ],
+     [
+      "BOROA",
+      "J. OVALLE"
+     ],
+     [
+      "CHAYAIHUE",
+      "FLAMENGO"
+     ],
+     [
+      "INDEPENDIENTE",
+      "PLATENSE"
+     ],
+     [
+      "PICHANGA",
+      "VECINAL"
+     ]
+    ],
+    "libres": [
+     "ESTOCOLMO"
+    ]
+   },
+   {
+    "numero": 2,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "J. OVALLE"
+     ],
+     [
+      "BOROA",
+      "VECINAL"
+     ],
+     [
+      "ESTOCOLMO",
+      "SAO PAULO"
+     ],
+     [
+      "FLAMENGO",
+      "PLATENSE"
+     ],
+     [
+      "INDEPENDIENTE",
+      "PICHANGA"
+     ]
+    ],
+    "libres": [
+     "CHAYAIHUE"
+    ]
+   },
+   {
+    "numero": 3,
+    "partidos": [
+     [
+      "BOROA",
+      "INDEPENDIENTE"
+     ],
+     [
+      "CHAYAIHUE",
+      "VECINAL"
+     ],
+     [
+      "ESTOCOLMO",
+      "J. OVALLE"
+     ],
+     [
+      "FLAMENGO",
+      "PICHANGA"
+     ],
+     [
+      "PLATENSE",
+      "SAO PAULO"
+     ]
+    ],
+    "libres": [
+     "10 DE MARZO"
+    ]
+   },
+   {
+    "numero": 4,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "INDEPENDIENTE"
+     ],
+     [
+      "BOROA",
+      "PICHANGA"
+     ],
+     [
+      "CHAYAIHUE",
+      "ESTOCOLMO"
+     ],
+     [
+      "FLAMENGO",
+      "VECINAL"
+     ],
+     [
+      "J. OVALLE",
+      "PLATENSE"
+     ]
+    ],
+    "libres": [
+     "SAO PAULO"
+    ]
+   },
+   {
+    "numero": 5,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "PLATENSE"
+     ],
+     [
+      "BOROA",
+      "CHAYAIHUE"
+     ],
+     [
+      "ESTOCOLMO",
+      "FLAMENGO"
+     ],
+     [
+      "INDEPENDIENTE",
+      "SAO PAULO"
+     ],
+     [
+      "J. OVALLE",
+      "PICHANGA"
+     ]
+    ],
+    "libres": [
+     "VECINAL"
+    ]
+   },
+   {
+    "numero": 6,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "CHAYAIHUE"
+     ],
+     [
+      "ESTOCOLMO",
+      "PLATENSE"
+     ],
+     [
+      "FLAMENGO",
+      "SAO PAULO"
+     ],
+     [
+      "INDEPENDIENTE",
+      "VECINAL"
+     ]
+    ],
+    "libres": [
+     "J. OVALLE",
+     "BOROA",
+     "PICHANGA"
+    ]
+   },
+   {
+    "numero": 7,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "BOROA"
+     ],
+     [
+      "CHAYAIHUE",
+      "PICHANGA"
+     ],
+     [
+      "ESTOCOLMO",
+      "VECINAL"
+     ],
+     [
+      "J. OVALLE",
+      "SAO PAULO"
+     ]
+    ],
+    "libres": [
+     "INDEPENDIENTE",
+     "FLAMENGO",
+     "PLATENSE"
+    ]
+   }
+  ],
+  "PRIMERA_ADULTO": [
+   {
+    "numero": 1,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "SAO PAULO"
+     ],
+     [
+      "BOROA",
+      "J. OVALLE"
+     ],
+     [
+      "CHAYAIHUE",
+      "FLAMENGO"
+     ],
+     [
+      "INDEPENDIENTE",
+      "PLATENSE"
+     ]
+    ],
+    "libres": [
+     "PICHANGA"
+    ]
+   },
+   {
+    "numero": 2,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "J. OVALLE"
+     ],
+     [
+      "BOROA",
+      "SAO PAULO"
+     ],
+     [
+      "FLAMENGO",
+      "PLATENSE"
+     ],
+     [
+      "INDEPENDIENTE",
+      "PICHANGA"
+     ]
+    ],
+    "libres": [
+     "CHAYAIHUE"
+    ]
+   },
+   {
+    "numero": 3,
+    "partidos": [
+     [
+      "CHAYAIHUE",
+      "INDEPENDIENTE"
+     ],
+     [
+      "FLAMENGO",
+      "PICHANGA"
+     ],
+     [
+      "PLATENSE",
+      "SAO PAULO"
+     ]
+    ],
+    "libres": [
+     "J. OVALLE",
+     "BOROA",
+     "10 DE MARZO"
+    ]
+   },
+   {
+    "numero": 4,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "INDEPENDIENTE"
+     ],
+     [
+      "BOROA",
+      "PICHANGA"
+     ],
+     [
+      "CHAYAIHUE",
+      "SAO PAULO"
+     ],
+     [
+      "J. OVALLE",
+      "PLATENSE"
+     ]
+    ],
+    "libres": [
+     "FLAMENGO"
+    ]
+   },
+   {
+    "numero": 5,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "PLATENSE"
+     ],
+     [
+      "BOROA",
+      "CHAYAIHUE"
+     ],
+     [
+      "FLAMENGO",
+      "SAO PAULO"
+     ],
+     [
+      "J. OVALLE",
+      "PICHANGA"
+     ]
+    ],
+    "libres": [
+     "INDEPENDIENTE"
+    ]
+   },
+   {
+    "numero": 6,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "CHAYAIHUE"
+     ],
+     [
+      "BOROA",
+      "FLAMENGO"
+     ],
+     [
+      "INDEPENDIENTE",
+      "J. OVALLE"
+     ],
+     [
+      "PICHANGA",
+      "PLATENSE"
+     ]
+    ],
+    "libres": [
+     "SAO PAULO"
+    ]
+   },
+   {
+    "numero": 7,
+    "partidos": [
+     [
+      "10 DE MARZO",
+      "BOROA"
+     ],
+     [
+      "CHAYAIHUE",
+      "PICHANGA"
+     ],
+     [
+      "FLAMENGO",
+      "INDEPENDIENTE"
+     ],
+     [
+      "J. OVALLE",
+      "SAO PAULO"
+     ]
+    ],
+    "libres": [
+     "PLATENSE"
+    ]
+   }
+  ]
+ }
+}
