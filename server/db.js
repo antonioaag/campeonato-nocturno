@@ -250,6 +250,43 @@ async function migrarSeriesNuevas() {
   console.log('✓ equipos/partidos/byes aceptan ahora las 6 series de Clausura 2026');
 }
 
+// Agrega 'formato' a campeonatos y pasa los interruptores de publicación del
+// campeonato histórico a claves por campeonato.
+//
+// El formato (cuartos o semifinales) no se puede deducir de la serie: SENIOR
+// existe en los dos campeonatos y clasifica distinto en cada uno. El histórico
+// se reconoce por tener la serie ADULTO, que solo se usó en el Nocturno 2026.
+//
+// Las claves viejas (playoffs_publicos_SENIOR, ...) no decían de qué
+// campeonato eran, así que publicar el cuadro de SENIOR en Clausura habría
+// publicado también el del Nocturno, y al revés. Se copian a la clave nueva
+// del histórico; las viejas se dejan donde están (las migraciones no borran
+// datos). Es idempotente: cada paso comprueba si ya se hizo.
+async function migrarFormatoYVisibilidad() {
+  if (!(await columnExists('campeonatos', 'formato'))) {
+    // NOT NULL con default se puede agregar con ALTER TABLE porque la columna
+    // no es REFERENCES (ver migrarCampeonatos).
+    await exec("ALTER TABLE campeonatos ADD COLUMN formato TEXT NOT NULL DEFAULT 'semis'");
+    await run(`UPDATE campeonatos SET formato = 'cuartos'
+               WHERE id IN (SELECT DISTINCT campeonato_id FROM equipos WHERE serie = 'ADULTO')`);
+    console.log('✓ campeonatos.formato agregado');
+  }
+
+  const historicos = await all("SELECT id FROM campeonatos WHERE formato = 'cuartos'");
+  for (const { id } of historicos) {
+    for (const serie of ['ADULTO', 'SENIOR']) {
+      for (const [vieja, nueva] of [
+        [`playoffs_publicos_${serie}`, `campeonato_${id}_playoffs_publicos_${serie}`],
+        [`resoluciones_publicas_${serie}`, `campeonato_${id}_resoluciones_publicas_${serie}`],
+      ]) {
+        await run(`INSERT INTO configuracion (clave, valor)
+                   SELECT ?, valor FROM configuracion WHERE clave = ?
+                   ON CONFLICT(clave) DO NOTHING`, [nueva, vieja]);
+      }
+    }
+  }
+}
+
 let readyPromise = null;
 function init() {
   if (!readyPromise) {
@@ -405,6 +442,7 @@ function init() {
       await migrarEmailAlUsuarios();
       await migrarCampeonatos();
       await migrarSeriesNuevas();
+      await migrarFormatoYVisibilidad();
     })();
   }
   return readyPromise;

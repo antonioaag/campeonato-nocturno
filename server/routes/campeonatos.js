@@ -1,25 +1,35 @@
 const express = require('express');
-const { requireAuth, requireAdmin } = require('../auth');
+const { requireAuth, requireAdmin, authOpcional } = require('../auth');
 const asyncHandler = require('../asyncHandler');
 const campeonatos = require('../campeonatos');
 
 const router = express.Router();
 
-// Pública: cualquiera puede ver qué campeonatos existen (para elegir cuál
-// consultar). La lista es liviana a propósito.
-router.get('/', asyncHandler(async (req, res) => {
-  res.json(await campeonatos.listar());
+// Pública: es la portada de la asociación. El visitante ve los campeonatos
+// publicados; el admin ve también los que todavía están ocultos.
+router.get('/', authOpcional, asyncHandler(async (req, res) => {
+  const esAdmin = !!(req.usuario && req.usuario.rol === 'admin');
+  res.json(await campeonatos.listar({ esAdmin }));
 }));
 
-router.get('/activo', asyncHandler(async (req, res) => {
-  res.json(await campeonatos.obtenerActivo());
+router.get('/activo', authOpcional, asyncHandler(async (req, res) => {
+  const activo = await campeonatos.obtenerActivo();
+  const esAdmin = !!(req.usuario && req.usuario.rol === 'admin');
+  if (!activo.publico && !esAdmin) return res.status(404).json({ error: 'Campeonato no encontrado' });
+  res.json(activo);
 }));
 
 // Crea el campeonato nuevo y lo deja activo. Falla si ya hay uno activo:
 // primero hay que finalizar el actual.
 router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
-  const creado = await campeonatos.crear(req.body && req.body.nombre);
+  const creado = await campeonatos.crear(req.body && req.body.nombre, req.body && req.body.formato);
   res.status(201).json(creado);
+}));
+
+// Publica u oculta un campeonato en curso. Mientras está oculto, solo el
+// admin lo ve en la portada y puede consultar su fixture, tabla, etc.
+router.post('/:id/publicar', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  res.json(await campeonatos.publicar(Number(req.params.id), !!(req.body && req.body.publico)));
 }));
 
 router.patch('/:id', requireAuth, requireAdmin, asyncHandler(async (req, res) => {

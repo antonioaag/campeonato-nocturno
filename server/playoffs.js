@@ -1,5 +1,9 @@
-// Fase de eliminación directa: siembra de los 8 clasificados, armado de los
-// cruces de cuartos y avance de fase. Todos los partidos son a PARTIDO ÚNICO.
+// Fase de eliminación directa: siembra de los clasificados, armado de los
+// primeros cruces y avance de fase. Todos los partidos son a PARTIDO ÚNICO.
+//
+// Hay dos formatos (ver campeonatos.js):
+//   'cuartos' (Nocturno 2026): 8 clasificados -> cuartos, semifinal, final.
+//   'semis'   (Liga Dávila):   4 primeros     -> semifinal, final.
 const { compararEquipos, enCarrera, calcularTodasLasTablas, marcarClasificados } = require('./tablas');
 
 // Los partidos de eliminación directa se guardan con grupo = 'PO' para que no
@@ -8,6 +12,16 @@ const { compararEquipos, enCarrera, calcularTodasLasTablas, marcarClasificados }
 const GRUPO_PLAYOFF = 'PO';
 
 const FASES = ['cuartos', 'semifinal', 'final'];
+
+// Fases que se juegan en cada formato, en orden.
+const FASES_POR_FORMATO = {
+  cuartos: ['cuartos', 'semifinal', 'final'],
+  semis: ['semifinal', 'final'],
+};
+
+function fasesDe(formato) {
+  return FASES_POR_FORMATO[formato] || FASES_POR_FORMATO.semis;
+}
 
 const NOMBRE_FASE = {
   cuartos: 'Cuartos de final',
@@ -75,9 +89,29 @@ function cruzarSenior(tablas) {
   ];
 }
 
-// Devuelve los 4 cruces de cuartos de final de la serie, ya sembrados.
-async function armarCuartos(serie) {
-  const tablas = marcarClasificados(serie, await calcularTodasLasTablas(serie));
+// Liga Dávila: un solo grupo por serie y los 4 primeros a semifinales,
+// 1º vs 4º y 2º vs 3º. El 1º y el 2º quedan en llaves distintas, así que
+// solo pueden encontrarse en la final.
+function cruzarSemis(tablas) {
+  const grupos = Object.values(tablas);
+  if (grupos.length !== 1) {
+    throw new Error(`Las semifinales directas suponen un grupo único y esta serie tiene ${grupos.length}`);
+  }
+  const t = enCarrera(grupos[0]);
+  if (t.length < 4) throw new Error('Se necesitan al menos 4 equipos en carrera para armar las semifinales');
+  return [
+    { llave: 1, local: t[0], visita: t[3] },
+    { llave: 2, local: t[1], visita: t[2] },
+  ];
+}
+
+// Devuelve los cruces de la primera fase de eliminación directa de la serie
+// (cuartos o semifinal según el formato), ya sembrados.
+async function armarPrimeraFase(campeonato, serie) {
+  const tablas = marcarClasificados(
+    campeonato.formato, serie, await calcularTodasLasTablas(campeonato.id, serie)
+  );
+  if (campeonato.formato !== 'cuartos') return cruzarSemis(tablas);
   return serie === 'SENIOR' ? cruzarSenior(tablas) : cruzarAdulto(tablas);
 }
 
@@ -139,18 +173,20 @@ function cruzarGanadores(partidosFase) {
   return cruces;
 }
 
-function faseSiguiente(fase) {
-  const i = FASES.indexOf(fase);
-  return i === -1 || i === FASES.length - 1 ? null : FASES[i + 1];
+function faseSiguiente(formato, fase) {
+  const fases = fasesDe(formato);
+  const i = fases.indexOf(fase);
+  return i === -1 || i === fases.length - 1 ? null : fases[i + 1];
 }
 
 module.exports = {
   GRUPO_PLAYOFF,
   FASES,
+  fasesDe,
   NOMBRE_FASE,
   LLAVES_POR_FASE,
   JORNADA_POR_FASE,
-  armarCuartos,
+  armarPrimeraFase,
   ganadorDe,
   necesitaDefinicion,
   cruzarGanadores,

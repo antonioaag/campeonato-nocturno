@@ -1,7 +1,8 @@
 const express = require('express');
 const multer = require('multer');
 const db = require('../db');
-const { requireAuth, requireAdmin } = require('../auth');
+const { requireAuth, requireAdmin, authOpcional } = require('../auth');
+const { campeonatoDeLaPeticion } = require('../campeonatos');
 const asyncHandler = require('../asyncHandler');
 const { esRutValido, formatearRut } = require('../rut');
 const { csvAJugadores, normalizarFecha } = require('../csv');
@@ -17,10 +18,10 @@ const SELECT_JUGADORES = `
   FROM jugadores j JOIN equipos e ON e.id = j.equipo_id
 `;
 
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', authOpcional, campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
   const { serie, equipoId } = req.query;
-  const condiciones = [];
-  const params = [];
+  const condiciones = ['e.campeonato_id = ?'];
+  const params = [req.campeonato.id];
   if (serie) { condiciones.push('e.serie = ?'); params.push(serie); }
   if (equipoId) { condiciones.push('j.equipo_id = ?'); params.push(Number(equipoId)); }
   const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';

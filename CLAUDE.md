@@ -88,6 +88,35 @@ public/index.html   TODO el frontend (HTML + CSS + JS en un archivo)
   registra en fase de grupos; en una llave de eliminatorias se homologa el
   partido a mano.
 
+## Multi-campeonato (Asociación Liga Dávila)
+
+La portada lista los campeonatos de la asociación; cada uno se abre en
+`#campeonato/<id>`. El front manda el campeonato en la cabecera
+`X-Campeonato-Id` y el backend lo resuelve con `campeonatoDeLaPeticion`
+(`server/campeonatos.js`). **Todo filtro por `serie` va también por
+campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
+`partidos` y `byes` no guardan el campeonato: se filtra por el equipo
+(`DEL_CAMPEONATO`).
+
+- Un campeonato finalizado es de solo lectura (`exigirEditable` en cada escritura) y siempre público.
+- Uno en curso nace oculto (`campeonato_<id>_publico`): para quien no es admin, responde 404.
+- `campeonatos.formato`: `cuartos` (Nocturno 2026, reglas de arriba) o `semis` (Liga Dávila).
+
+### Clausura 2026 (formato `semis`)
+
+- Series SUB13, SUB15, SUB17, SENIOR, SEGUNDA_ADULTO, PRIMERA_ADULTO, cada una en grupo único (`grupo = 'U'`).
+- Cada equipo juega **6 partidos en 7 fechas y queda libre una**, por sorteo
+  (`server/sorteo.js`, reproducible con semilla). No es todos contra todos.
+  Una fecha por semana desde el viernes 23/10/2026.
+- Los 4 primeros van a semifinales (1º-4º, 2º-3º) y después la final, a
+  partido único con penales. Mismo puntaje y desempate que arriba.
+- WO: el reglamento de la liga no descalifica (art. 57: 2 seguidos o 3 por
+  rueda bajan de serie; pendiente). Mientras tanto el WO automático está
+  bloqueado en este formato y el partido se homologa a mano.
+- Acuerdos de asamblea: carnet vencido se acepta hasta 1 año; en Sub-17,
+  además de los 5 inscritos por serie, se pueden reponer los jugadores que
+  suban a adultos.
+
 ## Principio de diseño: el resultado de cancha es intocable
 
 Las sanciones del tribunal (descuentos de puntos, partidos ganados por

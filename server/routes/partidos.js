@@ -1,9 +1,10 @@
 const express = require('express');
 const db = require('../db');
-const { requireAuth } = require('../auth');
+const { requireAuth, requireAdmin, authOpcional } = require('../auth');
 const asyncHandler = require('../asyncHandler');
 const { esSerieValida } = require('../series');
 const { ajustesVigentes } = require('../resoluciones');
+const campeonatos = require('../campeonatos');
 
 const router = express.Router();
 
@@ -20,15 +21,15 @@ const SELECT_PARTIDOS = `
   JOIN equipos v ON v.id = p.visita_id
 `;
 
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', authOpcional, campeonatos.campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
   const { grupo, fecha } = req.query;
   const serie = req.query.serie || 'ADULTO';
   if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
 
   // Solo fase de grupos: el cuadro de eliminación directa se sirve por
   // /api/playoffs y no debe mezclarse con las jornadas de los grupos.
-  const condiciones = ['p.serie = ?', "p.fase = 'grupos'"];
-  const params = [serie];
+  const condiciones = ['l.campeonato_id = ?', 'p.serie = ?', "p.fase = 'grupos'"];
+  const params = [req.campeonato.id, serie];
   if (grupo) { condiciones.push('p.grupo = ?'); params.push(grupo); }
   if (fecha) { condiciones.push('p.fecha = ?'); params.push(Number(fecha)); }
   const where = `WHERE ${condiciones.join(' AND ')}`;
@@ -39,7 +40,7 @@ router.get('/', asyncHandler(async (req, res) => {
   // para que la interfaz pueda mostrar los dos y explicar la diferencia.
   // Un WO además puede dejar partidos sin efecto para todos: se marcan, para
   // que el fixture no muestre un resultado que ya no le suma a nadie.
-  const { porPartido, anulados } = await ajustesVigentes(serie);
+  const { porPartido, anulados } = await ajustesVigentes(req.campeonato.id, serie);
   partidos.forEach(p => {
     p.homologacion = porPartido[p.id] || null;
     p.anulacion = anulados[p.id] || null;
@@ -48,13 +49,13 @@ router.get('/', asyncHandler(async (req, res) => {
   res.json(partidos);
 }));
 
-router.get('/libres', asyncHandler(async (req, res) => {
+router.get('/libres', authOpcional, campeonatos.campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
   const { grupo, fecha } = req.query;
   const serie = req.query.serie || 'ADULTO';
   if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
 
-  const condiciones = ['b.serie = ?'];
-  const params = [serie];
+  const condiciones = ['e.campeonato_id = ?', 'b.serie = ?'];
+  const params = [req.campeonato.id, serie];
   if (grupo) { condiciones.push('b.grupo = ?'); params.push(grupo); }
   if (fecha) { condiciones.push('b.fecha = ?'); params.push(Number(fecha)); }
   const where = `WHERE ${condiciones.join(' AND ')}`;
@@ -74,6 +75,7 @@ router.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const partido = await db.get('SELECT * FROM partidos WHERE id = ?', [id]);
   if (!partido) return res.status(404).json({ error: 'Partido no encontrado' });
+  campeonatos.exigirEditable(await campeonatos.deEquipo(partido.local_id));
 
   // Un equipo descalificado por WO no juega más: si se pudieran seguir cargando
   // sus resultados, el partido dejaría de contarse como pendiente y el WO le
@@ -143,11 +145,11 @@ router.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // Actualizar detalles del partido (fecha, hora, estadio, turno) - solo admin
-const { requireAdmin } = require('../auth');
 router.patch('/:id/detalles', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const partido = await db.get('SELECT * FROM partidos WHERE id = ?', [id]);
   if (!partido) return res.status(404).json({ error: 'Partido no encontrado' });
+  campeonatos.exigirEditable(await campeonatos.deEquipo(partido.local_id));
 
   const { fechaPartido, hora, estadio, turno } = req.body || {};
   const updates = [];

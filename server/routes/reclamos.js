@@ -4,6 +4,7 @@ const { requireAuth, requireAdmin, authOpcional } = require('../auth');
 const asyncHandler = require('../asyncHandler');
 const { esSerieValida } = require('../series');
 const { leerBooleano, claveResolucionesPublicas } = require('../configuracion');
+const { campeonatoDeLaPeticion, exigirEditable, deEquipo } = require('../campeonatos');
 
 const router = express.Router();
 
@@ -35,16 +36,17 @@ const ESTADOS = ['presentado', 'aceptado', 'rechazado'];
 // Un reclamo rechazado también es información que da transparencia, así que
 // una vez publicado el registro lo puede leer cualquiera. Mientras el registro
 // de la serie siga oculto, solo lo ve el admin.
-router.get('/', authOpcional, asyncHandler(async (req, res) => {
+router.get('/', authOpcional, campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
   const serie = req.query.serie || 'ADULTO';
   if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
 
-  const publico = await leerBooleano(claveResolucionesPublicas(serie), false);
+  const publico = await leerBooleano(claveResolucionesPublicas(req.campeonato.id, serie), false);
   const esAdmin = !!(req.usuario && req.usuario.rol === 'admin');
   if (!publico && !esAdmin) return res.json([]);
 
-  const condiciones = ['rc.serie = ?'];
-  const params = [serie];
+  // reclamos no guarda el campeonato: es el del club que reclama.
+  const condiciones = ['c.campeonato_id = ?', 'rc.serie = ?'];
+  const params = [req.campeonato.id, serie];
   if (req.query.estado) {
     if (!ESTADOS.includes(req.query.estado)) {
       return res.status(400).json({ error: `estado debe ser uno de: ${ESTADOS.join(', ')}` });
@@ -70,13 +72,18 @@ router.post('/', requireAuth, asyncHandler(async (req, res) => {
     return res.status(400).json({ error: 'La fecha de presentación es obligatoria y debe tener formato YYYY-MM-DD' });
   }
 
-  const club = await db.get('SELECT id, serie FROM equipos WHERE id = ?', [Number(clubId)]);
+  const club = await db.get('SELECT id, serie, campeonato_id AS campeonatoId FROM equipos WHERE id = ?', [Number(clubId)]);
   if (!club) return res.status(400).json({ error: 'Club reclamante no encontrado' });
   if (club.serie !== serie) return res.status(400).json({ error: 'El club no pertenece a esa serie' });
+  exigirEditable(await deEquipo(club.id));
 
   if (partidoId) {
-    const partido = await db.get('SELECT id, serie FROM partidos WHERE id = ?', [Number(partidoId)]);
+    const partido = await db.get(`
+      SELECT p.id, p.serie, l.campeonato_id AS campeonatoId
+      FROM partidos p JOIN equipos l ON l.id = p.local_id WHERE p.id = ?
+    `, [Number(partidoId)]);
     if (!partido) return res.status(400).json({ error: 'Partido no encontrado' });
+    if (partido.campeonatoId !== club.campeonatoId) return res.status(400).json({ error: 'El partido es de otro campeonato' });
     if (partido.serie !== serie) return res.status(400).json({ error: 'El partido no pertenece a esa serie' });
   }
 
@@ -110,15 +117,20 @@ router.post('/:id/resolver', requireAuth, requireAdmin, asyncHandler(async (req,
     return res.status(400).json({ error: 'La fecha de la resolución es obligatoria y debe tener formato YYYY-MM-DD' });
   }
 
-  const reclamo = await db.get('SELECT id, estado, serie FROM reclamos WHERE id = ?', [id]);
+  const reclamo = await db.get('SELECT id, estado, serie, club_id AS clubId FROM reclamos WHERE id = ?', [id]);
   if (!reclamo) return res.status(404).json({ error: 'Reclamo no encontrado' });
+  const campeonato = await deEquipo(reclamo.clubId);
+  exigirEditable(campeonato);
   if (reclamo.estado !== 'presentado') {
     return res.status(409).json({ error: `Ese reclamo ya fue ${reclamo.estado}` });
   }
 
   if (resolucionId) {
-    const resolucion = await db.get('SELECT id, serie FROM resoluciones WHERE id = ?', [Number(resolucionId)]);
+    const resolucion = await db.get('SELECT id, serie, campeonato_id AS campeonatoId FROM resoluciones WHERE id = ?', [Number(resolucionId)]);
     if (!resolucion) return res.status(400).json({ error: 'La resolución enlazada no existe' });
+    if (resolucion.campeonatoId !== campeonato.id) {
+      return res.status(400).json({ error: 'La resolución enlazada es de otro campeonato' });
+    }
     if (resolucion.serie !== reclamo.serie) {
       return res.status(400).json({ error: 'La resolución enlazada es de otra serie' });
     }

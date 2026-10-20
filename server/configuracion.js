@@ -19,17 +19,25 @@ async function leerBooleano(clave, porDefecto = false) {
   return valor === '1';
 }
 
-// Cada serie publica su cuadro de eliminatorias por separado, porque los
-// campeonatos no terminan al mismo tiempo. Por defecto está oculto: el cuadro
-// solo se muestra al público cuando el admin lo publica explícitamente.
-function clavePlayoffsPublicos(serie) {
-  return `playoffs_publicos_${serie}`;
+// Cada serie publica su cuadro de eliminatorias por separado, porque las
+// series no terminan al mismo tiempo. Por defecto está oculto: el cuadro solo
+// se muestra al público cuando el admin lo publica explícitamente. La clave
+// lleva el campeonato porque una misma serie (SENIOR) se repite de un
+// campeonato a otro, y publicar el cuadro de uno no puede publicar el del otro.
+function clavePlayoffsPublicos(campeonatoId, serie) {
+  return `campeonato_${campeonatoId}_playoffs_publicos_${serie}`;
 }
 
 // Mismo criterio para el registro de sanciones y reclamos: nace oculto y el
 // admin decide cuándo mostrarlo.
-function claveResolucionesPublicas(serie) {
-  return `resoluciones_publicas_${serie}`;
+function claveResolucionesPublicas(campeonatoId, serie) {
+  return `campeonato_${campeonatoId}_resoluciones_publicas_${serie}`;
+}
+
+// Un campeonato en curso nace oculto: el admin lo carga y lo revisa antes de
+// que lo vea el público.
+function claveCampeonatoPublico(campeonatoId) {
+  return `campeonato_${campeonatoId}_publico`;
 }
 
 // Año de nacimiento desde el cual se puede jugar una serie juvenil (Sub-13,
@@ -43,5 +51,5 @@ function claveCorteEdad(campeonatoId, serie) {
 
 module.exports = {
   leer, escribir, leerBooleano,
-  clavePlayoffsPublicos, claveResolucionesPublicas, claveCorteEdad,
+  clavePlayoffsPublicos, claveResolucionesPublicas, claveCampeonatoPublico, claveCorteEdad,
 };
