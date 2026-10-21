@@ -32,6 +32,8 @@ router.get('/', authOpcional, campeonatos.campeonatoDeLaPeticion, asyncHandler(a
   const params = [req.campeonato.id, serie];
   if (grupo) { condiciones.push('p.grupo = ?'); params.push(grupo); }
   if (fecha) { condiciones.push('p.fecha = ?'); params.push(Number(fecha)); }
+  const hasta = campeonatos.fechaMaximaVisible(req.campeonato, req.usuario);
+  if (hasta) { condiciones.push('p.fecha <= ?'); params.push(hasta); }
   const where = `WHERE ${condiciones.join(' AND ')}`;
   const partidos = await db.all(`${SELECT_PARTIDOS} ${where} ORDER BY p.grupo, p.fecha, p.id`, params);
 
@@ -58,6 +60,8 @@ router.get('/libres', authOpcional, campeonatos.campeonatoDeLaPeticion, asyncHan
   const params = [req.campeonato.id, serie];
   if (grupo) { condiciones.push('b.grupo = ?'); params.push(grupo); }
   if (fecha) { condiciones.push('b.fecha = ?'); params.push(Number(fecha)); }
+  const hasta = campeonatos.fechaMaximaVisible(req.campeonato, req.usuario);
+  if (hasta) { condiciones.push('b.fecha <= ?'); params.push(hasta); }
   const where = `WHERE ${condiciones.join(' AND ')}`;
   const libres = await db.all(`
     SELECT b.serie, b.grupo, b.fecha, b.equipo_id AS equipoId, e.nombre

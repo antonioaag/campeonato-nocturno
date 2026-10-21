@@ -26,6 +26,11 @@ router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
   res.status(201).json(creado);
 }));
 
+// Hasta qué fecha ve el público el fixture (null = todas). Solo admin.
+router.post('/:id/fechas-visibles', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  res.json(await campeonatos.definirFechasVisibles(Number(req.params.id), req.body && req.body.hasta));
+}));
+
 // Publica u oculta un campeonato en curso. Mientras está oculto, solo el
 // admin lo ve en la portada y puede consultar su fixture, tabla, etc.
 router.post('/:id/publicar', requireAuth, requireAdmin, asyncHandler(async (req, res) => {

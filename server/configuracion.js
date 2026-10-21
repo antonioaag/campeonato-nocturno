@@ -49,7 +49,14 @@ function claveCorteEdad(campeonatoId, serie) {
   return `campeonato_${campeonatoId}_corte_edad_${serie}`;
 }
 
+// Hasta qué fecha de la fase de grupos ve el público el fixture de un
+// campeonato. Sin valor, se ven todas. Sirve para publicar la programación
+// semana a semana sin mostrar todavía la de las fechas siguientes.
+function claveFechasVisibles(campeonatoId) {
+  return `campeonato_${campeonatoId}_fechas_visibles`;
+}
+
 module.exports = {
   leer, escribir, leerBooleano,
-  clavePlayoffsPublicos, claveResolucionesPublicas, claveCampeonatoPublico, claveCorteEdad,
+  clavePlayoffsPublicos, claveResolucionesPublicas, claveCampeonatoPublico, claveFechasVisibles, claveCorteEdad,
 };

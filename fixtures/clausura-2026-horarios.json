@@ -1,795 +1,835 @@
 {
- "comentario": "Día y hora de cada partido de la fase de grupos de Clausura 2026. Cada fecha va de viernes a domingo; los horarios y las series que caben en cada uno los fijó el estadio. Se cargan con programar-horarios-clausura-2026.js.",
+ "comentario": "Día y hora de cada partido de la fase de grupos de Clausura 2026, según el patrón de la asociación: viernes Sub-17, Segunda y Primera del mismo par; sábado Sub-15 y Sub-17 en la mañana, Seniors de 15 a 19 h y Segunda y Primera a las 20 y 21; domingo Sub-13 en la mañana (más Sub-15/Sub-17 que no caben el sábado) y Segunda y Primera seguidas por par en la tarde. Jornada continua, sin horarios vacíos entre partidos. Se cargan con programar-horarios-clausura-2026.js. La fecha 1 incluye los ajustes de la asociación y la fecha 2 se reprogramó para que nadie repita horario con las fechas 1 y 3.",
  "partidos": [
   {
    "fecha": 1,
    "serie": "SUB17",
    "local": "10 DE MARZO",
-   "visita": "SAO PAULO",
+   "visita": "INDEPENDIENTE",
    "dia": "VIERNES",
    "hora": "19:10"
   },
   {
    "fecha": 1,
    "serie": "SEGUNDA_ADULTO",
-   "local": "CHAYAIHUE",
-   "visita": "FLAMENGO",
+   "local": "10 DE MARZO",
+   "visita": "INDEPENDIENTE",
    "dia": "VIERNES",
    "hora": "20:00"
   },
   {
    "fecha": 1,
    "serie": "PRIMERA_ADULTO",
-   "local": "CHAYAIHUE",
-   "visita": "FLAMENGO",
+   "local": "10 DE MARZO",
+   "visita": "INDEPENDIENTE",
    "dia": "VIERNES",
    "hora": "21:00"
   },
   {
    "fecha": 1,
+   "serie": "SUB15",
+   "local": "ESTOCOLMO",
+   "visita": "PICHANGA",
+   "dia": "SABADO",
+   "hora": "12:30"
+  },
+  {
+   "fecha": 1,
    "serie": "SUB17",
-   "local": "CHAYAIHUE",
-   "visita": "FLAMENGO",
+   "local": "ESTOCOLMO",
+   "visita": "PLATENSE",
    "dia": "SABADO",
    "hora": "13:20"
   },
   {
    "fecha": 1,
-   "serie": "SUB15",
-   "local": "CHAYAIHUE",
-   "visita": "FLAMENGO",
-   "dia": "SABADO",
-   "hora": "14:10"
-  },
-  {
-   "fecha": 1,
    "serie": "SENIOR",
-   "local": "CHAYAIHUE",
-   "visita": "FLAMENGO",
+   "local": "INDEPENDIENTE",
+   "visita": "J. OVALLE",
    "dia": "SABADO",
    "hora": "15:00"
   },
   {
    "fecha": 1,
+   "serie": "SENIOR",
+   "local": "BOROA",
+   "visita": "PLATENSE",
+   "dia": "SABADO",
+   "hora": "16:00"
+  },
+  {
+   "fecha": 1,
+   "serie": "SENIOR",
+   "local": "FLAMENGO",
+   "visita": "VECINAL",
+   "dia": "SABADO",
+   "hora": "17:00"
+  },
+  {
+   "fecha": 1,
+   "serie": "SENIOR",
+   "local": "10 DE MARZO",
+   "visita": "PICHANGA",
+   "dia": "SABADO",
+   "hora": "18:00"
+  },
+  {
+   "fecha": 1,
+   "serie": "SENIOR",
+   "local": "CHAYAIHUE",
+   "visita": "SAO PAULO",
+   "dia": "SABADO",
+   "hora": "19:00"
+  },
+  {
+   "fecha": 1,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "CHAYAIHUE",
+   "visita": "SAO PAULO",
+   "dia": "SABADO",
+   "hora": "20:00"
+  },
+  {
+   "fecha": 1,
+   "serie": "PRIMERA_ADULTO",
+   "local": "CHAYAIHUE",
+   "visita": "SAO PAULO",
+   "dia": "SABADO",
+   "hora": "21:00"
+  },
+  {
+   "fecha": 1,
+   "serie": "SUB13",
+   "local": "ESTOCOLMO",
+   "visita": "PLATENSE",
+   "dia": "DOMINGO",
+   "hora": "10:50"
+  },
+  {
+   "fecha": 1,
+   "serie": "SUB15",
+   "local": "10 DE MARZO",
+   "visita": "INDEPENDIENTE",
+   "dia": "DOMINGO",
+   "hora": "11:40"
+  },
+  {
+   "fecha": 1,
+   "serie": "SUB13",
+   "local": "10 DE MARZO",
+   "visita": "INDEPENDIENTE",
+   "dia": "DOMINGO",
+   "hora": "12:30"
+  },
+  {
+   "fecha": 1,
+   "serie": "SUB13",
+   "local": "BOROA",
+   "visita": "FLAMENGO",
+   "dia": "DOMINGO",
+   "hora": "13:20"
+  },
+  {
+   "fecha": 1,
+   "serie": "SUB15",
+   "local": "BOROA",
+   "visita": "FLAMENGO",
+   "dia": "DOMINGO",
+   "hora": "14:10"
+  },
+  {
+   "fecha": 1,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "BOROA",
+   "visita": "J. OVALLE",
+   "dia": "DOMINGO",
+   "hora": "16:00"
+  },
+  {
+   "fecha": 1,
+   "serie": "PRIMERA_ADULTO",
+   "local": "BOROA",
+   "visita": "J. OVALLE",
+   "dia": "DOMINGO",
+   "hora": "17:00"
+  },
+  {
+   "fecha": 1,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "FLAMENGO",
+   "visita": "PICHANGA",
+   "dia": "DOMINGO",
+   "hora": "18:00"
+  },
+  {
+   "fecha": 1,
+   "serie": "PRIMERA_ADULTO",
+   "local": "FLAMENGO",
+   "visita": "PICHANGA",
+   "dia": "DOMINGO",
+   "hora": "19:00"
+  },
+  {
+   "fecha": 1,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "ESTOCOLMO",
+   "visita": "VECINAL",
+   "dia": "DOMINGO",
+   "hora": "20:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "SUB17",
+   "local": "PLATENSE",
+   "visita": "SAO PAULO",
+   "dia": "VIERNES",
+   "hora": "19:10"
+  },
+  {
+   "fecha": 2,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "PLATENSE",
+   "visita": "SAO PAULO",
+   "dia": "VIERNES",
+   "hora": "20:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "PRIMERA_ADULTO",
+   "local": "PLATENSE",
+   "visita": "SAO PAULO",
+   "dia": "VIERNES",
+   "hora": "21:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "SUB15",
+   "local": "FLAMENGO",
+   "visita": "INDEPENDIENTE",
+   "dia": "SABADO",
+   "hora": "10:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "SUB17",
+   "local": "FLAMENGO",
+   "visita": "INDEPENDIENTE",
+   "dia": "SABADO",
+   "hora": "10:50"
+  },
+  {
+   "fecha": 2,
+   "serie": "SUB15",
+   "local": "10 DE MARZO",
+   "visita": "CHAYAIHUE",
+   "dia": "SABADO",
+   "hora": "11:40"
+  },
+  {
+   "fecha": 2,
+   "serie": "SUB17",
+   "local": "10 DE MARZO",
+   "visita": "CHAYAIHUE",
+   "dia": "SABADO",
+   "hora": "12:30"
+  },
+  {
+   "fecha": 2,
+   "serie": "SUB15",
+   "local": "BOROA",
+   "visita": "PICHANGA",
+   "dia": "SABADO",
+   "hora": "13:20"
+  },
+  {
+   "fecha": 2,
+   "serie": "SUB17",
+   "local": "ESTOCOLMO",
+   "visita": "J. OVALLE",
+   "dia": "SABADO",
+   "hora": "14:10"
+  },
+  {
+   "fecha": 2,
+   "serie": "SENIOR",
+   "local": "ESTOCOLMO",
+   "visita": "SAO PAULO",
+   "dia": "SABADO",
+   "hora": "15:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "SENIOR",
+   "local": "10 DE MARZO",
+   "visita": "FLAMENGO",
+   "dia": "SABADO",
+   "hora": "16:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "SENIOR",
+   "local": "J. OVALLE",
+   "visita": "PLATENSE",
+   "dia": "SABADO",
+   "hora": "17:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "SENIOR",
+   "local": "CHAYAIHUE",
+   "visita": "VECINAL",
+   "dia": "SABADO",
+   "hora": "18:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "SENIOR",
+   "local": "BOROA",
+   "visita": "INDEPENDIENTE",
+   "dia": "SABADO",
+   "hora": "19:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "BOROA",
+   "visita": "INDEPENDIENTE",
+   "dia": "SABADO",
+   "hora": "20:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "PRIMERA_ADULTO",
+   "local": "BOROA",
+   "visita": "INDEPENDIENTE",
+   "dia": "SABADO",
+   "hora": "21:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "SUB13",
+   "local": "FLAMENGO",
+   "visita": "INDEPENDIENTE",
+   "dia": "DOMINGO",
+   "hora": "10:50"
+  },
+  {
+   "fecha": 2,
+   "serie": "SUB13",
+   "local": "BOROA",
+   "visita": "PLATENSE",
+   "dia": "DOMINGO",
+   "hora": "11:40"
+  },
+  {
+   "fecha": 2,
+   "serie": "SUB13",
+   "local": "ESTOCOLMO",
+   "visita": "VECINAL",
+   "dia": "DOMINGO",
+   "hora": "12:30"
+  },
+  {
+   "fecha": 2,
+   "serie": "SUB15",
+   "local": "ESTOCOLMO",
+   "visita": "VECINAL",
+   "dia": "DOMINGO",
+   "hora": "13:20"
+  },
+  {
+   "fecha": 2,
+   "serie": "SUB13",
+   "local": "10 DE MARZO",
+   "visita": "CHAYAIHUE",
+   "dia": "DOMINGO",
+   "hora": "14:10"
+  },
+  {
+   "fecha": 2,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "10 DE MARZO",
+   "visita": "ESTOCOLMO",
+   "dia": "DOMINGO",
+   "hora": "16:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "FLAMENGO",
+   "visita": "VECINAL",
+   "dia": "DOMINGO",
+   "hora": "17:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "PRIMERA_ADULTO",
+   "local": "10 DE MARZO",
+   "visita": "FLAMENGO",
+   "dia": "DOMINGO",
+   "hora": "18:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "CHAYAIHUE",
+   "visita": "J. OVALLE",
+   "dia": "DOMINGO",
+   "hora": "19:00"
+  },
+  {
+   "fecha": 2,
+   "serie": "PRIMERA_ADULTO",
+   "local": "CHAYAIHUE",
+   "visita": "J. OVALLE",
+   "dia": "DOMINGO",
+   "hora": "20:00"
+  },
+  {
+   "fecha": 3,
+   "serie": "SUB17",
+   "local": "10 DE MARZO",
+   "visita": "FLAMENGO",
+   "dia": "VIERNES",
+   "hora": "19:10"
+  },
+  {
+   "fecha": 3,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "10 DE MARZO",
+   "visita": "CHAYAIHUE",
+   "dia": "VIERNES",
+   "hora": "20:00"
+  },
+  {
+   "fecha": 3,
+   "serie": "PRIMERA_ADULTO",
+   "local": "10 DE MARZO",
+   "visita": "CHAYAIHUE",
+   "dia": "VIERNES",
+   "hora": "21:00"
+  },
+  {
+   "fecha": 3,
+   "serie": "SUB17",
+   "local": "J. OVALLE",
+   "visita": "SAO PAULO",
+   "dia": "SABADO",
+   "hora": "10:00"
+  },
+  {
+   "fecha": 3,
+   "serie": "SUB15",
+   "local": "ESTOCOLMO",
+   "visita": "INDEPENDIENTE",
+   "dia": "SABADO",
+   "hora": "10:50"
+  },
+  {
+   "fecha": 3,
+   "serie": "SUB17",
+   "local": "ESTOCOLMO",
+   "visita": "INDEPENDIENTE",
+   "dia": "SABADO",
+   "hora": "11:40"
+  },
+  {
+   "fecha": 3,
+   "serie": "SUB15",
+   "local": "CHAYAIHUE",
+   "visita": "PICHANGA",
+   "dia": "SABADO",
+   "hora": "12:30"
+  },
+  {
+   "fecha": 3,
+   "serie": "SUB17",
+   "local": "CHAYAIHUE",
+   "visita": "PLATENSE",
+   "dia": "SABADO",
+   "hora": "13:20"
+  },
+  {
+   "fecha": 3,
+   "serie": "SUB15",
+   "local": "BOROA",
+   "visita": "VECINAL",
+   "dia": "SABADO",
+   "hora": "14:10"
+  },
+  {
+   "fecha": 3,
    "serie": "SENIOR",
    "local": "PICHANGA",
    "visita": "VECINAL",
    "dia": "SABADO",
+   "hora": "15:00"
+  },
+  {
+   "fecha": 3,
+   "serie": "SENIOR",
+   "local": "J. OVALLE",
+   "visita": "SAO PAULO",
+   "dia": "SABADO",
    "hora": "16:00"
   },
   {
-   "fecha": 1,
+   "fecha": 3,
    "serie": "SENIOR",
    "local": "BOROA",
-   "visita": "J. OVALLE",
+   "visita": "ESTOCOLMO",
    "dia": "SABADO",
    "hora": "17:00"
   },
   {
-   "fecha": 1,
+   "fecha": 3,
    "serie": "SENIOR",
-   "local": "10 DE MARZO",
-   "visita": "SAO PAULO",
-   "dia": "SABADO",
-   "hora": "18:00"
-  },
-  {
-   "fecha": 1,
-   "serie": "SENIOR",
-   "local": "INDEPENDIENTE",
+   "local": "FLAMENGO",
    "visita": "PLATENSE",
    "dia": "SABADO",
    "hora": "19:00"
   },
   {
-   "fecha": 1,
+   "fecha": 3,
    "serie": "SEGUNDA_ADULTO",
-   "local": "INDEPENDIENTE",
+   "local": "FLAMENGO",
    "visita": "PLATENSE",
    "dia": "SABADO",
    "hora": "20:00"
   },
   {
-   "fecha": 1,
+   "fecha": 3,
    "serie": "PRIMERA_ADULTO",
-   "local": "INDEPENDIENTE",
+   "local": "FLAMENGO",
    "visita": "PLATENSE",
    "dia": "SABADO",
    "hora": "21:00"
   },
   {
-   "fecha": 1,
+   "fecha": 3,
    "serie": "SUB13",
    "local": "CHAYAIHUE",
-   "visita": "FLAMENGO",
-   "dia": "DOMINGO",
-   "hora": "10:00"
-  },
-  {
-   "fecha": 1,
-   "serie": "SUB15",
-   "local": "ESTOCOLMO",
-   "visita": "INDEPENDIENTE",
+   "visita": "PLATENSE",
    "dia": "DOMINGO",
    "hora": "10:50"
   },
   {
-   "fecha": 1,
-   "serie": "SUB17",
-   "local": "ESTOCOLMO",
-   "visita": "INDEPENDIENTE",
+   "fecha": 3,
+   "serie": "SUB13",
+   "local": "10 DE MARZO",
+   "visita": "FLAMENGO",
    "dia": "DOMINGO",
    "hora": "11:40"
   },
   {
-   "fecha": 1,
-   "serie": "SUB13",
-   "local": "ESTOCOLMO",
-   "visita": "INDEPENDIENTE",
+   "fecha": 3,
+   "serie": "SUB15",
+   "local": "10 DE MARZO",
+   "visita": "FLAMENGO",
    "dia": "DOMINGO",
    "hora": "12:30"
   },
   {
-   "fecha": 1,
+   "fecha": 3,
    "serie": "SUB13",
-   "local": "PLATENSE",
-   "visita": "VECINAL",
+   "local": "ESTOCOLMO",
+   "visita": "INDEPENDIENTE",
    "dia": "DOMINGO",
    "hora": "13:20"
   },
   {
-   "fecha": 1,
+   "fecha": 3,
+   "serie": "SUB13",
+   "local": "BOROA",
+   "visita": "VECINAL",
+   "dia": "DOMINGO",
+   "hora": "14:10"
+  },
+  {
+   "fecha": 3,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "BOROA",
+   "visita": "PICHANGA",
+   "dia": "DOMINGO",
+   "hora": "16:00"
+  },
+  {
+   "fecha": 3,
+   "serie": "PRIMERA_ADULTO",
+   "local": "BOROA",
+   "visita": "PICHANGA",
+   "dia": "DOMINGO",
+   "hora": "17:00"
+  },
+  {
+   "fecha": 3,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "J. OVALLE",
+   "visita": "SAO PAULO",
+   "dia": "DOMINGO",
+   "hora": "18:00"
+  },
+  {
+   "fecha": 3,
+   "serie": "PRIMERA_ADULTO",
+   "local": "J. OVALLE",
+   "visita": "SAO PAULO",
+   "dia": "DOMINGO",
+   "hora": "19:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "SUB17",
+   "local": "J. OVALLE",
+   "visita": "PLATENSE",
+   "dia": "VIERNES",
+   "hora": "19:10"
+  },
+  {
+   "fecha": 4,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "J. OVALLE",
+   "visita": "PLATENSE",
+   "dia": "VIERNES",
+   "hora": "20:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "PRIMERA_ADULTO",
+   "local": "J. OVALLE",
+   "visita": "PLATENSE",
+   "dia": "VIERNES",
+   "hora": "21:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "SUB15",
+   "local": "CHAYAIHUE",
+   "visita": "INDEPENDIENTE",
+   "dia": "SABADO",
+   "hora": "10:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "SUB17",
+   "local": "CHAYAIHUE",
+   "visita": "INDEPENDIENTE",
+   "dia": "SABADO",
+   "hora": "10:50"
+  },
+  {
+   "fecha": 4,
    "serie": "SUB15",
    "local": "PICHANGA",
    "visita": "VECINAL",
+   "dia": "SABADO",
+   "hora": "11:40"
+  },
+  {
+   "fecha": 4,
+   "serie": "SUB15",
+   "local": "10 DE MARZO",
+   "visita": "ESTOCOLMO",
+   "dia": "SABADO",
+   "hora": "12:30"
+  },
+  {
+   "fecha": 4,
+   "serie": "SUB17",
+   "local": "10 DE MARZO",
+   "visita": "ESTOCOLMO",
+   "dia": "SABADO",
+   "hora": "13:20"
+  },
+  {
+   "fecha": 4,
+   "serie": "SUB17",
+   "local": "FLAMENGO",
+   "visita": "SAO PAULO",
+   "dia": "SABADO",
+   "hora": "14:10"
+  },
+  {
+   "fecha": 4,
+   "serie": "SENIOR",
+   "local": "FLAMENGO",
+   "visita": "SAO PAULO",
+   "dia": "SABADO",
+   "hora": "15:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "SENIOR",
+   "local": "ESTOCOLMO",
+   "visita": "VECINAL",
+   "dia": "SABADO",
+   "hora": "16:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "SENIOR",
+   "local": "J. OVALLE",
+   "visita": "PICHANGA",
+   "dia": "SABADO",
+   "hora": "17:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "SENIOR",
+   "local": "10 DE MARZO",
+   "visita": "BOROA",
+   "dia": "SABADO",
+   "hora": "18:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "SENIOR",
+   "local": "CHAYAIHUE",
+   "visita": "INDEPENDIENTE",
+   "dia": "SABADO",
+   "hora": "19:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "CHAYAIHUE",
+   "visita": "INDEPENDIENTE",
+   "dia": "SABADO",
+   "hora": "20:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "PRIMERA_ADULTO",
+   "local": "CHAYAIHUE",
+   "visita": "INDEPENDIENTE",
+   "dia": "SABADO",
+   "hora": "21:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "SUB13",
+   "local": "CHAYAIHUE",
+   "visita": "INDEPENDIENTE",
+   "dia": "DOMINGO",
+   "hora": "12:30"
+  },
+  {
+   "fecha": 4,
+   "serie": "SUB13",
+   "local": "PLATENSE",
+   "visita": "VECINAL",
+   "dia": "DOMINGO",
+   "hora": "13:20"
+  },
+  {
+   "fecha": 4,
+   "serie": "SUB13",
+   "local": "10 DE MARZO",
+   "visita": "ESTOCOLMO",
    "dia": "DOMINGO",
    "hora": "14:10"
   },
   {
-   "fecha": 1,
+   "fecha": 4,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "SAO PAULO",
+   "visita": "VECINAL",
+   "dia": "DOMINGO",
+   "hora": "16:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "10 DE MARZO",
+   "visita": "PICHANGA",
+   "dia": "DOMINGO",
+   "hora": "17:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "PRIMERA_ADULTO",
+   "local": "10 DE MARZO",
+   "visita": "PICHANGA",
+   "dia": "DOMINGO",
+   "hora": "18:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "BOROA",
+   "visita": "ESTOCOLMO",
+   "dia": "DOMINGO",
+   "hora": "19:00"
+  },
+  {
+   "fecha": 4,
+   "serie": "PRIMERA_ADULTO",
+   "local": "BOROA",
+   "visita": "SAO PAULO",
+   "dia": "DOMINGO",
+   "hora": "20:00"
+  },
+  {
+   "fecha": 5,
+   "serie": "SUB17",
+   "local": "10 DE MARZO",
+   "visita": "SAO PAULO",
+   "dia": "VIERNES",
+   "hora": "19:10"
+  },
+  {
+   "fecha": 5,
    "serie": "SEGUNDA_ADULTO",
    "local": "PICHANGA",
    "visita": "VECINAL",
-   "dia": "DOMINGO",
-   "hora": "16:00"
-  },
-  {
-   "fecha": 1,
-   "serie": "PRIMERA_ADULTO",
-   "local": "BOROA",
-   "visita": "J. OVALLE",
-   "dia": "DOMINGO",
-   "hora": "17:00"
-  },
-  {
-   "fecha": 1,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "BOROA",
-   "visita": "J. OVALLE",
-   "dia": "DOMINGO",
-   "hora": "18:00"
-  },
-  {
-   "fecha": 1,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "10 DE MARZO",
-   "visita": "SAO PAULO",
-   "dia": "DOMINGO",
+   "dia": "VIERNES",
    "hora": "20:00"
   },
   {
-   "fecha": 1,
+   "fecha": 5,
    "serie": "PRIMERA_ADULTO",
    "local": "10 DE MARZO",
    "visita": "SAO PAULO",
-   "dia": "DOMINGO",
+   "dia": "VIERNES",
    "hora": "21:00"
   },
   {
-   "fecha": 2,
+   "fecha": 5,
    "serie": "SUB17",
-   "local": "FLAMENGO",
-   "visita": "PLATENSE",
-   "dia": "VIERNES",
-   "hora": "19:10"
-  },
-  {
-   "fecha": 2,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "BOROA",
-   "visita": "VECINAL",
-   "dia": "VIERNES",
-   "hora": "20:00"
-  },
-  {
-   "fecha": 2,
-   "serie": "PRIMERA_ADULTO",
-   "local": "BOROA",
-   "visita": "SAO PAULO",
-   "dia": "VIERNES",
-   "hora": "21:00"
-  },
-  {
-   "fecha": 2,
-   "serie": "SUB15",
-   "local": "INDEPENDIENTE",
-   "visita": "PICHANGA",
-   "dia": "SABADO",
-   "hora": "13:20"
-  },
-  {
-   "fecha": 2,
-   "serie": "SUB17",
-   "local": "ESTOCOLMO",
-   "visita": "SAO PAULO",
-   "dia": "SABADO",
-   "hora": "14:10"
-  },
-  {
-   "fecha": 2,
-   "serie": "SENIOR",
-   "local": "INDEPENDIENTE",
-   "visita": "PICHANGA",
-   "dia": "SABADO",
-   "hora": "15:00"
-  },
-  {
-   "fecha": 2,
-   "serie": "SENIOR",
-   "local": "ESTOCOLMO",
-   "visita": "SAO PAULO",
-   "dia": "SABADO",
-   "hora": "16:00"
-  },
-  {
-   "fecha": 2,
-   "serie": "SENIOR",
-   "local": "FLAMENGO",
-   "visita": "PLATENSE",
-   "dia": "SABADO",
-   "hora": "17:00"
-  },
-  {
-   "fecha": 2,
-   "serie": "SENIOR",
-   "local": "BOROA",
-   "visita": "VECINAL",
-   "dia": "SABADO",
-   "hora": "18:00"
-  },
-  {
-   "fecha": 2,
-   "serie": "SENIOR",
-   "local": "10 DE MARZO",
+   "local": "CHAYAIHUE",
    "visita": "J. OVALLE",
    "dia": "SABADO",
-   "hora": "19:00"
-  },
-  {
-   "fecha": 2,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "10 DE MARZO",
-   "visita": "J. OVALLE",
-   "dia": "SABADO",
-   "hora": "20:00"
-  },
-  {
-   "fecha": 2,
-   "serie": "PRIMERA_ADULTO",
-   "local": "10 DE MARZO",
-   "visita": "J. OVALLE",
-   "dia": "SABADO",
-   "hora": "21:00"
-  },
-  {
-   "fecha": 2,
-   "serie": "SUB15",
-   "local": "BOROA",
-   "visita": "VECINAL",
-   "dia": "DOMINGO",
    "hora": "10:00"
   },
   {
-   "fecha": 2,
-   "serie": "SUB13",
-   "local": "BOROA",
-   "visita": "VECINAL",
-   "dia": "DOMINGO",
+   "fecha": 5,
+   "serie": "SUB15",
+   "local": "10 DE MARZO",
+   "visita": "BOROA",
+   "dia": "SABADO",
    "hora": "10:50"
   },
   {
-   "fecha": 2,
-   "serie": "SUB17",
-   "local": "10 DE MARZO",
-   "visita": "J. OVALLE",
-   "dia": "DOMINGO",
+   "fecha": 5,
+   "serie": "SUB15",
+   "local": "ESTOCOLMO",
+   "visita": "FLAMENGO",
+   "dia": "SABADO",
    "hora": "11:40"
   },
   {
-   "fecha": 2,
-   "serie": "SUB15",
-   "local": "10 DE MARZO",
-   "visita": "ESTOCOLMO",
-   "dia": "DOMINGO",
+   "fecha": 5,
+   "serie": "SUB17",
+   "local": "ESTOCOLMO",
+   "visita": "FLAMENGO",
+   "dia": "SABADO",
    "hora": "12:30"
   },
   {
-   "fecha": 2,
-   "serie": "SUB13",
-   "local": "10 DE MARZO",
-   "visita": "ESTOCOLMO",
-   "dia": "DOMINGO",
-   "hora": "13:20"
-  },
-  {
-   "fecha": 2,
-   "serie": "SUB13",
-   "local": "INDEPENDIENTE",
-   "visita": "PLATENSE",
-   "dia": "DOMINGO",
-   "hora": "14:10"
-  },
-  {
-   "fecha": 2,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "ESTOCOLMO",
-   "visita": "SAO PAULO",
-   "dia": "DOMINGO",
-   "hora": "16:00"
-  },
-  {
-   "fecha": 2,
-   "serie": "PRIMERA_ADULTO",
+   "fecha": 5,
+   "serie": "SUB15",
    "local": "INDEPENDIENTE",
    "visita": "PICHANGA",
-   "dia": "DOMINGO",
-   "hora": "17:00"
-  },
-  {
-   "fecha": 2,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "INDEPENDIENTE",
-   "visita": "PICHANGA",
-   "dia": "DOMINGO",
-   "hora": "18:00"
-  },
-  {
-   "fecha": 2,
-   "serie": "PRIMERA_ADULTO",
-   "local": "FLAMENGO",
-   "visita": "PLATENSE",
-   "dia": "DOMINGO",
-   "hora": "19:00"
-  },
-  {
-   "fecha": 2,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "FLAMENGO",
-   "visita": "PLATENSE",
-   "dia": "DOMINGO",
-   "hora": "20:00"
-  },
-  {
-   "fecha": 3,
-   "serie": "SUB17",
-   "local": "ESTOCOLMO",
-   "visita": "J. OVALLE",
-   "dia": "VIERNES",
-   "hora": "19:10"
-  },
-  {
-   "fecha": 3,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "FLAMENGO",
-   "visita": "PICHANGA",
-   "dia": "VIERNES",
-   "hora": "20:00"
-  },
-  {
-   "fecha": 3,
-   "serie": "PRIMERA_ADULTO",
-   "local": "FLAMENGO",
-   "visita": "PICHANGA",
-   "dia": "VIERNES",
-   "hora": "21:00"
-  },
-  {
-   "fecha": 3,
-   "serie": "SUB17",
-   "local": "PLATENSE",
-   "visita": "SAO PAULO",
-   "dia": "SABADO",
-   "hora": "12:30"
-  },
-  {
-   "fecha": 3,
-   "serie": "SUB17",
-   "local": "10 DE MARZO",
-   "visita": "FLAMENGO",
-   "dia": "SABADO",
-   "hora": "13:20"
-  },
-  {
-   "fecha": 3,
-   "serie": "SUB15",
-   "local": "10 DE MARZO",
-   "visita": "FLAMENGO",
-   "dia": "SABADO",
-   "hora": "14:10"
-  },
-  {
-   "fecha": 3,
-   "serie": "SENIOR",
-   "local": "PLATENSE",
-   "visita": "SAO PAULO",
-   "dia": "SABADO",
-   "hora": "15:00"
-  },
-  {
-   "fecha": 3,
-   "serie": "SENIOR",
-   "local": "FLAMENGO",
-   "visita": "PICHANGA",
-   "dia": "SABADO",
-   "hora": "16:00"
-  },
-  {
-   "fecha": 3,
-   "serie": "SENIOR",
-   "local": "CHAYAIHUE",
-   "visita": "VECINAL",
-   "dia": "SABADO",
-   "hora": "17:00"
-  },
-  {
-   "fecha": 3,
-   "serie": "SENIOR",
-   "local": "ESTOCOLMO",
-   "visita": "J. OVALLE",
-   "dia": "SABADO",
-   "hora": "18:00"
-  },
-  {
-   "fecha": 3,
-   "serie": "SENIOR",
-   "local": "BOROA",
-   "visita": "INDEPENDIENTE",
-   "dia": "SABADO",
-   "hora": "19:00"
-  },
-  {
-   "fecha": 3,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "BOROA",
-   "visita": "INDEPENDIENTE",
-   "dia": "SABADO",
-   "hora": "20:00"
-  },
-  {
-   "fecha": 3,
-   "serie": "PRIMERA_ADULTO",
-   "local": "CHAYAIHUE",
-   "visita": "INDEPENDIENTE",
-   "dia": "SABADO",
-   "hora": "21:00"
-  },
-  {
-   "fecha": 3,
-   "serie": "SUB13",
-   "local": "10 DE MARZO",
-   "visita": "FLAMENGO",
-   "dia": "DOMINGO",
-   "hora": "10:00"
-  },
-  {
-   "fecha": 3,
-   "serie": "SUB15",
-   "local": "BOROA",
-   "visita": "INDEPENDIENTE",
-   "dia": "DOMINGO",
-   "hora": "10:50"
-  },
-  {
-   "fecha": 3,
-   "serie": "SUB13",
-   "local": "BOROA",
-   "visita": "INDEPENDIENTE",
-   "dia": "DOMINGO",
-   "hora": "11:40"
-  },
-  {
-   "fecha": 3,
-   "serie": "SUB17",
-   "local": "CHAYAIHUE",
-   "visita": "INDEPENDIENTE",
-   "dia": "DOMINGO",
-   "hora": "12:30"
-  },
-  {
-   "fecha": 3,
-   "serie": "SUB15",
-   "local": "CHAYAIHUE",
-   "visita": "VECINAL",
-   "dia": "DOMINGO",
-   "hora": "13:20"
-  },
-  {
-   "fecha": 3,
-   "serie": "SUB13",
-   "local": "CHAYAIHUE",
-   "visita": "VECINAL",
-   "dia": "DOMINGO",
-   "hora": "14:10"
-  },
-  {
-   "fecha": 3,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "CHAYAIHUE",
-   "visita": "VECINAL",
-   "dia": "DOMINGO",
-   "hora": "16:00"
-  },
-  {
-   "fecha": 3,
-   "serie": "PRIMERA_ADULTO",
-   "local": "PLATENSE",
-   "visita": "SAO PAULO",
-   "dia": "DOMINGO",
-   "hora": "17:00"
-  },
-  {
-   "fecha": 3,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "PLATENSE",
-   "visita": "SAO PAULO",
-   "dia": "DOMINGO",
-   "hora": "18:00"
-  },
-  {
-   "fecha": 3,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "ESTOCOLMO",
-   "visita": "J. OVALLE",
-   "dia": "DOMINGO",
-   "hora": "20:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "SUB17",
-   "local": "10 DE MARZO",
-   "visita": "INDEPENDIENTE",
-   "dia": "VIERNES",
-   "hora": "19:10"
-  },
-  {
-   "fecha": 4,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "CHAYAIHUE",
-   "visita": "ESTOCOLMO",
-   "dia": "VIERNES",
-   "hora": "20:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "PRIMERA_ADULTO",
-   "local": "CHAYAIHUE",
-   "visita": "SAO PAULO",
-   "dia": "VIERNES",
-   "hora": "21:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "SUB17",
-   "local": "CHAYAIHUE",
-   "visita": "ESTOCOLMO",
-   "dia": "SABADO",
-   "hora": "11:40"
-  },
-  {
-   "fecha": 4,
-   "serie": "SUB15",
-   "local": "CHAYAIHUE",
-   "visita": "ESTOCOLMO",
-   "dia": "SABADO",
-   "hora": "12:30"
-  },
-  {
-   "fecha": 4,
-   "serie": "SUB17",
-   "local": "J. OVALLE",
-   "visita": "PLATENSE",
-   "dia": "SABADO",
-   "hora": "13:20"
-  },
-  {
-   "fecha": 4,
-   "serie": "SUB15",
-   "local": "BOROA",
-   "visita": "PICHANGA",
-   "dia": "SABADO",
-   "hora": "14:10"
-  },
-  {
-   "fecha": 4,
-   "serie": "SENIOR",
-   "local": "BOROA",
-   "visita": "PICHANGA",
-   "dia": "SABADO",
-   "hora": "15:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "SENIOR",
-   "local": "CHAYAIHUE",
-   "visita": "ESTOCOLMO",
-   "dia": "SABADO",
-   "hora": "16:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "SENIOR",
-   "local": "J. OVALLE",
-   "visita": "PLATENSE",
-   "dia": "SABADO",
-   "hora": "17:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "SENIOR",
-   "local": "10 DE MARZO",
-   "visita": "INDEPENDIENTE",
-   "dia": "SABADO",
-   "hora": "18:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "SENIOR",
-   "local": "FLAMENGO",
-   "visita": "VECINAL",
-   "dia": "SABADO",
-   "hora": "19:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "FLAMENGO",
-   "visita": "VECINAL",
-   "dia": "SABADO",
-   "hora": "20:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "SUB15",
-   "local": "FLAMENGO",
-   "visita": "VECINAL",
-   "dia": "DOMINGO",
-   "hora": "10:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "SUB13",
-   "local": "FLAMENGO",
-   "visita": "VECINAL",
-   "dia": "DOMINGO",
-   "hora": "10:50"
-  },
-  {
-   "fecha": 4,
-   "serie": "SUB13",
-   "local": "CHAYAIHUE",
-   "visita": "ESTOCOLMO",
-   "dia": "DOMINGO",
-   "hora": "11:40"
-  },
-  {
-   "fecha": 4,
-   "serie": "SUB15",
-   "local": "10 DE MARZO",
-   "visita": "INDEPENDIENTE",
-   "dia": "DOMINGO",
-   "hora": "12:30"
-  },
-  {
-   "fecha": 4,
-   "serie": "SUB13",
-   "local": "10 DE MARZO",
-   "visita": "INDEPENDIENTE",
-   "dia": "DOMINGO",
-   "hora": "13:20"
-  },
-  {
-   "fecha": 4,
-   "serie": "SUB13",
-   "local": "BOROA",
-   "visita": "PLATENSE",
-   "dia": "DOMINGO",
-   "hora": "14:10"
-  },
-  {
-   "fecha": 4,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "J. OVALLE",
-   "visita": "PLATENSE",
-   "dia": "DOMINGO",
-   "hora": "16:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "PRIMERA_ADULTO",
-   "local": "10 DE MARZO",
-   "visita": "INDEPENDIENTE",
-   "dia": "DOMINGO",
-   "hora": "17:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "10 DE MARZO",
-   "visita": "INDEPENDIENTE",
-   "dia": "DOMINGO",
-   "hora": "18:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "PRIMERA_ADULTO",
-   "local": "J. OVALLE",
-   "visita": "PLATENSE",
-   "dia": "DOMINGO",
-   "hora": "19:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "BOROA",
-   "visita": "PICHANGA",
-   "dia": "DOMINGO",
-   "hora": "20:00"
-  },
-  {
-   "fecha": 4,
-   "serie": "PRIMERA_ADULTO",
-   "local": "BOROA",
-   "visita": "PICHANGA",
-   "dia": "DOMINGO",
-   "hora": "21:00"
-  },
-  {
-   "fecha": 5,
-   "serie": "SUB17",
-   "local": "CHAYAIHUE",
-   "visita": "J. OVALLE",
-   "dia": "VIERNES",
-   "hora": "19:10"
-  },
-  {
-   "fecha": 5,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "J. OVALLE",
-   "visita": "PICHANGA",
-   "dia": "VIERNES",
-   "hora": "20:00"
-  },
-  {
-   "fecha": 5,
-   "serie": "PRIMERA_ADULTO",
-   "local": "J. OVALLE",
-   "visita": "PICHANGA",
-   "dia": "VIERNES",
-   "hora": "21:00"
-  },
-  {
-   "fecha": 5,
-   "serie": "SUB17",
-   "local": "ESTOCOLMO",
-   "visita": "FLAMENGO",
-   "dia": "SABADO",
-   "hora": "12:30"
-  },
-  {
-   "fecha": 5,
-   "serie": "SUB15",
-   "local": "ESTOCOLMO",
-   "visita": "FLAMENGO",
    "dia": "SABADO",
    "hora": "13:20"
   },
@@ -797,7 +837,7 @@
    "fecha": 5,
    "serie": "SUB17",
    "local": "INDEPENDIENTE",
-   "visita": "SAO PAULO",
+   "visita": "PLATENSE",
    "dia": "SABADO",
    "hora": "14:10"
   },
@@ -805,23 +845,23 @@
    "fecha": 5,
    "serie": "SENIOR",
    "local": "ESTOCOLMO",
-   "visita": "FLAMENGO",
+   "visita": "INDEPENDIENTE",
    "dia": "SABADO",
    "hora": "15:00"
   },
   {
    "fecha": 5,
    "serie": "SENIOR",
-   "local": "INDEPENDIENTE",
-   "visita": "SAO PAULO",
+   "local": "CHAYAIHUE",
+   "visita": "PICHANGA",
    "dia": "SABADO",
    "hora": "16:00"
   },
   {
    "fecha": 5,
    "serie": "SENIOR",
-   "local": "BOROA",
-   "visita": "CHAYAIHUE",
+   "local": "10 DE MARZO",
+   "visita": "PLATENSE",
    "dia": "SABADO",
    "hora": "17:00"
   },
@@ -829,126 +869,110 @@
    "fecha": 5,
    "serie": "SENIOR",
    "local": "J. OVALLE",
-   "visita": "PICHANGA",
+   "visita": "VECINAL",
    "dia": "SABADO",
    "hora": "18:00"
   },
   {
    "fecha": 5,
    "serie": "SENIOR",
-   "local": "10 DE MARZO",
-   "visita": "PLATENSE",
+   "local": "BOROA",
+   "visita": "FLAMENGO",
    "dia": "SABADO",
    "hora": "19:00"
   },
   {
    "fecha": 5,
    "serie": "SEGUNDA_ADULTO",
-   "local": "10 DE MARZO",
-   "visita": "PLATENSE",
+   "local": "BOROA",
+   "visita": "FLAMENGO",
    "dia": "SABADO",
    "hora": "20:00"
   },
   {
    "fecha": 5,
    "serie": "PRIMERA_ADULTO",
-   "local": "10 DE MARZO",
-   "visita": "PLATENSE",
+   "local": "BOROA",
+   "visita": "FLAMENGO",
    "dia": "SABADO",
    "hora": "21:00"
   },
   {
    "fecha": 5,
-   "serie": "SUB17",
-   "local": "10 DE MARZO",
-   "visita": "PLATENSE",
-   "dia": "DOMINGO",
-   "hora": "10:00"
-  },
-  {
-   "fecha": 5,
    "serie": "SUB13",
-   "local": "10 DE MARZO",
-   "visita": "PLATENSE",
+   "local": "ESTOCOLMO",
+   "visita": "FLAMENGO",
    "dia": "DOMINGO",
    "hora": "10:50"
   },
   {
    "fecha": 5,
-   "serie": "SUB15",
-   "local": "10 DE MARZO",
-   "visita": "PICHANGA",
+   "serie": "SUB13",
+   "local": "CHAYAIHUE",
+   "visita": "VECINAL",
    "dia": "DOMINGO",
    "hora": "11:40"
   },
   {
    "fecha": 5,
-   "serie": "SUB13",
-   "local": "BOROA",
-   "visita": "CHAYAIHUE",
+   "serie": "SUB15",
+   "local": "CHAYAIHUE",
+   "visita": "VECINAL",
    "dia": "DOMINGO",
    "hora": "12:30"
   },
   {
    "fecha": 5,
-   "serie": "SUB15",
-   "local": "BOROA",
-   "visita": "CHAYAIHUE",
+   "serie": "SUB13",
+   "local": "10 DE MARZO",
+   "visita": "BOROA",
    "dia": "DOMINGO",
    "hora": "13:20"
   },
   {
    "fecha": 5,
    "serie": "SUB13",
-   "local": "ESTOCOLMO",
-   "visita": "FLAMENGO",
+   "local": "INDEPENDIENTE",
+   "visita": "PLATENSE",
    "dia": "DOMINGO",
    "hora": "14:10"
   },
   {
    "fecha": 5,
    "serie": "SEGUNDA_ADULTO",
-   "local": "ESTOCOLMO",
-   "visita": "FLAMENGO",
+   "local": "INDEPENDIENTE",
+   "visita": "PLATENSE",
    "dia": "DOMINGO",
    "hora": "16:00"
   },
   {
    "fecha": 5,
    "serie": "PRIMERA_ADULTO",
-   "local": "BOROA",
-   "visita": "CHAYAIHUE",
+   "local": "INDEPENDIENTE",
+   "visita": "PLATENSE",
    "dia": "DOMINGO",
    "hora": "17:00"
   },
   {
    "fecha": 5,
    "serie": "SEGUNDA_ADULTO",
-   "local": "BOROA",
-   "visita": "CHAYAIHUE",
+   "local": "CHAYAIHUE",
+   "visita": "ESTOCOLMO",
    "dia": "DOMINGO",
    "hora": "18:00"
   },
   {
    "fecha": 5,
    "serie": "PRIMERA_ADULTO",
-   "local": "FLAMENGO",
-   "visita": "SAO PAULO",
+   "local": "CHAYAIHUE",
+   "visita": "PICHANGA",
    "dia": "DOMINGO",
    "hora": "19:00"
-  },
-  {
-   "fecha": 5,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "INDEPENDIENTE",
-   "visita": "SAO PAULO",
-   "dia": "DOMINGO",
-   "hora": "20:00"
   },
   {
    "fecha": 6,
    "serie": "SUB17",
-   "local": "FLAMENGO",
+   "local": "INDEPENDIENTE",
    "visita": "SAO PAULO",
    "dia": "VIERNES",
    "hora": "19:10"
@@ -956,32 +980,40 @@
   {
    "fecha": 6,
    "serie": "SEGUNDA_ADULTO",
-   "local": "10 DE MARZO",
-   "visita": "CHAYAIHUE",
+   "local": "INDEPENDIENTE",
+   "visita": "SAO PAULO",
    "dia": "VIERNES",
    "hora": "20:00"
   },
   {
    "fecha": 6,
    "serie": "PRIMERA_ADULTO",
-   "local": "10 DE MARZO",
-   "visita": "CHAYAIHUE",
+   "local": "INDEPENDIENTE",
+   "visita": "SAO PAULO",
    "dia": "VIERNES",
    "hora": "21:00"
   },
   {
    "fecha": 6,
+   "serie": "SUB15",
+   "local": "FLAMENGO",
+   "visita": "PICHANGA",
+   "dia": "SABADO",
+   "hora": "10:00"
+  },
+  {
+   "fecha": 6,
    "serie": "SUB17",
-   "local": "INDEPENDIENTE",
-   "visita": "J. OVALLE",
+   "local": "FLAMENGO",
+   "visita": "PLATENSE",
    "dia": "SABADO",
    "hora": "10:50"
   },
   {
    "fecha": 6,
    "serie": "SUB15",
-   "local": "ESTOCOLMO",
-   "visita": "PICHANGA",
+   "local": "10 DE MARZO",
+   "visita": "VECINAL",
    "dia": "SABADO",
    "hora": "11:40"
   },
@@ -989,167 +1021,167 @@
    "fecha": 6,
    "serie": "SUB17",
    "local": "10 DE MARZO",
-   "visita": "CHAYAIHUE",
+   "visita": "J. OVALLE",
    "dia": "SABADO",
    "hora": "12:30"
   },
   {
    "fecha": 6,
    "serie": "SUB15",
-   "local": "10 DE MARZO",
-   "visita": "CHAYAIHUE",
+   "local": "CHAYAIHUE",
+   "visita": "ESTOCOLMO",
    "dia": "SABADO",
    "hora": "13:20"
   },
   {
    "fecha": 6,
-   "serie": "SUB15",
-   "local": "INDEPENDIENTE",
-   "visita": "VECINAL",
+   "serie": "SUB17",
+   "local": "CHAYAIHUE",
+   "visita": "ESTOCOLMO",
    "dia": "SABADO",
    "hora": "14:10"
   },
   {
    "fecha": 6,
    "serie": "SENIOR",
-   "local": "INDEPENDIENTE",
-   "visita": "VECINAL",
+   "local": "CHAYAIHUE",
+   "visita": "J. OVALLE",
    "dia": "SABADO",
    "hora": "15:00"
   },
   {
    "fecha": 6,
    "serie": "SENIOR",
-   "local": "10 DE MARZO",
-   "visita": "CHAYAIHUE",
-   "dia": "SABADO",
-   "hora": "16:00"
-  },
-  {
-   "fecha": 6,
-   "serie": "SENIOR",
-   "local": "ESTOCOLMO",
-   "visita": "PLATENSE",
+   "local": "INDEPENDIENTE",
+   "visita": "SAO PAULO",
    "dia": "SABADO",
    "hora": "17:00"
   },
   {
    "fecha": 6,
    "serie": "SENIOR",
-   "local": "FLAMENGO",
-   "visita": "SAO PAULO",
+   "local": "10 DE MARZO",
+   "visita": "ESTOCOLMO",
+   "dia": "SABADO",
+   "hora": "18:00"
+  },
+  {
+   "fecha": 6,
+   "serie": "SENIOR",
+   "local": "PICHANGA",
+   "visita": "PLATENSE",
    "dia": "SABADO",
    "hora": "19:00"
   },
   {
    "fecha": 6,
    "serie": "SEGUNDA_ADULTO",
-   "local": "FLAMENGO",
-   "visita": "SAO PAULO",
+   "local": "PICHANGA",
+   "visita": "PLATENSE",
    "dia": "SABADO",
    "hora": "20:00"
-  },
-  {
-   "fecha": 6,
-   "serie": "PRIMERA_ADULTO",
-   "local": "BOROA",
-   "visita": "FLAMENGO",
-   "dia": "SABADO",
-   "hora": "21:00"
-  },
-  {
-   "fecha": 6,
-   "serie": "SUB13",
-   "local": "10 DE MARZO",
-   "visita": "CHAYAIHUE",
-   "dia": "DOMINGO",
-   "hora": "10:00"
-  },
-  {
-   "fecha": 6,
-   "serie": "SUB13",
-   "local": "BOROA",
-   "visita": "FLAMENGO",
-   "dia": "DOMINGO",
-   "hora": "10:50"
-  },
-  {
-   "fecha": 6,
-   "serie": "SUB15",
-   "local": "BOROA",
-   "visita": "FLAMENGO",
-   "dia": "DOMINGO",
-   "hora": "11:40"
-  },
-  {
-   "fecha": 6,
-   "serie": "SUB13",
-   "local": "ESTOCOLMO",
-   "visita": "PLATENSE",
-   "dia": "DOMINGO",
-   "hora": "12:30"
-  },
-  {
-   "fecha": 6,
-   "serie": "SUB17",
-   "local": "ESTOCOLMO",
-   "visita": "PLATENSE",
-   "dia": "DOMINGO",
-   "hora": "13:20"
-  },
-  {
-   "fecha": 6,
-   "serie": "SUB13",
-   "local": "INDEPENDIENTE",
-   "visita": "VECINAL",
-   "dia": "DOMINGO",
-   "hora": "14:10"
-  },
-  {
-   "fecha": 6,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "INDEPENDIENTE",
-   "visita": "VECINAL",
-   "dia": "DOMINGO",
-   "hora": "16:00"
-  },
-  {
-   "fecha": 6,
-   "serie": "PRIMERA_ADULTO",
-   "local": "INDEPENDIENTE",
-   "visita": "J. OVALLE",
-   "dia": "DOMINGO",
-   "hora": "17:00"
-  },
-  {
-   "fecha": 6,
-   "serie": "SEGUNDA_ADULTO",
-   "local": "ESTOCOLMO",
-   "visita": "PLATENSE",
-   "dia": "DOMINGO",
-   "hora": "18:00"
   },
   {
    "fecha": 6,
    "serie": "PRIMERA_ADULTO",
    "local": "PICHANGA",
    "visita": "PLATENSE",
+   "dia": "SABADO",
+   "hora": "21:00"
+  },
+  {
+   "fecha": 6,
+   "serie": "SUB13",
+   "local": "BOROA",
+   "visita": "INDEPENDIENTE",
+   "dia": "DOMINGO",
+   "hora": "10:50"
+  },
+  {
+   "fecha": 6,
+   "serie": "SUB15",
+   "local": "BOROA",
+   "visita": "INDEPENDIENTE",
+   "dia": "DOMINGO",
+   "hora": "11:40"
+  },
+  {
+   "fecha": 6,
+   "serie": "SUB13",
+   "local": "10 DE MARZO",
+   "visita": "VECINAL",
+   "dia": "DOMINGO",
+   "hora": "12:30"
+  },
+  {
+   "fecha": 6,
+   "serie": "SUB13",
+   "local": "FLAMENGO",
+   "visita": "PLATENSE",
+   "dia": "DOMINGO",
+   "hora": "13:20"
+  },
+  {
+   "fecha": 6,
+   "serie": "SUB13",
+   "local": "CHAYAIHUE",
+   "visita": "ESTOCOLMO",
+   "dia": "DOMINGO",
+   "hora": "14:10"
+  },
+  {
+   "fecha": 6,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "CHAYAIHUE",
+   "visita": "VECINAL",
+   "dia": "DOMINGO",
+   "hora": "16:00"
+  },
+  {
+   "fecha": 6,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "ESTOCOLMO",
+   "visita": "FLAMENGO",
+   "dia": "DOMINGO",
+   "hora": "17:00"
+  },
+  {
+   "fecha": 6,
+   "serie": "PRIMERA_ADULTO",
+   "local": "CHAYAIHUE",
+   "visita": "FLAMENGO",
+   "dia": "DOMINGO",
+   "hora": "18:00"
+  },
+  {
+   "fecha": 6,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "10 DE MARZO",
+   "visita": "J. OVALLE",
    "dia": "DOMINGO",
    "hora": "19:00"
   },
   {
+   "fecha": 6,
+   "serie": "PRIMERA_ADULTO",
+   "local": "10 DE MARZO",
+   "visita": "J. OVALLE",
+   "dia": "DOMINGO",
+   "hora": "20:00"
+  },
+  {
    "fecha": 7,
    "serie": "SUB17",
-   "local": "CHAYAIHUE",
-   "visita": "PLATENSE",
+   "local": "FLAMENGO",
+   "visita": "J. OVALLE",
    "dia": "VIERNES",
    "hora": "19:10"
   },
   {
    "fecha": 7,
    "serie": "SEGUNDA_ADULTO",
-   "local": "ESTOCOLMO",
-   "visita": "VECINAL",
+   "local": "FLAMENGO",
+   "visita": "J. OVALLE",
    "dia": "VIERNES",
    "hora": "20:00"
   },
@@ -1157,30 +1189,22 @@
    "fecha": 7,
    "serie": "PRIMERA_ADULTO",
    "local": "FLAMENGO",
-   "visita": "INDEPENDIENTE",
+   "visita": "J. OVALLE",
    "dia": "VIERNES",
    "hora": "21:00"
   },
   {
    "fecha": 7,
-   "serie": "SUB17",
-   "local": "FLAMENGO",
-   "visita": "INDEPENDIENTE",
-   "dia": "SABADO",
-   "hora": "10:00"
-  },
-  {
-   "fecha": 7,
    "serie": "SUB15",
-   "local": "FLAMENGO",
-   "visita": "INDEPENDIENTE",
+   "local": "BOROA",
+   "visita": "CHAYAIHUE",
    "dia": "SABADO",
-   "hora": "10:50"
+   "hora": "12:30"
   },
   {
    "fecha": 7,
    "serie": "SUB17",
-   "local": "J. OVALLE",
+   "local": "CHAYAIHUE",
    "visita": "SAO PAULO",
    "dia": "SABADO",
    "hora": "13:20"
@@ -1188,24 +1212,24 @@
   {
    "fecha": 7,
    "serie": "SUB15",
-   "local": "10 DE MARZO",
-   "visita": "BOROA",
+   "local": "FLAMENGO",
+   "visita": "VECINAL",
    "dia": "SABADO",
    "hora": "14:10"
   },
   {
    "fecha": 7,
    "serie": "SENIOR",
-   "local": "10 DE MARZO",
-   "visita": "BOROA",
+   "local": "BOROA",
+   "visita": "VECINAL",
    "dia": "SABADO",
    "hora": "15:00"
   },
   {
    "fecha": 7,
    "serie": "SENIOR",
-   "local": "J. OVALLE",
-   "visita": "SAO PAULO",
+   "local": "CHAYAIHUE",
+   "visita": "FLAMENGO",
    "dia": "SABADO",
    "hora": "16:00"
   },
@@ -1213,113 +1237,89 @@
    "fecha": 7,
    "serie": "SENIOR",
    "local": "ESTOCOLMO",
-   "visita": "VECINAL",
+   "visita": "PLATENSE",
+   "dia": "SABADO",
+   "hora": "17:00"
+  },
+  {
+   "fecha": 7,
+   "serie": "SENIOR",
+   "local": "INDEPENDIENTE",
+   "visita": "PICHANGA",
    "dia": "SABADO",
    "hora": "18:00"
   },
   {
    "fecha": 7,
    "serie": "SENIOR",
-   "local": "CHAYAIHUE",
-   "visita": "PICHANGA",
+   "local": "10 DE MARZO",
+   "visita": "SAO PAULO",
    "dia": "SABADO",
    "hora": "19:00"
   },
   {
    "fecha": 7,
    "serie": "SEGUNDA_ADULTO",
-   "local": "CHAYAIHUE",
-   "visita": "PICHANGA",
+   "local": "10 DE MARZO",
+   "visita": "VECINAL",
    "dia": "SABADO",
    "hora": "20:00"
   },
   {
    "fecha": 7,
-   "serie": "PRIMERA_ADULTO",
-   "local": "CHAYAIHUE",
-   "visita": "PICHANGA",
-   "dia": "SABADO",
-   "hora": "21:00"
-  },
-  {
-   "fecha": 7,
    "serie": "SUB13",
-   "local": "FLAMENGO",
-   "visita": "INDEPENDIENTE",
-   "dia": "DOMINGO",
-   "hora": "10:00"
-  },
-  {
-   "fecha": 7,
-   "serie": "SUB13",
-   "local": "ESTOCOLMO",
-   "visita": "VECINAL",
-   "dia": "DOMINGO",
-   "hora": "10:50"
-  },
-  {
-   "fecha": 7,
-   "serie": "SUB15",
-   "local": "ESTOCOLMO",
-   "visita": "VECINAL",
-   "dia": "DOMINGO",
-   "hora": "11:40"
-  },
-  {
-   "fecha": 7,
-   "serie": "SUB15",
-   "local": "CHAYAIHUE",
-   "visita": "PICHANGA",
-   "dia": "DOMINGO",
-   "hora": "12:30"
-  },
-  {
-   "fecha": 7,
-   "serie": "SUB13",
-   "local": "CHAYAIHUE",
-   "visita": "PLATENSE",
+   "local": "BOROA",
+   "visita": "CHAYAIHUE",
    "dia": "DOMINGO",
    "hora": "13:20"
   },
   {
    "fecha": 7,
    "serie": "SUB13",
-   "local": "10 DE MARZO",
-   "visita": "BOROA",
+   "local": "FLAMENGO",
+   "visita": "VECINAL",
    "dia": "DOMINGO",
    "hora": "14:10"
   },
   {
    "fecha": 7,
    "serie": "SEGUNDA_ADULTO",
-   "local": "10 DE MARZO",
-   "visita": "BOROA",
+   "local": "INDEPENDIENTE",
+   "visita": "PICHANGA",
    "dia": "DOMINGO",
    "hora": "16:00"
   },
   {
    "fecha": 7,
    "serie": "PRIMERA_ADULTO",
-   "local": "10 DE MARZO",
-   "visita": "BOROA",
+   "local": "INDEPENDIENTE",
+   "visita": "PICHANGA",
    "dia": "DOMINGO",
    "hora": "17:00"
   },
   {
    "fecha": 7,
    "serie": "SEGUNDA_ADULTO",
-   "local": "J. OVALLE",
+   "local": "ESTOCOLMO",
    "visita": "SAO PAULO",
    "dia": "DOMINGO",
-   "hora": "20:00"
+   "hora": "18:00"
+  },
+  {
+   "fecha": 7,
+   "serie": "SEGUNDA_ADULTO",
+   "local": "BOROA",
+   "visita": "PLATENSE",
+   "dia": "DOMINGO",
+   "hora": "19:00"
   },
   {
    "fecha": 7,
    "serie": "PRIMERA_ADULTO",
-   "local": "J. OVALLE",
-   "visita": "SAO PAULO",
+   "local": "BOROA",
+   "visita": "PLATENSE",
    "dia": "DOMINGO",
-   "hora": "21:00"
+   "hora": "20:00"
   }
  ]
 }
