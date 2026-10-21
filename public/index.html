@@ -1089,7 +1089,48 @@
             const partidosPorGrupo = await Promise.all(grupos.map(g => api(`/partidos?serie=${serieActual}&grupo=${g}`)));
             const libresPorGrupo = await Promise.all(grupos.map(g => api(`/partidos/libres?serie=${serieActual}&grupo=${g}`)));
             partidosPorGrupo.forEach(cachearPartidos);
-            container.innerHTML = grupos.map((g, i) => pintarGrupoPartidos(g, partidosPorGrupo[i], libresPorGrupo[i])).join('');
+            container.innerHTML = pintarFechasVisibles(partidosPorGrupo.flat())
+                + grupos.map((g, i) => pintarGrupoPartidos(g, partidosPorGrupo[i], libresPorGrupo[i])).join('');
+        }
+
+        // La programación se publica semana a semana: el admin elige hasta qué
+        // fecha la ve el público. El filtro lo aplica el servidor; acá solo se
+        // muestra el selector (admin) o el aviso (público).
+        function pintarFechasVisibles(partidos) {
+            const hasta = CAMPEONATO.fechasVisibles;
+            if (!esAdmin()) {
+                return hasta
+                    ? `<p class="text-sm text-white/60 bg-noc-black/40 border border-noc-purple2 rounded p-3">Programación publicada hasta la Fecha ${hasta}. Las fechas siguientes se publican semana a semana.</p>`
+                    : '';
+            }
+            const total = Math.max(0, ...partidos.map(p => p.fecha));
+            if (!total) return '';
+            const opciones = ['<option value="">Todas las fechas</option>']
+                .concat(Array.from({ length: total }, (_, i) => `<option value="${i + 1}" ${hasta === i + 1 ? 'selected' : ''}>Hasta la Fecha ${i + 1}</option>`));
+            return `
+                <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded border ${hasta ? 'border-noc-gold/40 bg-noc-gold/10' : 'border-green-700/60 bg-green-900/20'}">
+                    <div class="min-w-0">
+                        <p class="font-semibold ${hasta ? 'text-noc-goldlight' : 'text-green-300'}">
+                            ${hasta ? `○ El público ve hasta la Fecha ${hasta}` : '● El público ve todas las fechas'}
+                        </p>
+                        <p class="text-xs text-white/50 mt-0.5">Tú ves todas. Vale para todas las series de ${escapeHtml(CAMPEONATO.nombre)}.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <select id="fechas-visibles" class="${CLASE_INPUT} w-auto">${opciones.join('')}</select>
+                        <button onclick="guardarFechasVisibles()" class="bg-green-700 text-white px-4 py-2 rounded shadow hover:bg-green-600 transition shrink-0">Guardar</button>
+                    </div>
+                </div>`;
+        }
+
+        async function guardarFechasVisibles() {
+            const valor = document.getElementById('fechas-visibles').value;
+            const hasta = valor ? Number(valor) : null;
+            try {
+                const actualizado = await api(`/campeonatos/${CAMPEONATO.id}/fechas-visibles`, { method: 'POST', body: JSON.stringify({ hasta }) });
+                CAMPEONATO.fechasVisibles = actualizado.fechasVisibles;
+                mostrarToast(hasta ? `El público ve hasta la Fecha ${hasta}.` : 'El público ve todas las fechas.', 'success');
+                renderPartidos();
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         function pintarGrupoPartidos(grupo, partidos, libres) {

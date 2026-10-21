@@ -101,13 +101,23 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
 - Un campeonato finalizado es de solo lectura (`exigirEditable` en cada escritura) y siempre público.
 - Uno en curso nace oculto (`campeonato_<id>_publico`): para quien no es admin, responde 404.
 - `campeonatos.formato`: `cuartos` (Nocturno 2026, reglas de arriba) o `semis` (Liga Dávila).
+- `campeonato_<id>_fechas_visibles`: hasta qué fecha de la fase de grupos ve el
+  público el fixture (vacío = todas). El filtro es del servidor en `/partidos`
+  y `/partidos/libres`; el admin ve siempre todo. Se publica semana a semana
+  desde el selector de la pestaña Partidos.
 
 ### Clausura 2026 (formato `semis`)
 
 - Series SUB13, SUB15, SUB17, SENIOR, SEGUNDA_ADULTO, PRIMERA_ADULTO, cada una en grupo único (`grupo = 'U'`).
-- Cada equipo juega **6 partidos en 7 fechas y queda libre una**, por sorteo
-  (`server/sorteo.js`, reproducible con semilla). No es todos contra todos.
-  Una fecha por semana desde el viernes 23/10/2026.
+- Cada equipo juega **6 partidos en 7 fechas y queda libre una**. No es todos
+  contra todos. El fixture vigente está en `fixtures/clausura-2026.json` y los
+  horarios en `fixtures/clausura-2026-horarios.json` (se cargan con
+  `reemplazar-fixture-clausura-2026.js` y `programar-horarios-clausura-2026.js`).
+- Cada fecha va de viernes a domingo, con la grilla del estadio: viernes
+  Sub-17, Segunda y Primera; sábado Sub-15/Sub-17 en la mañana, Seniors de 15
+  a 19 h, Segunda y Primera; domingo Sub-13 en la mañana y Segunda y Primera en
+  la tarde. Se busca que un mismo par de clubes juegue seguido (Segunda y
+  Primera, Sub-15 y Sub-17) y que ningún club tenga libres en fechas seguidas.
 - Los 4 primeros van a semifinales (1º-4º, 2º-3º) y después la final, a
   partido único con penales. Mismo puntaje y desempate que arriba.
 - WO: el reglamento de la liga no descalifica (art. 57: 2 seguidos o 3 por

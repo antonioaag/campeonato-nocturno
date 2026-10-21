@@ -2,7 +2,7 @@
 // Clausura 2026, etc.). Siempre hay como máximo un campeonato 'activo' a la
 // vez; el resto queda 'finalizado' y de solo lectura.
 const db = require('./db');
-const { leerBooleano, escribir, claveCampeonatoPublico } = require('./configuracion');
+const { leer, leerBooleano, escribir, claveCampeonatoPublico, claveFechasVisibles } = require('./configuracion');
 
 // Formato de la fase final. Va guardado en el campeonato y no se deduce del
 // nombre de la serie: SENIOR existe en el Nocturno 2026 (3 grupos, cuartos con
@@ -41,6 +41,7 @@ async function completar(c) {
   return {
     ...c,
     publico: await esPublico(c),
+    fechasVisibles: await fechasVisibles(c.id),
     series: series.map(s => ({ serie: s.serie, equipos: Number(s.equipos) })),
   };
 }
@@ -117,6 +118,33 @@ async function deEquipo(equipoId) {
   return fila ? obtenerPorId(fila.id) : null;
 }
 
+// null = todas las fechas a la vista.
+async function fechasVisibles(id) {
+  const valor = await leer(claveFechasVisibles(id));
+  return valor === null || valor === '' ? null : Number(valor);
+}
+
+async function definirFechasVisibles(id, hasta) {
+  const c = await obtenerPorId(id);
+  if (!c) throw error(404, 'Campeonato no encontrado');
+  if (hasta === null || hasta === undefined || hasta === '') {
+    await escribir(claveFechasVisibles(id), '');
+  } else {
+    const n = Number(hasta);
+    if (!Number.isInteger(n) || n < 1 || n > 50) throw error(400, 'La fecha visible debe ser un número entre 1 y 50');
+    await escribir(claveFechasVisibles(id), String(n));
+  }
+  return obtenerPorId(id);
+}
+
+// Para el público, la fase de grupos se muestra solo hasta la fecha
+// publicada. El admin ve siempre todo: arma y revisa las fechas antes de
+// publicarlas.
+function fechaMaximaVisible(campeonato, usuario) {
+  const esAdmin = !!(usuario && usuario.rol === 'admin');
+  return esAdmin ? null : campeonato.fechasVisibles;
+}
+
 async function publicar(id, publico) {
   const c = await obtenerPorId(id);
   if (!c) throw error(404, 'Campeonato no encontrado');
@@ -152,5 +180,5 @@ async function renombrar(id, nombre) {
 
 module.exports = {
   FORMATOS, DEL_CAMPEONATO, LIBRE_DEL_CAMPEONATO, listar, obtenerPorId, obtenerActivo, resolverParaLectura, campeonatoDeLaPeticion,
-  exigirEditable, deEquipo, publicar, crear, finalizar, renombrar,
+  exigirEditable, deEquipo, publicar, definirFechasVisibles, fechaMaximaVisible, crear, finalizar, renombrar,
 };
