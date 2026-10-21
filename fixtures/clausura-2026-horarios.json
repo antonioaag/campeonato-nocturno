@@ -1,5 +1,5 @@
 {
- "comentario": "Día y hora de cada partido de la fase de grupos de Clausura 2026, según el patrón de la asociación: viernes Sub-17, Segunda y Primera del mismo par; sábado Sub-15 y Sub-17 en la mañana, Seniors de 15 a 19 h y Segunda y Primera a las 20 y 21; domingo Sub-13 en la mañana (más Sub-15/Sub-17 que no caben el sábado) y Segunda y Primera seguidas por par en la tarde. Jornada continua, sin horarios vacíos entre partidos. Se cargan con programar-horarios-clausura-2026.js.",
+ "comentario": "Día y hora de cada partido de la fase de grupos de Clausura 2026, según el patrón de la asociación: viernes Sub-17, Segunda y Primera del mismo par; sábado Sub-15 y Sub-17 en la mañana, Seniors de 15 a 19 h y Segunda y Primera a las 20 y 21; domingo Sub-13 en la mañana (más Sub-15/Sub-17 que no caben el sábado) y Segunda y Primera seguidas por par en la tarde. Jornada continua, sin horarios vacíos entre partidos. Se cargan con programar-horarios-clausura-2026.js. La fecha 1 incluye los ajustes de la asociación y la fecha 2 se reprogramó para que nadie repita horario con las fechas 1 y 3.",
  "partidos": [
   {
    "fecha": 1,
@@ -28,14 +28,6 @@
   {
    "fecha": 1,
    "serie": "SUB15",
-   "local": "BOROA",
-   "visita": "FLAMENGO",
-   "dia": "SABADO",
-   "hora": "11:40"
-  },
-  {
-   "fecha": 1,
-   "serie": "SUB15",
    "local": "ESTOCOLMO",
    "visita": "PICHANGA",
    "dia": "SABADO",
@@ -48,14 +40,6 @@
    "visita": "PLATENSE",
    "dia": "SABADO",
    "hora": "13:20"
-  },
-  {
-   "fecha": 1,
-   "serie": "SUB15",
-   "local": "10 DE MARZO",
-   "visita": "INDEPENDIENTE",
-   "dia": "SABADO",
-   "hora": "14:10"
   },
   {
    "fecha": 1,
@@ -119,7 +103,15 @@
    "local": "ESTOCOLMO",
    "visita": "PLATENSE",
    "dia": "DOMINGO",
-   "hora": "12:30"
+   "hora": "10:50"
+  },
+  {
+   "fecha": 1,
+   "serie": "SUB15",
+   "local": "10 DE MARZO",
+   "visita": "INDEPENDIENTE",
+   "dia": "DOMINGO",
+   "hora": "11:40"
   },
   {
    "fecha": 1,
@@ -127,11 +119,19 @@
    "local": "10 DE MARZO",
    "visita": "INDEPENDIENTE",
    "dia": "DOMINGO",
-   "hora": "13:20"
+   "hora": "12:30"
   },
   {
    "fecha": 1,
    "serie": "SUB13",
+   "local": "BOROA",
+   "visita": "FLAMENGO",
+   "dia": "DOMINGO",
+   "hora": "13:20"
+  },
+  {
+   "fecha": 1,
+   "serie": "SUB15",
    "local": "BOROA",
    "visita": "FLAMENGO",
    "dia": "DOMINGO",
@@ -308,32 +308,32 @@
   {
    "fecha": 2,
    "serie": "SUB13",
-   "local": "ESTOCOLMO",
-   "visita": "VECINAL",
-   "dia": "DOMINGO",
-   "hora": "10:50"
-  },
-  {
-   "fecha": 2,
-   "serie": "SUB15",
-   "local": "ESTOCOLMO",
-   "visita": "VECINAL",
-   "dia": "DOMINGO",
-   "hora": "11:40"
-  },
-  {
-   "fecha": 2,
-   "serie": "SUB13",
    "local": "FLAMENGO",
    "visita": "INDEPENDIENTE",
    "dia": "DOMINGO",
-   "hora": "12:30"
+   "hora": "10:50"
   },
   {
    "fecha": 2,
    "serie": "SUB13",
    "local": "BOROA",
    "visita": "PLATENSE",
+   "dia": "DOMINGO",
+   "hora": "11:40"
+  },
+  {
+   "fecha": 2,
+   "serie": "SUB13",
+   "local": "ESTOCOLMO",
+   "visita": "VECINAL",
+   "dia": "DOMINGO",
+   "hora": "12:30"
+  },
+  {
+   "fecha": 2,
+   "serie": "SUB15",
+   "local": "ESTOCOLMO",
+   "visita": "VECINAL",
    "dia": "DOMINGO",
    "hora": "13:20"
   },
@@ -356,32 +356,32 @@
   {
    "fecha": 2,
    "serie": "SEGUNDA_ADULTO",
-   "local": "CHAYAIHUE",
-   "visita": "J. OVALLE",
+   "local": "FLAMENGO",
+   "visita": "VECINAL",
    "dia": "DOMINGO",
    "hora": "17:00"
   },
   {
    "fecha": 2,
    "serie": "PRIMERA_ADULTO",
-   "local": "CHAYAIHUE",
-   "visita": "J. OVALLE",
+   "local": "10 DE MARZO",
+   "visita": "FLAMENGO",
    "dia": "DOMINGO",
    "hora": "18:00"
   },
   {
    "fecha": 2,
    "serie": "SEGUNDA_ADULTO",
-   "local": "FLAMENGO",
-   "visita": "VECINAL",
+   "local": "CHAYAIHUE",
+   "visita": "J. OVALLE",
    "dia": "DOMINGO",
    "hora": "19:00"
   },
   {
    "fecha": 2,
    "serie": "PRIMERA_ADULTO",
-   "local": "10 DE MARZO",
-   "visita": "FLAMENGO",
+   "local": "CHAYAIHUE",
+   "visita": "J. OVALLE",
    "dia": "DOMINGO",
    "hora": "20:00"
   },
