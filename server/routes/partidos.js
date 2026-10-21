@@ -51,6 +51,32 @@ router.get('/', authOpcional, campeonatos.campeonatoDeLaPeticion, asyncHandler(a
   res.json(partidos);
 }));
 
+// Todas las series de la fase de grupos juntas, para la portada "Esta fecha":
+// en Liga Dávila un club juega varias series el mismo fin de semana y el
+// público lo busca por fecha, no por serie. Respeta las fechas publicadas.
+router.get('/jornada', authOpcional, campeonatos.campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
+  const condiciones = ['l.campeonato_id = ?', "p.fase = 'grupos'"];
+  const params = [req.campeonato.id];
+  const hasta = campeonatos.fechaMaximaVisible(req.campeonato, req.usuario);
+  if (hasta) { condiciones.push('p.fecha <= ?'); params.push(hasta); }
+  const partidos = await db.all(
+    `${SELECT_PARTIDOS} WHERE ${condiciones.join(' AND ')} ORDER BY p.fecha, p.fecha_partido, p.hora, p.id`,
+    params
+  );
+
+  const condLibres = ['e.campeonato_id = ?'];
+  const paramsLibres = [req.campeonato.id];
+  if (hasta) { condLibres.push('b.fecha <= ?'); paramsLibres.push(hasta); }
+  const libres = await db.all(`
+    SELECT b.serie, b.fecha, e.nombre
+    FROM byes b JOIN equipos e ON e.id = b.equipo_id
+    WHERE ${condLibres.join(' AND ')}
+    ORDER BY b.fecha, b.serie, e.nombre
+  `, paramsLibres);
+
+  res.json({ partidos, libres, fechasVisibles: req.campeonato.fechasVisibles });
+}));
+
 router.get('/libres', authOpcional, campeonatos.campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
   const { grupo, fecha } = req.query;
   const serie = req.query.serie || 'ADULTO';
