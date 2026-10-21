@@ -7,8 +7,11 @@
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
+            /* Color base debajo del degradado: sin esto, en páginas largas el
+               fondo se corta y aparece blanco donde termina el degradado. */
+            background-color: #08050c;
             background:
-                radial-gradient(ellipse at top, #3d1656 0%, #2a0e3c 35%, #0d0614 75%, #08050c 100%) fixed;
+                radial-gradient(ellipse at top, #3d1656 0%, #2a0e3c 35%, #0d0614 75%, #08050c 100%) fixed #08050c;
         }
         .tab-btn.active { border-bottom: 4px solid #e8952a; color: #f0d285; font-weight: bold; }
         .badge { display:inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
@@ -168,6 +171,67 @@
         }
         .modal-close:hover { color: #f0d285; }
         .modal-hidden { display: none; }
+
+        /* En el celular las pestañas van en una sola fila que se desliza, en
+           vez de ocupar dos filas fijas que tapan el contenido. */
+        @media (max-width: 640px) {
+            nav { flex-wrap: nowrap !important; overflow-x: auto; justify-content: flex-start !important; }
+            nav .tab-btn { white-space: nowrap; flex-shrink: 0; }
+        }
+
+        /* --- Vista "Esta fecha" --- */
+        .ef-cab { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+        .ef-cab h3 { font-size:1.6rem; font-weight:900; line-height:1.1; }
+        .ef-cab p { color:rgba(255,255,255,.6); font-size:.9rem; margin-top:2px; }
+        .ef-nav { display:flex; gap:8px; }
+        .ef-nav button { width:40px; height:40px; border-radius:10px; background:rgba(255,255,255,.08); color:#fff; font-weight:900; font-size:1.1rem; }
+        .ef-nav button:disabled { opacity:.25; cursor:not-allowed; }
+        .ef-top { display:grid; gap:16px; grid-template-columns:1fr; margin-bottom:22px; }
+        @media (min-width: 900px) { .ef-top { grid-template-columns: 1.1fr 1fr; } }
+        .ef-panel { border-radius:18px; padding:18px; background:rgba(21,10,32,.88); border:1px solid #3d1656; min-width:0; }
+        .ef-prox { background:linear-gradient(160deg, rgba(232,149,42,.25), rgba(61,22,86,.92)); border-color:rgba(240,210,133,.35); }
+        .ef-etq { color:#f0d285; font-weight:800; letter-spacing:.14em; text-transform:uppercase; font-size:.7rem; }
+        .ef-match { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; margin-top:14px; }
+        .ef-lado { display:flex; flex-direction:column; align-items:center; gap:8px; font-weight:800; text-align:center; min-width:0; overflow-wrap:break-word; }
+        @media (max-width: 420px) { .ef-match .ef-lado { font-size:.85rem; } .ef-centro b { font-size:1.6rem; } }
+        .ef-centro { text-align:center; }
+        .ef-centro b { display:block; font-size:2rem; font-weight:900; line-height:1; }
+        .ef-centro span { color:rgba(255,255,255,.6); font-size:.75rem; }
+        .ef-cuenta { display:flex; gap:8px; justify-content:center; margin-top:14px; }
+        .ef-cuenta div { background:rgba(0,0,0,.35); border-radius:10px; padding:6px 10px; text-align:center; min-width:58px; }
+        .ef-cuenta b { display:block; font-size:1.35rem; }
+        .ef-cuenta span { font-size:.6rem; color:rgba(255,255,255,.6); text-transform:uppercase; }
+        .ef-esc { width:32px; height:32px; object-fit:contain; background:#fff; border-radius:7px; padding:2px; flex-shrink:0; }
+        .ef-esc-xl { width:64px; height:64px; border-radius:14px; padding:5px; }
+        .ef-esc-lg { width:52px; height:52px; border-radius:12px; padding:4px; }
+        .ef-clubes { display:flex; gap:10px; overflow-x:auto; padding:6px 2px 8px; margin-top:8px; }
+        .ef-club { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:.7rem; min-width:62px; opacity:.55; background:none; color:#fff; }
+        .ef-club.on { opacity:1; }
+        .ef-club.on .ef-esc { outline:3px solid #e8952a; outline-offset:2px; }
+        .ef-fila { display:flex; align-items:center; gap:12px; padding:9px 0; border-top:1px solid rgba(255,255,255,.07); }
+        .ef-fila:first-child { border-top:0; }
+        .ef-izq { display:flex; flex-direction:column; align-items:flex-start; gap:4px; min-width:78px; }
+        .ef-hora { font-weight:900; color:#f0d285; font-variant-numeric:tabular-nums; }
+        .ef-der { display:flex; flex-direction:column; gap:4px; min-width:0; }
+        .ef-eq { display:flex; align-items:center; gap:8px; font-weight:600; font-size:.9rem; }
+        .ef-eq .ef-esc { width:24px; height:24px; border-radius:6px; }
+        .ef-dia { font-size:.8rem; letter-spacing:.14em; text-transform:uppercase; color:#f0d285; font-weight:800; margin:22px 0 10px; }
+        .ef-duelos { display:grid; gap:14px; grid-template-columns:1fr; }
+        @media (min-width: 640px) { .ef-duelos { grid-template-columns:repeat(2, 1fr); } }
+        @media (min-width: 1000px) { .ef-duelos { grid-template-columns:repeat(3, 1fr); } }
+        .ef-duelo { background:rgba(21,10,32,.88); border:1px solid #3d1656; border-radius:16px; padding:14px; min-width:0; }
+        .ef-duelo.mio { border-color:#e8952a; box-shadow:0 0 0 1px #e8952a inset; }
+        .ef-cara { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; }
+        .ef-cara .ef-lado { font-size:.85rem; font-weight:700; }
+        .ef-vs { font-size:1.3rem; font-weight:900; color:#e8952a; }
+        .ef-series { list-style:none; margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,.08); display:flex; flex-direction:column; gap:7px; }
+        .ef-series li { display:flex; align-items:center; gap:10px; }
+        .ef-marcador { margin-left:auto; font-weight:900; font-variant-numeric:tabular-nums; }
+        .ef-chip { display:inline-block; font-size:.65rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:3px 8px; border-radius:999px; color:#08050c; white-space:nowrap; }
+        .ef-SUB13 { background:#38bdf8; } .ef-SUB15 { background:#34d399; } .ef-SUB17 { background:#a3e635; }
+        .ef-SENIOR { background:#f472b6; } .ef-SEGUNDA_ADULTO { background:#f0d285; } .ef-PRIMERA_ADULTO { background:#e8952a; }
+        .ef-libres { margin-top:22px; padding:12px 14px; border-radius:14px; background:rgba(255,255,255,.05); font-size:.85rem; color:rgba(255,255,255,.65); line-height:1.7; }
+        .ef-libres b { color:#fff; }
     </style>
 </head>
 <body class="text-white font-sans min-h-screen">
@@ -203,6 +267,7 @@
 
     <!-- Navegación por Pestañas -->
     <nav class="bg-noc-dark shadow flex justify-center flex-wrap gap-1 px-4 py-2 sticky top-0 z-10 border-b border-noc-purple2">
+        <button id="btn-inicio" data-tab="tab-inicio" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition hidden">Esta fecha</button>
         <button id="btn-equipos" data-tab="tab-equipos" class="tab-btn active px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Equipos</button>
         <button id="btn-partidos" data-tab="tab-partidos" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition">Partidos</button>
         <button id="btn-eliminatorias" data-tab="tab-eliminatorias" class="tab-btn px-4 py-2 text-white/70 hover:text-white hover:bg-noc-purple rounded-t-lg transition hidden">Eliminatorias</button>
@@ -216,6 +281,11 @@
     <main class="container mx-auto p-4 max-w-5xl">
 
         <!-- Pestaña: Equipos -->
+        <!-- Pestaña: Esta fecha (todas las series juntas, para el público) -->
+        <section id="tab-inicio" class="hidden">
+            <div id="inicio-container"><p class="text-white/50 italic">Cargando...</p></div>
+        </section>
+
         <section id="tab-equipos" class="bg-noc-dark/80 p-6 rounded-lg shadow-md border border-noc-purple2">
             <h3 class="text-2xl font-bold mb-4 border-b border-noc-purple2 pb-2 text-noc-goldlight">Gestión de Equipos</h3>
             <p id="equipos-descripcion" class="text-sm text-white/60 mb-4"></p>
@@ -776,7 +846,18 @@
                 ? series.map(x => `<button id="serie-btn-${x}" onclick="cambiarSerie('${x}')" class="serie-btn px-5 py-2 rounded-full font-bold uppercase tracking-wide text-sm transition">${escapeHtml(NOMBRE_SERIE[x] || x)}</button>`).join('')
                 : '<span class="text-sm text-white/50">Este campeonato todavía no tiene equipos inscritos.</span>';
             if (!series.includes(serieActual)) serieActual = series[0] || null;
-            if (serieActual) cambiarSerie(serieActual);
+            // "Esta fecha" es la portada de un campeonato en curso; uno
+            // finalizado ya no tiene fechas por jugar y abre en Equipos.
+            const conInicio = c.estado === 'activo' && series.length > 0;
+            document.getElementById('btn-inicio').classList.toggle('hidden', !conInicio);
+            if (conInicio) tabActual = 'tab-inicio';
+            else if (tabActual === 'tab-inicio') tabActual = 'tab-equipos';
+            INICIO.fecha = null;
+            if (serieActual) {
+                document.querySelectorAll('.serie-btn').forEach(b => b.classList.toggle('active', b.id === 'serie-btn-' + serieActual));
+                actualizarVisibilidadPestanas();
+                showTab(tabActual);
+            }
         }
 
         function campeonatoEditable() {
@@ -948,6 +1029,8 @@
             const btnId = 'btn-' + tabId.split('-')[1];
             const btn = document.getElementById(btnId);
             if (btn) btn.classList.add('active');
+            const selector = document.getElementById('selector-series');
+            if (selector) selector.classList.toggle('hidden', tabId === 'tab-inicio');
             mostrarTabActual();
         }
         function mostrarTabActual() {
@@ -955,6 +1038,7 @@
             // ejemplo, al salir de la sesión, para esconder lo que es solo del admin).
             if (!CAMPEONATO) { mostrarPortada(); return; }
             if (!serieActual && tabActual !== 'tab-usuarios') return;
+            if (tabActual === 'tab-inicio') renderInicio();
             if (tabActual === 'tab-equipos') renderEquipos();
             if (tabActual === 'tab-partidos') renderPartidos();
             if (tabActual === 'tab-eliminatorias') renderPlayoffs();
@@ -963,6 +1047,226 @@
             if (tabActual === 'tab-castigados') renderCastigados();
             if (tabActual === 'tab-resoluciones') renderResoluciones();
             if (tabActual === 'tab-usuarios') { if (esAdmin()) renderUsuarios(); else showTab('tab-equipos'); }
+        }
+
+        // --- 2b. ESTA FECHA ---
+        // Portada de un campeonato en curso: todas las series juntas, porque
+        // en Liga Dávila un club juega varias series el mismo fin de semana y
+        // el hincha busca "qué juega mi club", no "qué pasa en la Sub-15".
+        // Lee de PARTIDOS_CACHE / del servidor, nunca del DOM.
+        const INICIO = { fecha: null, club: null, datos: null, reloj: null };
+        try { INICIO.club = localStorage.getItem('ld_club') || null; } catch (e) { INICIO.club = null; }
+
+        const NOMBRE_SERIE_CORTO = { SUB13: 'Sub-13', SUB15: 'Sub-15', SUB17: 'Sub-17', SENIOR: 'Seniors', SEGUNDA_ADULTO: 'Segunda', PRIMERA_ADULTO: 'Primera', ADULTO: 'Adultos' };
+        const DIAS_LARGOS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+        // "10 DE MARZO" -> "10 de Marzo": más amable de leer en tarjetas grandes.
+        function nombreClub(n) {
+            return String(n).split(' ').map(w => w === 'DE' ? 'de' : (w.length > 2 ? w[0] + w.slice(1).toLowerCase() : w)).join(' ');
+        }
+        function escudoEf(nombre, extra) {
+            return `<img src="/escudos/${slugEscudo(nombre)}.png" alt="" class="ef-esc ${extra || ''}" onerror="this.style.visibility='hidden'">`;
+        }
+        function chipSerie(s) {
+            return `<span class="ef-chip ef-${s}">${escapeHtml(NOMBRE_SERIE_CORTO[s] || s)}</span>`;
+        }
+        // 'YYYY-MM-DD' -> { largo: 'Sábado 24 oct', corto: 'sáb 24/10' }
+        function diaLegible(iso) {
+            const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+            if (!m) return { largo: iso || 'Sin día', corto: iso || '' };
+            const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+            return { largo: `${DIAS_LARGOS[d.getUTCDay()]} ${+m[3]} ${MESES[+m[2] - 1]}`, corto: formatearDia(iso) };
+        }
+        // Hora local del navegador: el público está en Chile, igual que la cancha.
+        function momentoDe(p) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(p.fechaPartido || '') || !/^\d{1,2}:\d{2}/.test(p.hora || '')) return null;
+            return new Date(`${p.fechaPartido}T${p.hora.slice(0, 5).padStart(5, '0')}:00`);
+        }
+        const ordenPartido = (a, b) => `${a.fechaPartido || ''} ${a.hora || ''}`.localeCompare(`${b.fechaPartido || ''} ${b.hora || ''}`);
+        const juega = (p, club) => p.local === club || p.visita === club;
+
+        // La fecha "actual" es la primera que todavía tiene partidos por jugar;
+        // si ya se jugó todo, la última.
+        function fechaActual(partidos) {
+            const fechas = [...new Set(partidos.map(p => p.fecha))].sort((a, b) => a - b);
+            const pendiente = fechas.find(f => partidos.some(p => p.fecha === f && p.estado !== 'jugado'));
+            return pendiente || fechas[fechas.length - 1];
+        }
+
+        async function renderInicio() {
+            const cont = document.getElementById('inicio-container');
+            try {
+                INICIO.datos = await api('/partidos/jornada');
+            } catch (e) {
+                cont.innerHTML = `<p class="text-red-400">${escapeHtml(e.message)}</p>`;
+                return;
+            }
+            const { partidos } = INICIO.datos;
+            cachearPartidos(partidos);
+            if (!partidos.length) {
+                cont.innerHTML = '<p class="text-white/50 italic">Todavía no hay partidos programados.</p>';
+                return;
+            }
+            const fechas = [...new Set(partidos.map(p => p.fecha))];
+            if (!fechas.includes(INICIO.fecha)) INICIO.fecha = fechaActual(partidos);
+            pintarInicio();
+        }
+
+        function cambiarFechaInicio(delta) {
+            const fechas = [...new Set(INICIO.datos.partidos.map(p => p.fecha))].sort((a, b) => a - b);
+            const i = fechas.indexOf(INICIO.fecha) + delta;
+            if (i < 0 || i >= fechas.length) return;
+            INICIO.fecha = fechas[i];
+            pintarInicio();
+        }
+
+        function elegirClub(club) {
+            INICIO.club = INICIO.club === club ? null : club;
+            try {
+                if (INICIO.club) localStorage.setItem('ld_club', INICIO.club); else localStorage.removeItem('ld_club');
+            } catch (e) { /* sin almacenamiento: la elección dura lo que la visita */ }
+            pintarInicio();
+        }
+
+        function pintarInicio() {
+            const { partidos, libres } = INICIO.datos;
+            const f = INICIO.fecha;
+            const fechas = [...new Set(partidos.map(p => p.fecha))].sort((a, b) => a - b);
+            const deLaFecha = partidos.filter(p => p.fecha === f).sort(ordenPartido);
+            const dias = [...new Set(deLaFecha.map(p => p.fechaPartido).filter(Boolean))].sort();
+            const rango = dias.length ? (dias.length === 1 ? diaLegible(dias[0]).largo : `${diaLegible(dias[0]).largo} al ${diaLegible(dias[dias.length - 1]).largo}`) : '';
+            const clubes = [...new Set(partidos.flatMap(p => [p.local, p.visita]))].sort((a, b) => a.localeCompare(b));
+            if (INICIO.club && !clubes.includes(INICIO.club)) INICIO.club = null;
+
+            const cabecera = `
+                <div class="ef-cab">
+                    <div>
+                        <p class="ef-etq">${escapeHtml(CAMPEONATO.nombre)}</p>
+                        <h3>Fecha ${f}</h3>
+                        <p>${escapeHtml(rango)} · ${deLaFecha.length} partidos</p>
+                    </div>
+                    <div class="ef-nav">
+                        <button onclick="cambiarFechaInicio(-1)" ${fechas.indexOf(f) <= 0 ? 'disabled' : ''} aria-label="Fecha anterior">‹</button>
+                        <button onclick="cambiarFechaInicio(1)" ${fechas.indexOf(f) >= fechas.length - 1 ? 'disabled' : ''} aria-label="Fecha siguiente">›</button>
+                    </div>
+                </div>`;
+
+            document.getElementById('inicio-container').innerHTML = cabecera
+                + `<div class="ef-top">${pintarProximo(partidos)}${pintarTuClub(clubes, deLaFecha, libres.filter(l => l.fecha === f))}</div>`
+                + pintarDuelos(deLaFecha)
+                + pintarLibresFecha(libres.filter(l => l.fecha === f))
+                + (CAMPEONATO.fechasVisibles && !esAdmin()
+                    ? `<p class="text-xs text-white/40 mt-4">Programación publicada hasta la Fecha ${CAMPEONATO.fechasVisibles}. Las siguientes se publican semana a semana.</p>`
+                    : '');
+            iniciarCuentaRegresiva();
+        }
+
+        // Próximo partido: del club elegido si hay uno, si no del campeonato.
+        function pintarProximo(partidos) {
+            const ahora = new Date();
+            const candidatos = partidos
+                .filter(p => p.estado !== 'jugado' && (!INICIO.club || juega(p, INICIO.club)))
+                .map(p => ({ p, t: momentoDe(p) }))
+                .filter(x => x.t && x.t >= ahora)
+                .sort((a, b) => a.t - b.t);
+            const prox = candidatos[0];
+            if (!prox) {
+                return `<div class="ef-panel ef-prox"><p class="ef-etq">Próximo partido</p><p class="text-white/60 mt-3">${INICIO.club ? `${escapeHtml(nombreClub(INICIO.club))} no tiene partidos programados por ahora.` : 'No hay partidos programados por ahora.'}</p></div>`;
+            }
+            const p = prox.p;
+            return `
+                <div class="ef-panel ef-prox">
+                    <p class="ef-etq">Próximo partido${INICIO.club ? ' de ' + escapeHtml(nombreClub(INICIO.club)) : ''} · ${escapeHtml(NOMBRE_SERIE_CORTO[p.serie] || p.serie)}</p>
+                    <div class="ef-match">
+                        <div class="ef-lado">${escudoEf(p.local, 'ef-esc-xl')}${escapeHtml(nombreClub(p.local))}</div>
+                        <div class="ef-centro"><b>${escapeHtml(p.hora.slice(0, 5))}</b><span>${escapeHtml(diaLegible(p.fechaPartido).largo)}</span></div>
+                        <div class="ef-lado">${escudoEf(p.visita, 'ef-esc-xl')}${escapeHtml(nombreClub(p.visita))}</div>
+                    </div>
+                    <div class="ef-cuenta" data-objetivo="${prox.t.getTime()}"></div>
+                </div>`;
+        }
+
+        function iniciarCuentaRegresiva() {
+            if (INICIO.reloj) clearInterval(INICIO.reloj);
+            const pintar = () => {
+                const el = document.querySelector('.ef-cuenta[data-objetivo]');
+                if (!el) { clearInterval(INICIO.reloj); return; }
+                const ms = Number(el.dataset.objetivo) - Date.now();
+                if (ms <= 0) { el.innerHTML = '<div><b>¡Ya!</b><span>en juego</span></div>'; return; }
+                const d = Math.floor(ms / 86400000), h = Math.floor(ms / 3600000) % 24, m = Math.floor(ms / 60000) % 60;
+                el.innerHTML = `<div><b>${d}</b><span>días</span></div><div><b>${String(h).padStart(2, '0')}</b><span>horas</span></div><div><b>${String(m).padStart(2, '0')}</b><span>min</span></div>`;
+            };
+            pintar();
+            INICIO.reloj = setInterval(pintar, 30000);
+        }
+
+        function pintarTuClub(clubes, deLaFecha, libresFecha) {
+            const selector = `<div class="ef-clubes">${clubes.map(c => `
+                <button class="ef-club ${c === INICIO.club ? 'on' : ''}" onclick="elegirClub(${escapeHtml(JSON.stringify(c))})">${escudoEf(c, 'ef-esc-lg')}<span>${escapeHtml(nombreClub(c))}</span></button>`).join('')}</div>`;
+            let cuerpo;
+            if (!INICIO.club) {
+                cuerpo = '<p class="text-sm text-white/60 mt-2">Toca el escudo de tu club para ver todos sus partidos de la fecha.</p>';
+            } else {
+                const mios = deLaFecha.filter(p => juega(p, INICIO.club));
+                const susLibres = libresFecha.filter(l => l.nombre === INICIO.club).map(l => NOMBRE_SERIE_CORTO[l.serie] || l.serie);
+                cuerpo = (mios.length
+                    ? mios.map(p => `
+                        <div class="ef-fila">
+                            <div class="ef-izq"><span class="ef-hora">${p.estado === 'jugado' ? `${p.golesLocal}-${p.golesVisita}` : escapeHtml((p.hora || '').slice(0, 5))}</span>${chipSerie(p.serie)}</div>
+                            <div class="ef-der">
+                                <span class="text-xs text-white/50">${escapeHtml(diaLegible(p.fechaPartido).largo)}</span>
+                                <span class="ef-eq">${escudoEf(p.local)}${escapeHtml(nombreClub(p.local))}</span>
+                                <span class="ef-eq">${escudoEf(p.visita)}${escapeHtml(nombreClub(p.visita))}</span>
+                            </div>
+                        </div>`).join('')
+                    : '<p class="text-sm text-white/60 mt-2">No juega esta fecha.</p>')
+                    + (susLibres.length ? `<p class="text-xs text-white/50 mt-2">Libre esta fecha en: ${escapeHtml(susLibres.join(', '))}</p>` : '');
+            }
+            return `<div class="ef-panel"><p class="ef-etq">Tu club</p>${selector}${cuerpo}</div>`;
+        }
+
+        // Una tarjeta por cruce de clubes y día: el patrón de la liga es que
+        // un mismo par juegue varias series seguidas, y así se ve de un vistazo.
+        function pintarDuelos(deLaFecha) {
+            const dias = [...new Set(deLaFecha.map(p => p.fechaPartido || ''))].sort();
+            return dias.map(dia => {
+                const delDia = deLaFecha.filter(p => (p.fechaPartido || '') === dia);
+                const duelos = new Map();
+                delDia.forEach(p => {
+                    const k = [p.local, p.visita].sort().join('|');
+                    if (!duelos.has(k)) duelos.set(k, []);
+                    duelos.get(k).push(p);
+                });
+                const tarjetas = [...duelos.values()].map(lista => {
+                    const [a, b] = [lista[0].local, lista[0].visita];
+                    const mio = INICIO.club && (a === INICIO.club || b === INICIO.club);
+                    return `
+                        <article class="ef-duelo ${mio ? 'mio' : ''}">
+                            <div class="ef-cara">
+                                <div class="ef-lado">${escudoEf(a, 'ef-esc-lg')}${escapeHtml(nombreClub(a))}</div>
+                                <div class="ef-vs">VS</div>
+                                <div class="ef-lado">${escudoEf(b, 'ef-esc-lg')}${escapeHtml(nombreClub(b))}</div>
+                            </div>
+                            <ul class="ef-series">${lista.map(p => `
+                                <li>
+                                    <span class="ef-hora">${escapeHtml((p.hora || '--:--').slice(0, 5))}</span>${chipSerie(p.serie)}
+                                    ${p.estado === 'jugado'
+                                        ? `<span class="ef-marcador">${p.local === a ? `${p.golesLocal} - ${p.golesVisita}` : `${p.golesVisita} - ${p.golesLocal}`}</span>`
+                                        : (p.estado === 'aplazado' ? '<span class="ef-marcador text-red-300 text-xs">Aplazado</span>' : '')}
+                                </li>`).join('')}
+                            </ul>
+                        </article>`;
+                }).join('');
+                return `<p class="ef-dia">${escapeHtml(diaLegible(dia).largo)}</p><div class="ef-duelos">${tarjetas}</div>`;
+            }).join('');
+        }
+
+        function pintarLibresFecha(libresFecha) {
+            if (!libresFecha.length) return '';
+            const porSerie = {};
+            libresFecha.forEach(l => (porSerie[l.serie] = porSerie[l.serie] || []).push(nombreClub(l.nombre)));
+            return `<div class="ef-libres">Libres esta fecha: ${Object.entries(porSerie).map(([s, l]) => `<b>${escapeHtml(NOMBRE_SERIE_CORTO[s] || s)}</b> ${escapeHtml(l.join(', '))}`).join(' · ')}</div>`;
         }
 
         // --- 3. EQUIPOS ---
