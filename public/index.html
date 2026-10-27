@@ -1083,14 +1083,17 @@
             if (!/^\d{4}-\d{2}-\d{2}$/.test(p.fechaPartido || '') || !/^\d{1,2}:\d{2}/.test(p.hora || '')) return null;
             return new Date(`${p.fechaPartido}T${p.hora.slice(0, 5).padStart(5, '0')}:00`);
         }
-        const ordenPartido = (a, b) => `${a.fechaPartido || ''} ${a.hora || ''}`.localeCompare(`${b.fechaPartido || ''} ${b.hora || ''}`);
+        // Los que no tienen día (aplazados por reprogramar) van al final.
+        const ordenPartido = (a, b) => (!a.fechaPartido) - (!b.fechaPartido)
+            || `${a.fechaPartido || ''} ${a.hora || ''}`.localeCompare(`${b.fechaPartido || ''} ${b.hora || ''}`);
         const juega = (p, club) => p.local === club || p.visita === club;
 
         // La fecha "actual" es la primera que todavía tiene partidos por jugar;
-        // si ya se jugó todo, la última.
+        // si ya se jugó todo, la última. Un aplazado no cuenta: si no, la
+        // portada quedaría pegada en esa fecha hasta que se reprograme.
         function fechaActual(partidos) {
             const fechas = [...new Set(partidos.map(p => p.fecha))].sort((a, b) => a - b);
-            const pendiente = fechas.find(f => partidos.some(p => p.fecha === f && p.estado !== 'jugado'));
+            const pendiente = fechas.find(f => partidos.some(p => p.fecha === f && p.estado === 'programado'));
             return pendiente || fechas[fechas.length - 1];
         }
 
@@ -1215,7 +1218,7 @@
                         <div class="ef-fila">
                             <div class="ef-izq"><span class="ef-hora">${p.estado === 'jugado' ? `${p.golesLocal}-${p.golesVisita}` : escapeHtml((p.hora || '').slice(0, 5))}</span>${chipSerie(p.serie)}</div>
                             <div class="ef-der">
-                                <span class="text-xs text-white/50">${escapeHtml(diaLegible(p.fechaPartido).largo)}</span>
+                                <span class="text-xs text-white/50">${escapeHtml(p.fechaPartido ? diaLegible(p.fechaPartido).largo : (p.estado === 'aplazado' ? 'Aplazado · por reprogramar' : 'Sin día'))}</span>
                                 <span class="ef-eq">${escudoEf(p.local)}${escapeHtml(nombreClub(p.local))}</span>
                                 <span class="ef-eq">${escudoEf(p.visita)}${escapeHtml(nombreClub(p.visita))}</span>
                             </div>
@@ -1229,7 +1232,8 @@
         // Una tarjeta por cruce de clubes y día: el patrón de la liga es que
         // un mismo par juegue varias series seguidas, y así se ve de un vistazo.
         function pintarDuelos(deLaFecha) {
-            const dias = [...new Set(deLaFecha.map(p => p.fechaPartido || ''))].sort();
+            // Los que quedaron sin día (aplazados a la espera de nueva fecha) van al final.
+            const dias = [...new Set(deLaFecha.map(p => p.fechaPartido || ''))].sort((a, b) => (!a) - (!b) || a.localeCompare(b));
             return dias.map(dia => {
                 const delDia = deLaFecha.filter(p => (p.fechaPartido || '') === dia);
                 const duelos = new Map();
@@ -1258,7 +1262,7 @@
                             </ul>
                         </article>`;
                 }).join('');
-                return `<p class="ef-dia">${escapeHtml(diaLegible(dia).largo)}</p><div class="ef-duelos">${tarjetas}</div>`;
+                return `<p class="ef-dia">${escapeHtml(dia ? diaLegible(dia).largo : 'Por reprogramar')}</p><div class="ef-duelos">${tarjetas}</div>`;
             }).join('');
         }
 

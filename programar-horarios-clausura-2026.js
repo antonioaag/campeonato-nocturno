@@ -12,6 +12,10 @@
  * juegue lo más agrupado posible (pocos días y sin horarios salteados).
  *
  * Solo cambia fecha_partido y hora: no toca equipos, rivales ni resultados.
+ * La excepción son los marcados "pendiente" (suspendidos sin nueva fecha):
+ * quedan como aplazados y sin día ni hora, para que nadie los lea como
+ * programados en el horario que tenían. Al reprogramarlos se les quita la
+ * marca en el archivo y se vuelven a 'programado' desde la web.
  * Si algún partido del archivo no existe en la base (por ejemplo, porque
  * todavía está cargado el fixture anterior), no guarda nada.
  */
@@ -58,12 +62,18 @@ async function main() {
   for (const p of [...partidos].sort((a, b) => a.fecha - b.fecha)) {
     const enLaBase = porClave.get(clave(p.serie, p.fecha, p.local, p.visita));
     if (enLaBase.estado === 'jugado') { jugados++; continue; }
+    if (p.fecha !== fechaActual) { fechaActual = p.fecha; console.log(`Fecha ${p.fecha}`); }
+    if (p.pendiente) {
+      sentencias.push({ sql: "UPDATE partidos SET fecha_partido = NULL, hora = NULL, estado = 'aplazado' WHERE id = ?", args: [enLaBase.id] });
+      console.log(`  PENDIENTE         ${p.serie.padEnd(15)} ${p.local} vs ${p.visita}  (era ${p.dia.toLowerCase()} ${p.hora})`);
+      continue;
+    }
     const dia = sumarDias(PRIMER_VIERNES, (p.fecha - 1) * 7 + DESDE_VIERNES[p.dia]);
     sentencias.push({ sql: 'UPDATE partidos SET fecha_partido = ?, hora = ? WHERE id = ?', args: [dia, p.hora, enLaBase.id] });
-    if (p.fecha !== fechaActual) { fechaActual = p.fecha; console.log(`Fecha ${p.fecha}`); }
     console.log(`  ${dia} ${p.hora}  ${p.serie.padEnd(15)} ${p.local} vs ${p.visita}`);
   }
-  console.log(`\n${sentencias.length} partidos a programar${jugados ? `, ${jugados} ya jugados quedan como están` : ''}.`);
+  const pendientes = partidos.filter(p => p.pendiente && porClave.get(clave(p.serie, p.fecha, p.local, p.visita)).estado !== 'jugado').length;
+  console.log(`\n${sentencias.length - pendientes} partidos a programar${pendientes ? `, ${pendientes} pendientes quedan aplazados sin día` : ''}${jugados ? `, ${jugados} ya jugados quedan como están` : ''}.`);
 
   if (!aplicar) return;
   await db.batch(sentencias);
