@@ -1,5 +1,5 @@
 {
- "comentario": "Día y hora de cada partido de la fase de grupos de Clausura 2026, según el patrón de la asociación: viernes Sub-17, Segunda y Primera del mismo par; sábado Sub-15 y Sub-17 en la mañana, Seniors de 15 a 19 h y Segunda y Primera a las 20 y 21; domingo Sub-13 en la mañana (más Sub-15/Sub-17 que no caben el sábado) y Segunda y Primera seguidas por par en la tarde. Jornada continua, sin horarios vacíos entre partidos. Se cargan con programar-horarios-clausura-2026.js. La fecha 1 incluye los ajustes de la asociación, la fecha 2 también y en la fecha 3 se intercambiaron dos horarios del Sub-13 para que nadie repita horario con la fecha 2. Los marcados \"pendiente\" se suspendieron (problemas municipales en la fecha 2: dos de Seniors el sábado, y el Sub-13 10 de Marzo-Chayaihue y la Segunda 10 de Marzo-Estocolmo el domingo): conservan el horario que tenían como referencia, pero se cargan como aplazados y sin día ni hora hasta que la asociación los reprograme.",
+ "comentario": "Día y hora de cada partido de la fase de grupos de Clausura 2026, según el patrón de la asociación: viernes Sub-17, Segunda y Primera del mismo par; sábado Sub-15 y Sub-17 en la mañana, Seniors de 15 a 19 h y Segunda y Primera a las 20 y 21; domingo Sub-13 en la mañana (más Sub-15/Sub-17 que no caben el sábado) y Segunda y Primera seguidas por par en la tarde. Jornada continua, sin horarios vacíos entre partidos. Se cargan con programar-horarios-clausura-2026.js. La fecha 1 incluye los ajustes de la asociación, la fecha 2 también y en la fecha 3 se intercambiaron dos horarios del Sub-13 para que nadie repita horario con la fecha 2. Los marcados \"pendiente\" se suspendieron (problemas municipales en la fecha 2: dos de Seniors el sábado, y el Sub-13 10 de Marzo-Chayaihue la Segunda 10 de Marzo-Estocolmo y la Primera 10 de Marzo-Flamengo el domingo): conservan el horario que tenían como referencia, pero se cargan como aplazados y sin día ni hora hasta que la asociación los reprograme.",
  "partidos": [
   {
    "fecha": 1,
@@ -371,7 +371,8 @@
    "local": "10 DE MARZO",
    "visita": "FLAMENGO",
    "dia": "DOMINGO",
-   "hora": "18:00"
+   "hora": "18:00",
+   "pendiente": true
   },
   {
    "fecha": 2,
