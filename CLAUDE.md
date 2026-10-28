@@ -127,6 +127,22 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
   además de los 5 inscritos por serie, se pueden reponer los jugadores que
   suban a adultos.
 
+## Jugadores: carga desde foto de la planilla
+
+- En la pestaña Jugadores el admin sube fotos de las planillas impresas. El
+  servidor las lee con Claude (`server/lectorPlanillas.js`, modelo
+  `claude-opus-5-5`) y devuelve una vista previa editable: no se guarda nada
+  hasta que el admin confirma club, serie y filas (`POST /jugadores/lote`).
+- Requiere la variable de entorno `ANTHROPIC_API_KEY` en Render. Sin ella la
+  ruta `/jugadores/leer-foto` responde 503 y el resto de la app sigue igual.
+- RUT inválido, fecha ilegible, edad fuera de la serie o lectura dudosa **no
+  rechazan la fila**: se guarda con `jugadores.revisar = 1` y el motivo en
+  `motivo_revision`, para corregirla después. El alta manual y el CSV siguen
+  rechazando como antes.
+- Un mismo RUT puede estar en varios equipos (acuerdo de la asociación);
+  `GET /jugadores/repetidos` arma el informe (mismo RUT en otro club u otra
+  serie, y mismo nombre con distinto RUT).
+
 ## Principio de diseño: el resultado de cancha es intocable
 
 Las sanciones del tribunal (descuentos de puntos, partidos ganados por

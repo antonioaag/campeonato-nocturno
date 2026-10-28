@@ -443,6 +443,7 @@ function init() {
       await migrarCampeonatos();
       await migrarSeriesNuevas();
       await migrarFormatoYVisibilidad();
+      await migrarRevisionJugadores();
     })();
   }
   return readyPromise;
@@ -631,6 +632,21 @@ async function migrarEmailAlUsuarios() {
   } catch (e) {
     console.log('Email migration already done or error:', e.message);
   }
+}
+
+// Marca de revisión en jugadores. Las planillas que llegan en foto traen RUT
+// mal escritos o jugadores fuera de la edad de la serie; la asociación quiere
+// cargarlos igual y corregirlos después, así que en vez de rechazar la fila
+// se guarda con la marca y el motivo, y queda en el listado de pendientes.
+async function migrarRevisionJugadores() {
+  const columnas = [];
+  if (!(await columnExists('jugadores', 'revisar'))) {
+    columnas.push('ALTER TABLE jugadores ADD COLUMN revisar INTEGER NOT NULL DEFAULT 0');
+  }
+  if (!(await columnExists('jugadores', 'motivo_revision'))) {
+    columnas.push('ALTER TABLE jugadores ADD COLUMN motivo_revision TEXT');
+  }
+  if (columnas.length) await exec(columnas.join(';'));
 }
 
 module.exports = { get, all, run, exec, batch, init };
