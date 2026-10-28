@@ -134,6 +134,15 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
   Sub-13` elige el equipo). El usuario prefiere no pagar la API: las fotos se
   transcriben en el chat con Claude Code y él pega el texto. `POST
   /jugadores/validar` calcula los avisos antes de guardar.
+- **Carga por script (cuando el usuario pide "ingresar" las fotos):** se
+  transcriben a `data/listas/<club>-<año>.json` (no versionado: trae RUT) y se
+  corre `node cargar-listas.js <archivo>` (simula) y luego con `--aplicar`
+  (escribe en producción; antes `node backup-bd.js`). Reglas acordadas: un
+  jugador una sola vez por club, gana la lista de fecha de ingreso más
+  reciente; planillas marcadas 2026 → 14/04/2026, 2025 o sin año → 01/10/2025;
+  filas tapadas con corrector o en dos series con la misma fecha se cargan
+  marcadas "a revisar". El informe queda en `data/listas/<club>-<año>-informe.txt`.
+  La validación es la misma de la API (`server/inscripcion.js`).
 - **Opcional, de pago:** si hay `ANTHROPIC_API_KEY`, aparece además "Leer
   fotos". El admin sube fotos de las planillas impresas. El
   servidor las lee con Claude (`server/lectorPlanillas.js`, modelo
