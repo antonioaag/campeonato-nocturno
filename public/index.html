@@ -381,12 +381,19 @@
                 </div>
 
                 <div class="pt-4 border-t border-noc-purple2">
-                    <h4 class="font-bold text-noc-gold mb-2">Cargar desde foto de la planilla</h4>
-                    <p class="text-xs text-white/50 mb-2">Sube una o varias fotos de las planillas (una hoja por foto, derecha y con buena luz). Se leen solas: el club y la serie se toman de la hoja, y antes de guardar puedes revisar y corregir cada fila. Los RUT o fechas con problemas se guardan marcados "a revisar".</p>
-                    <form onsubmit="leerFotosPlanilla(event)" class="flex flex-wrap items-end gap-3">
-                        <input required id="foto-planilla" type="file" accept="image/jpeg,image/png,image/webp" multiple class="text-sm text-white/80">
-                        <button type="submit" id="btn-leer-fotos" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition">Leer fotos</button>
+                    <h4 class="font-bold text-noc-gold mb-2">Cargar lista de jugadores</h4>
+                    <p class="text-xs text-white/50 mb-2">Pega la lista, un jugador por línea: <b>Nombre;RUT;Fecha de nacimiento</b> (también sirve copiar las columnas desde Excel). Si la primera línea dice <b>Equipo: CLUB Serie</b> (por ejemplo "Equipo: PLATENSE Sub-13"), el equipo se elige solo. Antes de guardar ves los avisos y puedes corregir cada fila. Los RUT o fechas con problemas se guardan marcados "a revisar".</p>
+                    <form onsubmit="pegarListaJugadores(event)" class="space-y-2">
+                        <textarea required id="lista-pegada" rows="6" placeholder="Equipo: PLATENSE Sub-13&#10;Mateo Ortiz Grundt;24877332-4;20-01-2015" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full font-mono text-xs"></textarea>
+                        <button type="submit" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition">Revisar lista</button>
                     </form>
+                    <div id="carga-fotos-box" class="hidden mt-4">
+                        <p class="text-xs text-white/50 mb-2">O sube fotos de las planillas (una hoja por foto, derecha y con buena luz) y se leen solas.</p>
+                        <form onsubmit="leerFotosPlanilla(event)" class="flex flex-wrap items-end gap-3">
+                            <input required id="foto-planilla" type="file" accept="image/jpeg,image/png,image/webp" multiple class="text-sm text-white/80">
+                            <button type="submit" id="btn-leer-fotos" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition">Leer fotos</button>
+                        </form>
+                    </div>
                     <div id="fotos-previews" class="space-y-4 mt-3"></div>
                 </div>
 
@@ -410,12 +417,13 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse min-w-[600px]">
+                <table class="w-full text-left border-collapse min-w-[760px]">
                     <thead>
                         <tr class="bg-noc-purple text-noc-goldlight text-sm uppercase tracking-wider">
                             <th class="p-3 font-semibold">Nombre</th>
                             <th class="p-3 font-semibold">RUT</th>
                             <th class="p-3 font-semibold">Fecha Nacimiento</th>
+                            <th id="jugadores-th-ingreso" class="p-3 font-semibold hidden">Ingreso lista</th>
                             <th id="jugadores-th-equipo" class="p-3 font-semibold hidden">Equipo</th>
                             <th id="jugadores-th-acciones" class="p-3 font-semibold text-center hidden">Acciones</th>
                         </tr>
@@ -2670,8 +2678,10 @@
 
             document.getElementById('jugadores-admin-form').classList.toggle('hidden', !esAdmin());
             document.getElementById('jugadores-th-acciones').classList.toggle('hidden', !esAdmin());
+            document.getElementById('jugadores-th-ingreso').classList.toggle('hidden', !esAdmin());
             document.getElementById('jugadores-th-equipo').classList.toggle('hidden', !!equipoId);
             document.getElementById('jugadores-filtro-revisar-box').classList.toggle('hidden', !esAdmin());
+            if (esAdmin()) mostrarCargaFotosSiHayLector();
             const soloRevisar = esAdmin() && document.getElementById('jugadores-filtro-revisar').checked;
 
             await renderDocumentoInscripcion(equipoId);
@@ -2698,12 +2708,17 @@
                                onchange="actualizarJugador(${j.id}, 'fechaNacimiento', this.value, ${j.revisar ? 1 : 0})"
                                class="border border-noc-purple2 p-1 rounded bg-noc-black/50 text-white ${editable ? '' : 'text-white/70 border-transparent bg-transparent'}">
                     </td>
+                    <td class="p-2 ${editable ? '' : 'hidden'}">
+                        <input type="date" value="${escapeHtml(j.fechaIngreso || '')}" max="${hoyIso()}" title="Fecha de ingreso de la lista"
+                               onchange="actualizarJugador(${j.id}, 'fechaIngreso', this.value, 0)"
+                               class="border p-1 rounded bg-noc-black/50 text-white ${j.fechaIngreso ? 'border-noc-purple2' : 'border-amber-400'}">
+                    </td>
                     <td class="p-2 ${equipoId ? 'hidden' : ''}">${escapeHtml(j.equipo)}</td>
                     <td class="p-2 text-center ${editable ? '' : 'hidden'}">
                         <button onclick="eliminarJugador(${j.id})" class="text-xs bg-red-900/40 text-red-300 px-3 py-1 rounded hover:bg-red-900/60">Eliminar</button>
                     </td>
                 </tr>
-            `).join('') || `<tr><td colspan="5" class="p-4 text-center text-white/40 italic">No hay jugadores cargados.</td></tr>`;
+            `).join('') || `<tr><td colspan="6" class="p-4 text-center text-white/40 italic">No hay jugadores cargados.</td></tr>`;
         }
 
         async function renderDocumentoInscripcion(equipoId) {
@@ -2787,11 +2802,98 @@
             } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
+        // Fecha de hoy en la hora de Chile (no en UTC), para el tope de los
+        // selectores de fecha de ingreso.
+        function hoyIso() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
         // --- Carga desde foto de la planilla ---
         // Cada foto leída queda como una vista previa editable hasta que se
         // guarda o se descarta. Los datos viven en FOTOS_PREVIEW y los inputs
         // escriben ahí al cambiar, para no leer nada raspando el DOM.
         const FOTOS_PREVIEW = {};
+
+        // La lectura de fotos necesita una API key de pago en el servidor; sin
+        // ella solo se ofrece pegar la lista. Se consulta una vez por visita.
+        let CARGA_CONFIG = null;
+        async function mostrarCargaFotosSiHayLector() {
+            if (!CARGA_CONFIG) {
+                try { CARGA_CONFIG = await api('/jugadores/carga-config'); } catch { return; }
+            }
+            document.getElementById('carga-fotos-box').classList.toggle('hidden', !CARGA_CONFIG.lectorFotos);
+        }
+
+        const normalizarTextoEquipo = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+            .replace(/[^a-z0-9]/g, '');
+
+        // Convierte el texto pegado en filas. Acepta punto y coma o tabulación
+        // (columnas copiadas desde Excel); una línea "Equipo: ..." elige el
+        // equipo y una línea de encabezado con "RUT" se ignora.
+        function parsearListaPegada(texto) {
+            let equipoTexto = null;
+            const jugadores = [];
+            for (const linea of String(texto).split(/\r?\n/)) {
+                const l = linea.trim();
+                if (!l) continue;
+                const m = l.match(/^equipo\s*:\s*(.+)$/i);
+                if (m) { equipoTexto = m[1].trim(); continue; }
+                let campos = l.split(/\t|;/).map(c => c.trim());
+                if (campos.length === 1) campos = l.split(',').map(c => c.trim());
+                if (normalizarTextoEquipo(campos[1]) === 'rut') continue;
+                const [nombre = '', rut = '', fecha = ''] = campos;
+                jugadores.push({
+                    nombre: nombre.replace(/^\d+\s*[-.)]\s*/, ''),
+                    rut, fechaNacimiento: fecha, fechaTexto: fecha,
+                    nota: campos.length < 3 ? 'Fila incompleta: faltan datos' : '',
+                    problemas: [],
+                });
+            }
+            return { equipoTexto, jugadores };
+        }
+
+        async function pegarListaJugadores(ev) {
+            ev.preventDefault();
+            const textarea = document.getElementById('lista-pegada');
+            const { equipoTexto, jugadores } = parsearListaPegada(textarea.value);
+            if (!jugadores.length) { mostrarToast('No encontré jugadores en el texto pegado.', 'error'); return; }
+            try {
+                const { equipos } = await api('/jugadores/validar', { method: 'POST', body: JSON.stringify({ jugadores: [] }) });
+                const buscado = normalizarTextoEquipo(equipoTexto);
+                const equipo = buscado ? equipos.find(e =>
+                    normalizarTextoEquipo(e.nombre + (NOMBRE_SERIE[e.serie] || e.serie)) === buscado
+                    || normalizarTextoEquipo(e.nombre + e.serie) === buscado) : null;
+                const id = FOTOS_SIGUIENTE_ID++;
+                FOTOS_PREVIEW[id] = {
+                    archivo: equipoTexto ? `Lista pegada (${equipoTexto})` : 'Lista pegada',
+                    equipoId: equipo ? equipo.id : null, equipos, jugadores,
+                };
+                const caja = document.createElement('div');
+                caja.id = 'foto-preview-' + id;
+                caja.className = 'border border-noc-purple2 rounded p-4 bg-noc-black/30';
+                document.getElementById('fotos-previews').prepend(caja);
+                if (equipoTexto && !equipo) mostrarToast(`No encontré el equipo "${equipoTexto}". Elígelo en la lista.`, 'error');
+                await revalidarPreview(id);
+                textarea.value = '';
+            } catch (e) { mostrarToast(e.message, 'error'); }
+        }
+
+        async function cambiarEquipoPreview(id, valor) {
+            FOTOS_PREVIEW[id].equipoId = Number(valor) || null;
+            await revalidarPreview(id);
+        }
+
+        // Recalcula los avisos de cada fila contra la serie del equipo elegido
+        // (la edad depende de la serie) y vuelve a dibujar la vista previa.
+        async function revalidarPreview(id) {
+            const p = FOTOS_PREVIEW[id];
+            try {
+                const { problemas } = await api('/jugadores/validar', { method: 'POST', body: JSON.stringify({ equipoId: p.equipoId, jugadores: p.jugadores }) });
+                p.jugadores.forEach((j, i) => { j.problemas = problemas[i] || []; });
+            } catch (e) { mostrarToast(e.message, 'error'); }
+            renderFotoPreview(id);
+        }
         let FOTOS_SIGUIENTE_ID = 1;
 
         async function leerFotosPlanilla(ev) {
@@ -2838,7 +2940,7 @@
                 `<option value="${e.id}" ${e.id === p.equipoId ? 'selected' : ''}>${escapeHtml(e.nombre)} — ${escapeHtml(NOMBRE_SERIE[e.serie] || e.serie)}</option>`).join('');
             const marcadas = p.jugadores.filter(j => j.problemas.length || j.nota).length;
             const filas = p.jugadores.map((j, i) => {
-                const avisos = [...j.problemas, ...(j.nota ? ['Lectura dudosa: ' + j.nota] : [])];
+                const avisos = [...j.problemas, ...(j.nota ? ['Observación: ' + j.nota] : [])];
                 return `<tr class="border-b border-noc-purple2 ${avisos.length ? 'bg-amber-900/20' : ''}">
                     <td class="p-1 text-white/40 text-xs">${i + 1}</td>
                     <td class="p-1"><input type="text" value="${escapeHtml(j.nombre)}" onchange="editarFilaFoto(${id}, ${i}, 'nombre', this.value)" class="border border-noc-purple2 p-1 rounded bg-noc-black/50 text-white w-full"></td>
@@ -2852,12 +2954,17 @@
             caja.innerHTML = `
                 <div class="flex flex-wrap items-end justify-between gap-3 mb-3">
                     <div>
-                        <p class="text-sm text-white/80"><b>${escapeHtml(p.archivo)}</b> — la hoja dice: club “${escapeHtml(p.clubTexto || '?')}”, serie “${escapeHtml(p.serieTexto || '?')}”</p>
-                        <p class="text-xs text-white/50">${p.jugadores.length} jugadores leídos${marcadas ? `, <span class="text-amber-300">${marcadas} con algo que revisar</span>` : ''}. Los avisos se vuelven a calcular al guardar.</p>
+                        <p class="text-sm text-white/80"><b>${escapeHtml(p.archivo)}</b>${p.clubTexto !== undefined ? ` — la hoja dice: club “${escapeHtml(p.clubTexto || '?')}”, serie “${escapeHtml(p.serieTexto || '?')}”` : ''}</p>
+                        <p class="text-xs text-white/50">${p.jugadores.length} jugadores leídos${marcadas ? `, <span class="text-amber-300">${marcadas} con algo que revisar</span>` : ''}. Si corriges una fila, usa "Revisar de nuevo" para actualizar los avisos.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Fecha de ingreso de la lista *</label>
+                        <input type="date" value="${escapeHtml(p.fechaIngreso || '')}" max="${hoyIso()}" onchange="FOTOS_PREVIEW[${id}].fechaIngreso = this.value"
+                               class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-white/50 mb-1">Guardar en el equipo</label>
-                        <select onchange="FOTOS_PREVIEW[${id}].equipoId = Number(this.value) || null" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded">
+                        <select onchange="cambiarEquipoPreview(${id}, this.value)" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded">
                             <option value="">— Elige club y serie —</option>${opciones}
                         </select>
                     </div>
@@ -2870,6 +2977,7 @@
                 </div>
                 <div class="flex gap-3 mt-3">
                     <button onclick="guardarFotoPreview(${id})" class="bg-green-700 text-white px-4 py-2 rounded shadow hover:bg-green-600 transition">Guardar ${p.jugadores.length} jugadores</button>
+                    <button onclick="revalidarPreview(${id})" class="text-sm text-white/60 underline hover:text-white">Revisar de nuevo</button>
                     <button onclick="descartarFotoPreview(${id})" class="text-sm text-white/60 underline hover:text-white">Descartar</button>
                 </div>`;
         }
@@ -2892,10 +3000,11 @@
 
         async function guardarFotoPreview(id) {
             const p = FOTOS_PREVIEW[id];
+            if (!p.fechaIngreso) { mostrarToast('Indica la fecha de ingreso de la lista (el día en que el club la entregó).', 'error'); return; }
             if (!p.equipoId) { mostrarToast('Elige el club y la serie donde guardar estos jugadores.', 'error'); return; }
             try {
                 const jugadores = p.jugadores.map(j => ({ nombre: j.nombre, rut: j.rut, fechaNacimiento: j.fechaNacimiento, nota: j.nota }));
-                const r = await api('/jugadores/lote', { method: 'POST', body: JSON.stringify({ equipoId: p.equipoId, jugadores }) });
+                const r = await api('/jugadores/lote', { method: 'POST', body: JSON.stringify({ equipoId: p.equipoId, fechaIngreso: p.fechaIngreso, jugadores }) });
                 const equipo = p.equipos.find(e => e.id === p.equipoId);
                 descartarFotoPreview(id);
                 mostrarToast(`${equipo ? equipo.nombre + ' ' + (NOMBRE_SERIE[equipo.serie] || equipo.serie) + ': ' : ''}${r.agregados} agregados, ${r.actualizados} actualizados` +

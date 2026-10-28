@@ -25,7 +25,7 @@ const uploadFoto = multer({
 const SELECT_JUGADORES = `
   SELECT j.id, j.equipo_id AS equipoId, e.nombre AS equipo, e.serie, e.grupo,
          j.nombre, j.rut, j.fecha_nacimiento AS fechaNacimiento,
-         j.revisar, j.motivo_revision AS motivoRevision
+         j.revisar, j.motivo_revision AS motivoRevision, j.fecha_ingreso AS fechaIngreso
   FROM jugadores j JOIN equipos e ON e.id = j.equipo_id
 `;
 
@@ -102,6 +102,16 @@ function rutParaGuardar(rut) {
   return limpiarRut(rut).length >= 2 ? formatearRut(rut) : String(rut || '').trim();
 }
 
+// Fecha en que la lista se entregó a la asociación. La escribe quien sube la
+// planilla (no se deduce del día de la carga, que puede ser semanas después)
+// y se usa para el control de pases.
+function fechaIngresoValida(valor) {
+  const fecha = normalizarFecha(valor);
+  if (!fecha) return null;
+  const hoy = new Date().toISOString().slice(0, 10);
+  return fecha <= hoy ? fecha : null;
+}
+
 router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
   const { equipoId, nombre, rut, fechaNacimiento } = req.body || {};
   const equipo = await db.get('SELECT id, serie, campeonato_id AS campeonatoId FROM equipos WHERE id = ?', [Number(equipoId)]);
@@ -133,6 +143,15 @@ router.patch('/:id', requireAuth, requireAdmin, asyncHandler(async (req, res) =>
   // ejemplo, una excepción de edad acordada en asamblea).
   if (req.body.revisado === true) {
     await db.run(`UPDATE jugadores SET revisar = 0, motivo_revision = NULL, updated_at = datetime('now') WHERE id = ?`, [id]);
+    return res.json(await db.get(`${SELECT_JUGADORES} WHERE j.id = ?`, [id]));
+  }
+
+  // La fecha de ingreso se corrige sola, sin pasar por la validación del
+  // resto: no cambia si el jugador puede o no jugar en la serie.
+  if (req.body.fechaIngreso !== undefined) {
+    const fechaIngreso = fechaIngresoValida(req.body.fechaIngreso);
+    if (!fechaIngreso) return res.status(400).json({ error: 'Fecha de ingreso inválida (no puede ser futura)' });
+    await db.run(`UPDATE jugadores SET fecha_ingreso = ?, updated_at = datetime('now') WHERE id = ?`, [fechaIngreso, id]);
     return res.json(await db.get(`${SELECT_JUGADORES} WHERE j.id = ?`, [id]));
   }
 
@@ -212,6 +231,30 @@ router.post('/bulk', requireAuth, requireAdmin, upload.single('archivo'), asyncH
   res.json(resultado);
 }));
 
+// Qué formas de carga están disponibles. La lectura de fotos depende de
+// tener una API key de pago; sin ella la página ofrece solo pegar la lista.
+router.get('/carga-config', requireAuth, requireAdmin, (req, res) => {
+  res.json({ lectorFotos: lector.disponible() });
+});
+
+// Revisa filas sin guardarlas: devuelve los equipos del campeonato y, si se
+// indica el equipo, los problemas de cada fila contra su serie. La usa la
+// vista previa al pegar una lista y al cambiar el equipo de destino, para
+// que los avisos se vean antes de guardar y no recién después.
+router.post('/validar', requireAuth, requireAdmin, campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
+  const { equipoId, jugadores } = req.body || {};
+  const equipos = await db.all(
+    'SELECT id, nombre, serie, campeonato_id AS campeonatoId FROM equipos WHERE campeonato_id = ? ORDER BY nombre, serie',
+    [req.campeonato.id]
+  );
+  const equipo = equipos.find(e => e.id === Number(equipoId)) || null;
+  const problemas = [];
+  for (const fila of Array.isArray(jugadores) ? jugadores : []) {
+    problemas.push(equipo ? await problemasDelJugador(fila || {}, equipo) : []);
+  }
+  res.json({ equipos: equipos.map(e => ({ id: e.id, nombre: e.nombre, serie: e.serie })), problemas });
+}));
+
 // Lee la foto de una planilla y devuelve una vista previa: no guarda nada.
 // El club y la serie se proponen a partir de la hoja y el admin los confirma.
 router.post('/leer-foto', requireAuth, requireAdmin, campeonatoDeLaPeticion, uploadFoto.single('foto'), asyncHandler(async (req, res) => {
@@ -270,6 +313,8 @@ router.post('/lote', requireAuth, requireAdmin, asyncHandler(async (req, res) =>
   if (!equipo) return res.status(400).json({ error: 'Equipo no encontrado' });
   exigirEditable(await deEquipo(equipo.id));
   if (!Array.isArray(jugadores) || jugadores.length === 0) return res.status(400).json({ error: 'No hay jugadores para guardar' });
+  const fechaIngreso = fechaIngresoValida(req.body.fechaIngreso);
+  if (!fechaIngreso) return res.status(400).json({ error: 'Indica la fecha de ingreso de la lista (no puede ser futura)' });
 
   const resultado = { agregados: 0, actualizados: 0, marcados: 0, errores: [] };
   for (let i = 0; i < jugadores.length; i++) {
@@ -278,7 +323,7 @@ router.post('/lote', requireAuth, requireAdmin, asyncHandler(async (req, res) =>
     if (!nombre) { resultado.errores.push(`Fila ${i + 1}: sin nombre, no se guardó`); continue; }
 
     const problemas = await problemasDelJugador(fila, equipo);
-    if (fila.nota && String(fila.nota).trim()) problemas.push(`Lectura dudosa de la foto: ${String(fila.nota).trim()}`);
+    if (fila.nota && String(fila.nota).trim()) problemas.push(`Observación: ${String(fila.nota).trim()}`);
     const rut = rutParaGuardar(fila.rut);
     const fecha = normalizarFecha(fila.fechaNacimiento) || String(fila.fechaNacimiento || '').trim();
     const revisar = problemas.length ? 1 : 0;
@@ -286,15 +331,19 @@ router.post('/lote', requireAuth, requireAdmin, asyncHandler(async (req, res) =>
 
     const existente = await db.get('SELECT id FROM jugadores WHERE equipo_id = ? AND rut = ?', [equipo.id, rut]);
     if (existente) {
+      // La fecha de ingreso de un jugador que ya estaba no se pisa: es la
+      // base del control de pases, y volver a subir la lista (por ejemplo,
+      // para corregir un RUT) no lo vuelve a inscribir.
       await db.run(
-        `UPDATE jugadores SET nombre = ?, fecha_nacimiento = ?, revisar = ?, motivo_revision = ?, updated_at = datetime('now') WHERE id = ?`,
-        [nombre, fecha, revisar, motivo, existente.id]
+        `UPDATE jugadores SET nombre = ?, fecha_nacimiento = ?, revisar = ?, motivo_revision = ?,
+           fecha_ingreso = COALESCE(fecha_ingreso, ?), updated_at = datetime('now') WHERE id = ?`,
+        [nombre, fecha, revisar, motivo, fechaIngreso, existente.id]
       );
       resultado.actualizados++;
     } else {
       await db.run(
-        'INSERT INTO jugadores (equipo_id, nombre, rut, fecha_nacimiento, revisar, motivo_revision) VALUES (?, ?, ?, ?, ?, ?)',
-        [equipo.id, nombre, rut, fecha, revisar, motivo]
+        'INSERT INTO jugadores (equipo_id, nombre, rut, fecha_nacimiento, revisar, motivo_revision, fecha_ingreso) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [equipo.id, nombre, rut, fecha, revisar, motivo, fechaIngreso]
       );
       resultado.agregados++;
     }

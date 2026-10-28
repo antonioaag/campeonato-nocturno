@@ -127,9 +127,15 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
   además de los 5 inscritos por serie, se pueden reponer los jugadores que
   suban a adultos.
 
-## Jugadores: carga desde foto de la planilla
+## Jugadores: carga de listas (pegada o desde foto)
 
-- En la pestaña Jugadores el admin sube fotos de las planillas impresas. El
+- **Forma principal (gratis):** el admin pega la lista en la pestaña Jugadores
+  (`Nombre;RUT;Fecha`, o columnas de Excel; una línea `Equipo: PLATENSE
+  Sub-13` elige el equipo). El usuario prefiere no pagar la API: las fotos se
+  transcriben en el chat con Claude Code y él pega el texto. `POST
+  /jugadores/validar` calcula los avisos antes de guardar.
+- **Opcional, de pago:** si hay `ANTHROPIC_API_KEY`, aparece además "Leer
+  fotos". El admin sube fotos de las planillas impresas. El
   servidor las lee con Claude (`server/lectorPlanillas.js`, modelo
   `claude-opus-5-5`) y devuelve una vista previa editable: no se guarda nada
   hasta que el admin confirma club, serie y filas (`POST /jugadores/lote`).
@@ -139,6 +145,10 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
   rechazan la fila**: se guarda con `jugadores.revisar = 1` y el motivo en
   `motivo_revision`, para corregirla después. El alta manual y el CSV siguen
   rechazando como antes.
+- Quien sube la lista escribe su **fecha de ingreso** (obligatoria, no futura),
+  que queda en `jugadores.fecha_ingreso` y es la base del control de pases.
+  Volver a subir una lista no pisa la fecha de un jugador que ya la tenía; se
+  corrige a mano desde la tabla (solo admin).
 - Un mismo RUT puede estar en varios equipos (acuerdo de la asociación);
   `GET /jugadores/repetidos` arma el informe (mismo RUT en otro club u otra
   serie, y mismo nombre con distinto RUT).

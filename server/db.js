@@ -646,6 +646,11 @@ async function migrarRevisionJugadores() {
   if (!(await columnExists('jugadores', 'motivo_revision'))) {
     columnas.push('ALTER TABLE jugadores ADD COLUMN motivo_revision TEXT');
   }
+  // Fecha en que el club entregó la lista: base para controlar los pases.
+  // Los jugadores cargados antes quedan sin fecha (NULL) hasta que se complete.
+  if (!(await columnExists('jugadores', 'fecha_ingreso'))) {
+    columnas.push('ALTER TABLE jugadores ADD COLUMN fecha_ingreso TEXT');
+  }
   if (columnas.length) await exec(columnas.join(';'));
 }
 
