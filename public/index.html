@@ -232,6 +232,20 @@
         .ef-SENIOR { background:#f472b6; } .ef-SEGUNDA_ADULTO { background:#f0d285; } .ef-PRIMERA_ADULTO { background:#e8952a; }
         .ef-libres { margin-top:22px; padding:12px 14px; border-radius:14px; background:rgba(255,255,255,.05); font-size:.85rem; color:rgba(255,255,255,.65); line-height:1.7; }
         .ef-libres b { color:#fff; }
+        /* Hoja de resultados y respaldo (solo admin). CSS propio: no depende de compilar Tailwind. */
+        .rep-panel { margin-top:12px; padding:12px; border-radius:6px; border:1px solid rgba(232,149,42,.35); background:rgba(232,149,42,.07); display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; }
+        .rep-panel select { width:auto; }
+        .rep-acciones { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+        .rep-btn { padding:8px 14px; border-radius:6px; font-weight:700; font-size:.85rem; background:#e8952a; color:#08050c; border:0; cursor:pointer; }
+        .rep-btn:hover { filter:brightness(1.1); }
+        .rep-btn.sec { background:rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.2); }
+        .rep-btn:disabled { opacity:.5; cursor:wait; }
+        .rep-modal { position:fixed; inset:0; z-index:60; background:rgba(8,5,12,.92); overflow-y:auto; padding:20px 16px 40px; }
+        .rep-modal-cab { max-width:1100px; margin:0 auto 16px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; }
+        .rep-grilla { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:16px; }
+        .rep-item { background:rgba(255,255,255,.05); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; }
+        .rep-item img { width:100%; border-radius:6px; display:block; }
+        .rep-item p { font-size:.8rem; color:rgba(255,255,255,.7); }
     </style>
 </head>
 <body class="text-white font-sans min-h-screen">
@@ -1397,7 +1411,7 @@
             const partidosPorGrupo = await Promise.all(grupos.map(g => api(`/partidos?serie=${serieActual}&grupo=${g}`)));
             const libresPorGrupo = await Promise.all(grupos.map(g => api(`/partidos/libres?serie=${serieActual}&grupo=${g}`)));
             partidosPorGrupo.forEach(cachearPartidos);
-            container.innerHTML = pintarFechasVisibles(partidosPorGrupo.flat())
+            container.innerHTML = pintarFechasVisibles(partidosPorGrupo.flat()) + pintarReportes(partidosPorGrupo.flat())
                 + grupos.map((g, i) => pintarGrupoPartidos(g, partidosPorGrupo[i], libresPorGrupo[i])).join('');
         }
 
@@ -1439,6 +1453,304 @@
                 mostrarToast(hasta ? `El público ve hasta la Fecha ${hasta}.` : 'El público ve todas las fechas.', 'success');
                 renderPartidos();
             } catch (e) { mostrarToast(e.message, 'error'); }
+        }
+
+        // --- HOJA DE RESULTADOS Y RESPALDO (solo admin) ---
+        // Las imágenes se dibujan en el navegador con <canvas>: así no hace
+        // falta un servicio externo ni cargar librerías de un CDN (el CSP las
+        // bloquea). El servidor solo entrega los datos de la fecha.
+        function pintarReportes(partidos) {
+            if (!esAdmin()) return '';
+            const total = Math.max(0, ...partidos.map(p => p.fecha));
+            if (!total) return '';
+            const jugadas = partidos.filter(p => p.estado === 'jugado').map(p => p.fecha);
+            const porDefecto = jugadas.length ? Math.max(...jugadas) : 1;
+            const opciones = Array.from({ length: total }, (_, i) => `<option value="${i + 1}" ${porDefecto === i + 1 ? 'selected' : ''}>Fecha ${i + 1}</option>`);
+            return `
+                <div class="rep-panel">
+                    <div class="min-w-0">
+                        <p class="font-semibold text-noc-goldlight">Resultados para redes y respaldo</p>
+                        <p class="text-xs text-white/50 mt-0.5">Imágenes de la fecha (todas las series) y copia de seguridad de ${escapeHtml(CAMPEONATO.nombre)}.</p>
+                    </div>
+                    <div class="rep-acciones">
+                        <select id="rep-fecha" class="${CLASE_INPUT}">${opciones.join('')}</select>
+                        <button class="rep-btn" onclick="generarImagenesFecha(this)">Generar imágenes</button>
+                        <button class="rep-btn sec" onclick="descargarRespaldo('respaldo.xlsx', this)">Respaldo Excel</button>
+                        <button class="rep-btn sec" onclick="descargarRespaldo('respaldo', this)">Respaldo completo</button>
+                    </div>
+                </div>`;
+        }
+
+        // Descarga con el token: un <a href> directo no manda la cabecera de autenticación.
+        async function descargarRespaldo(que, boton) {
+            boton.disabled = true;
+            try {
+                const res = await fetch('/api/reportes/' + que, { headers: { Authorization: 'Bearer ' + TOKEN, 'X-Campeonato-Id': String(CAMPEONATO.id) } });
+                if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'No se pudo generar el respaldo');
+                const nombre = (/filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') || '') || [])[1] || 'respaldo';
+                guardarArchivo(await res.blob(), nombre);
+                mostrarToast(que === 'respaldo' ? 'Respaldo descargado. Guárdalo en Drive o en tu correo.' : 'Excel de resultados descargado.', 'success');
+            } catch (e) { mostrarToast(e.message, 'error'); }
+            boton.disabled = false;
+        }
+
+        function guardarArchivo(blob, nombre) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = nombre;
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+        }
+
+        const REP = { imagenes: [] };
+        const REP_ANCHO = 1080, REP_ALTO = 1920, REP_MARGEN = 64;
+        const REP_FUENTE = "system-ui, 'Segoe UI', Roboto, Arial, sans-serif";
+        const REP_COLOR = { SUB13: '#38bdf8', SUB15: '#34d399', SUB17: '#a3e635', SENIOR: '#f472b6', SEGUNDA_ADULTO: '#f0d285', PRIMERA_ADULTO: '#e8952a', ADULTO: '#e8952a' };
+
+        async function generarImagenesFecha(boton) {
+            const n = Number(document.getElementById('rep-fecha').value);
+            boton.disabled = true;
+            try {
+                const datos = await api(`/reportes/fecha/${n}`);
+                if (!datos.series.length) throw new Error(`La Fecha ${n} no tiene partidos.`);
+                const nombres = new Set();
+                datos.series.forEach(s => {
+                    s.partidos.concat(s.pendientes).forEach(p => { nombres.add(p.local); nombres.add(p.visita); });
+                    Object.values(s.tablas).flat().forEach(e => nombres.add(e.nombre));
+                });
+                const img = await cargarImagenes([...nombres]);
+                img.__logo = await cargarImagen('/logo-liga.png');
+                REP.imagenes = [
+                    ...imagenesResultados(datos, img),
+                    ...datos.series.flatMap(s => Object.entries(s.tablas).map(([g, t]) => imagenTabla(datos, s, g, t, img))),
+                ];
+                mostrarImagenes(n);
+            } catch (e) { mostrarToast(e.message, 'error'); }
+            boton.disabled = false;
+        }
+
+        function cargarImagen(src) {
+            return new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; });
+        }
+        async function cargarImagenes(nombres) {
+            const out = {};
+            await Promise.all(nombres.map(async n => { out[n] = await cargarImagen(`/escudos/${slugEscudo(n)}.png`); }));
+            return out;
+        }
+
+        function lienzo() {
+            const c = document.createElement('canvas');
+            c.width = REP_ANCHO; c.height = REP_ALTO;
+            const x = c.getContext('2d');
+            const g = x.createLinearGradient(0, 0, 0, REP_ALTO);
+            g.addColorStop(0, '#2a0f3d'); g.addColorStop(.45, '#14081d'); g.addColorStop(1, '#08050c');
+            x.fillStyle = g; x.fillRect(0, 0, REP_ANCHO, REP_ALTO);
+            return { c, x };
+        }
+        function texto(x, t, px, py, { size = 32, peso = 700, color = '#fff', alinear = 'left', max } = {}) {
+            x.font = `${peso} ${size}px ${REP_FUENTE}`;
+            x.fillStyle = color; x.textAlign = alinear; x.textBaseline = 'middle';
+            let s = String(t);
+            if (max) while (s.length > 1 && x.measureText(s).width > max) s = s.slice(0, -2) + '…';
+            x.fillText(s, px, py);
+        }
+        function rect(x, px, py, w, h, r, color) {
+            x.fillStyle = color; x.beginPath(); x.roundRect(px, py, w, h, r); x.fill();
+        }
+        function escudo(x, img, nombre, px, py, tam) {
+            rect(x, px, py, tam, tam, tam * .22, '#fff');
+            const i = img[nombre];
+            if (i) x.drawImage(i, px + tam * .1, py + tam * .1, tam * .8, tam * .8);
+        }
+        function cabeceraImagen(x, datos, img, titulo, subtitulo) {
+            if (img.__logo) x.drawImage(img.__logo, REP_MARGEN, 56, 120, 120);
+            texto(x, 'ASOCIACIÓN LIGA DÁVILA', REP_MARGEN + 150, 86, { size: 30, peso: 800, color: '#f0d285' });
+            texto(x, datos.campeonato.nombre, REP_MARGEN + 150, 130, { size: 28, peso: 600, color: 'rgba(255,255,255,.75)', max: 760 });
+            texto(x, titulo, REP_MARGEN, 250, { size: 78, peso: 900 });
+            texto(x, subtitulo, REP_MARGEN, 320, { size: 34, peso: 600, color: '#e8952a', max: REP_ANCHO - 2 * REP_MARGEN });
+            return 380;
+        }
+        function chipImagen(x, serie, px, py) {
+            const nombre = (NOMBRE_SERIE_CORTO[serie] || serie).toUpperCase();
+            x.font = `900 30px ${REP_FUENTE}`;
+            const w = x.measureText(nombre).width + 44;
+            rect(x, px, py, w, 52, 26, REP_COLOR[serie] || '#e8952a');
+            texto(x, nombre, px + 22, py + 27, { size: 30, peso: 900, color: '#08050c' });
+            return w;
+        }
+        function pieImagen(x, lineas) {
+            let y = REP_ALTO - 70 - 44 * (lineas.length - 1);
+            lineas.forEach(l => { texto(x, l, REP_MARGEN, y, { size: 26, peso: 500, color: 'rgba(255,255,255,.6)', max: REP_ANCHO - 2 * REP_MARGEN }); y += 44; });
+        }
+        function rangoDias(partidos) {
+            const dias = [...new Set(partidos.map(p => p.fechaPartido).filter(Boolean))].sort();
+            if (!dias.length) return '';
+            return dias.length === 1 ? diaLegible(dias[0]).largo : `${diaLegible(dias[0]).largo} al ${diaLegible(dias[dias.length - 1]).largo}`;
+        }
+
+        // Resultados: un bloque por serie, sin partir una serie entre dos
+        // imágenes. Si no caben todas, se reparten en las que hagan falta.
+        function imagenesResultados(datos, img) {
+            const FILA = 74, CAB_SERIE = 76, ESPACIO = 26, NOTA = 34;
+            const altoFila = p => FILA + (p.homologacion || p.anulacion ? NOTA : 0);
+            const bloques = datos.series.map(s => {
+                const anteriores = s.pendientes.filter(p => p.fecha < datos.fecha);
+                const extra = (s.libres.length ? 1 : 0) + (anteriores.length ? 1 : 0);
+                return { s, anteriores, alto: CAB_SERIE + s.partidos.reduce((a, p) => a + altoFila(p), 0) + extra * 40 + ESPACIO };
+            });
+            const paginas = [[]];
+            const disponible = REP_ALTO - 380 - 170;
+            let usado = 0;
+            bloques.forEach(b => {
+                if (usado + b.alto > disponible && paginas[paginas.length - 1].length) { paginas.push([]); usado = 0; }
+                paginas[paginas.length - 1].push(b); usado += b.alto;
+            });
+            const todos = datos.series.flatMap(s => s.partidos);
+            return paginas.map((bloques, i) => {
+                const { c, x } = lienzo();
+                const parte = paginas.length > 1 ? ` (${i + 1}/${paginas.length})` : '';
+                let y = cabeceraImagen(x, datos, img, `FECHA ${datos.fecha}`, `RESULTADOS${parte} · ${rangoDias(todos)}`);
+                bloques.forEach(({ s, anteriores }) => {
+                    chipImagen(x, s.serie, REP_MARGEN, y + 8); y += CAB_SERIE;
+                    s.partidos.forEach(p => { filaResultado(x, img, p, y); y += altoFila(p); });
+                    if (anteriores.length) {
+                        texto(x, `Pendientes de fechas anteriores: ${anteriores.map(p => `${nombreClub(p.local)} vs ${nombreClub(p.visita)} (F${p.fecha})`).join(' · ')}`, REP_MARGEN, y + 18, { size: 24, peso: 600, color: '#f87171', max: REP_ANCHO - 2 * REP_MARGEN });
+                        y += 40;
+                    }
+                    if (s.libres.length) {
+                        texto(x, `Libre: ${s.libres.map(nombreClub).join(', ')}`, REP_MARGEN, y + 18, { size: 24, peso: 500, color: 'rgba(255,255,255,.6)', max: REP_ANCHO - 2 * REP_MARGEN });
+                        y += 40;
+                    }
+                    y += ESPACIO;
+                });
+                pieImagen(x, ['PEND. = partido pendiente de reprogramar']);
+                return { titulo: `Resultados Fecha ${datos.fecha}${parte}`, archivo: `fecha${datos.fecha}-resultados${paginas.length > 1 ? '-' + (i + 1) : ''}.png`, url: c.toDataURL('image/png') };
+            });
+        }
+
+        function filaResultado(x, img, p, y) {
+            const ancho = REP_ANCHO - 2 * REP_MARGEN, centro = REP_ANCHO / 2, TAM = 54;
+            rect(x, REP_MARGEN, y, ancho, 64, 14, 'rgba(255,255,255,.06)');
+            const yc = y + 32;
+            escudo(x, img, p.local, REP_MARGEN + 12, y + 5, TAM);
+            texto(x, nombreClub(p.local), centro - 96, yc, { size: 32, peso: 800, alinear: 'right', max: centro - 96 - REP_MARGEN - 84 });
+            escudo(x, img, p.visita, REP_ANCHO - REP_MARGEN - 12 - TAM, y + 5, TAM);
+            texto(x, nombreClub(p.visita), centro + 96, yc, { size: 32, peso: 800, max: centro - 96 - REP_MARGEN - 84 });
+            const anulado = !!p.anulacion;
+            if (p.estado === 'jugado') {
+                rect(x, centro - 78, y + 6, 156, 52, 12, anulado ? 'rgba(255,255,255,.15)' : '#e8952a');
+                texto(x, `${p.golesLocal} - ${p.golesVisita}`, centro, yc, { size: 38, peso: 900, color: anulado ? 'rgba(255,255,255,.6)' : '#08050c', alinear: 'center' });
+                if (anulado) { x.fillStyle = 'rgba(255,255,255,.7)'; x.fillRect(centro - 70, yc - 2, 140, 4); }
+            } else if (p.estado === 'aplazado') {
+                rect(x, centro - 78, y + 6, 156, 52, 12, 'rgba(239,68,68,.25)');
+                texto(x, 'PEND.', centro, yc, { size: 30, peso: 900, color: '#f87171', alinear: 'center' });
+            } else {
+                texto(x, 'vs', centro, yc, { size: 30, peso: 800, color: 'rgba(255,255,255,.5)', alinear: 'center' });
+            }
+            // El marcador de cancha queda tal cual; la resolución va aparte, como en la web.
+            const nota = p.homologacion
+                ? `Homologado ${p.homologacion.golesLocal}-${p.homologacion.golesVisita}${p.homologacion.articulo ? ` · ${p.homologacion.articulo}` : ''}`
+                : (anulado ? `Sin efecto por WO${p.anulacion.articulo ? ` · ${p.anulacion.articulo}` : ''}` : '');
+            if (nota) texto(x, nota, centro, y + 64 + 17, { size: 22, peso: 700, color: '#f0d285', alinear: 'center', max: ancho });
+        }
+
+        function imagenTabla(datos, s, grupo, tabla, img) {
+            const { c, x } = lienzo();
+            const titulo = (NOMBRE_SERIE_CORTO[s.serie] || s.serie).toUpperCase() + (grupo !== 'U' ? ` · GRUPO ${grupo}` : '');
+            let y = cabeceraImagen(x, datos, img, titulo, `POSICIONES AL CIERRE DE LA FECHA ${datos.fecha}`);
+            const col = { pj: 600, g: 672, e: 744, p: 816, dg: 896, pts: REP_ANCHO - REP_MARGEN - 40 };
+            const sanciones = s.sanciones.filter(r => r.estado === 'vigente');
+            const piePx = 120 + (sanciones.length ? 50 + 40 * Math.min(sanciones.length, 6) : 0);
+            const FILA = Math.min(104, Math.floor((REP_ALTO - y - 80 - piePx) / Math.max(tabla.length, 1)));
+            [['PJ', col.pj], ['G', col.g], ['E', col.e], ['P', col.p], ['DG', col.dg], ['PTS', col.pts]]
+                .forEach(([t, px]) => texto(x, t, px, y + 30, { size: 26, peso: 800, color: 'rgba(255,255,255,.55)', alinear: 'center' }));
+            y += 64;
+            tabla.forEach((e, i) => {
+                const fondo = e.descalificado ? 'rgba(239,68,68,.12)' : (e.clasificado ? 'rgba(232,149,42,.16)' : 'rgba(255,255,255,.05)');
+                rect(x, REP_MARGEN, y, REP_ANCHO - 2 * REP_MARGEN, FILA - 12, 14, fondo);
+                const yc = y + (FILA - 12) / 2, tam = Math.min(60, FILA - 26);
+                texto(x, i + 1, REP_MARGEN + 34, yc, { size: 34, peso: 900, color: e.clasificado ? '#e8952a' : 'rgba(255,255,255,.6)', alinear: 'center' });
+                escudo(x, img, e.nombre, REP_MARGEN + 70, yc - tam / 2, tam);
+                const marcas = (e.ajustePuntos ? ` (${e.ajustePuntos})` : '') + (e.pa ? ` · ${e.pa} pend.` : '') + (e.descalificado ? ' · descalificado' : '');
+                texto(x, nombreClub(e.nombre), REP_MARGEN + 86 + tam, yc - (marcas ? 12 : 0), { size: 32, peso: 800, max: col.pj - 50 - (REP_MARGEN + 86 + tam) });
+                if (marcas) texto(x, marcas.replace(/^ · /, ''), REP_MARGEN + 86 + tam, yc + 22, { size: 20, peso: 600, color: e.descalificado || e.ajustePuntos ? '#f87171' : 'rgba(255,255,255,.5)', max: col.pj - 50 - (REP_MARGEN + 86 + tam) });
+                [[e.pj, col.pj], [e.pg, col.g], [e.pe, col.e], [e.pp, col.p], [(e.dg > 0 ? '+' : '') + e.dg, col.dg]]
+                    .forEach(([v, px]) => texto(x, v, px, yc, { size: 30, peso: 600, alinear: 'center' }));
+                texto(x, e.pts, col.pts, yc, { size: 38, peso: 900, color: '#f0d285', alinear: 'center' });
+                y += FILA;
+            });
+            y += 10;
+            if (sanciones.length) {
+                texto(x, 'SANCIONES VIGENTES', REP_MARGEN, y + 20, { size: 26, peso: 900, color: '#f87171' });
+                y += 50;
+                sanciones.slice(0, 6).forEach(r => {
+                    texto(x, textoSancion(r), REP_MARGEN, y + 16, { size: 22, peso: 500, color: 'rgba(255,255,255,.75)', max: REP_ANCHO - 2 * REP_MARGEN });
+                    y += 40;
+                });
+            }
+            const corte = datos.campeonato.formato === 'semis' ? 'Los 4 primeros van a semifinales.' : 'Zona de clasificación destacada.';
+            pieImagen(x, [corte, 'Desempate: puntos, diferencia de gol, goles a favor y goles en contra.']);
+            const slug = s.serie.toLowerCase() + (grupo !== 'U' ? '-' + grupo.toLowerCase() : '');
+            return { titulo: `Posiciones ${NOMBRE_SERIE_CORTO[s.serie] || s.serie}${grupo !== 'U' ? ' grupo ' + grupo : ''}`, archivo: `fecha${datos.fecha}-posiciones-${slug}.png`, url: c.toDataURL('image/png') };
+        }
+
+        function textoSancion(r) {
+            const art = r.articulo ? ` · ${r.articulo}` : '';
+            if (r.tipo === 'descuento_puntos') return `${nombreClub(r.equipo)}: ${r.puntosAjuste} pts${art} · ${r.motivo}`;
+            if (r.tipo === 'partido_homologado') return `${nombreClub(r.partidoLocal)} vs ${nombreClub(r.partidoVisita)} homologado ${r.golesLocalHom}-${r.golesVisitaHom}${art}`;
+            return `${nombreClub(r.equipo)}: descalificado por WO${art}`;
+        }
+
+        function mostrarImagenes(n) {
+            cerrarImagenes();
+            const m = document.createElement('div');
+            m.id = 'rep-modal'; m.className = 'rep-modal';
+            const compartir = !!(navigator.canShare && window.File);
+            m.innerHTML = `
+                <div class="rep-modal-cab">
+                    <div>
+                        <p class="text-xl font-bold text-noc-goldlight">Fecha ${n} · ${REP.imagenes.length} imágenes</p>
+                        <p class="text-xs text-white/50">Formato historia de Instagram (1080 × 1920). Revísalas antes de publicar.</p>
+                    </div>
+                    <div class="rep-acciones">
+                        <button class="rep-btn" onclick="descargarTodas()">Descargar todas</button>
+                        ${compartir ? '<button class="rep-btn sec" onclick="compartirImagenes()">Compartir</button>' : ''}
+                        <button class="rep-btn sec" onclick="cerrarImagenes()">Cerrar</button>
+                    </div>
+                </div>
+                <div class="rep-grilla">${REP.imagenes.map((im, i) => `
+                    <div class="rep-item">
+                        <img src="${im.url}" alt="${escapeHtml(im.titulo)}">
+                        <p>${escapeHtml(im.titulo)}</p>
+                        <button class="rep-btn sec" onclick="descargarImagen(${i})">Descargar</button>
+                    </div>`).join('')}
+                </div>`;
+            document.body.appendChild(m);
+            document.body.style.overflow = 'hidden';
+        }
+        function cerrarImagenes() {
+            const m = document.getElementById('rep-modal');
+            if (m) m.remove();
+            document.body.style.overflow = '';
+        }
+        async function aBlob(im) { return (await fetch(im.url)).blob(); }
+        async function descargarImagen(i) { guardarArchivo(await aBlob(REP.imagenes[i]), REP.imagenes[i].archivo); }
+        async function descargarTodas() {
+            // Con una pausa entre una y otra: algunos navegadores bloquean varias descargas seguidas.
+            for (let i = 0; i < REP.imagenes.length; i++) {
+                await descargarImagen(i);
+                await new Promise(r => setTimeout(r, 350));
+            }
+        }
+        // En el celular abre el menú de compartir del sistema (Instagram, WhatsApp...).
+        async function compartirImagenes() {
+            try {
+                const archivos = await Promise.all(REP.imagenes.map(async im => new File([await aBlob(im)], im.archivo, { type: 'image/png' })));
+                if (!navigator.canShare({ files: archivos })) throw new Error('Este navegador no permite compartir imágenes; usa Descargar.');
+                await navigator.share({ files: archivos });
+            } catch (e) {
+                if (e.name !== 'AbortError') mostrarToast(e.message, 'error');
+            }
         }
 
         function pintarGrupoPartidos(grupo, partidos, libres) {

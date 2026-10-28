@@ -30,7 +30,12 @@ function compararConDescalificados(a, b) {
 // datos guardados: un partido homologado conserva su marcador de cancha en la
 // base y se computa con el homologado; un descuento de puntos se resta al
 // final y queda anotado en el equipo para poder mostrarlo aparte.
-async function calcularTabla(campeonatoId, serie, grupo, ajustes) {
+//
+// Con hastaFecha se calcula la tabla como quedó al cerrar esa fecha (para la
+// hoja de resultados de cada fecha): los partidos de fechas posteriores no
+// cuentan, aunque ya tengan resultado. Las sanciones se aplican igual, porque
+// la hoja muestra la situación vigente del equipo.
+async function calcularTabla(campeonatoId, serie, grupo, ajustes, hastaFecha = null) {
   const equipos = await db.all(
     'SELECT * FROM equipos WHERE campeonato_id = ? AND serie = ? AND grupo = ? ORDER BY orden',
     [campeonatoId, serie, grupo]
@@ -49,8 +54,9 @@ async function calcularTabla(campeonatoId, serie, grupo, ajustes) {
   // Los partidos no guardan el campeonato: se sabe por el equipo local.
   const partidos = await db.all(
     `SELECT p.* FROM partidos p JOIN equipos l ON l.id = p.local_id
-     WHERE l.campeonato_id = ? AND p.serie = ? AND p.grupo = ? AND p.fase = 'grupos'`,
-    [campeonatoId, serie, grupo]
+     WHERE l.campeonato_id = ? AND p.serie = ? AND p.grupo = ? AND p.fase = 'grupos'
+       ${hastaFecha ? 'AND p.fecha <= ?' : ''}`,
+    hastaFecha ? [campeonatoId, serie, grupo, hastaFecha] : [campeonatoId, serie, grupo]
   );
 
   partidos.forEach(p => {
@@ -111,7 +117,7 @@ async function calcularTabla(campeonatoId, serie, grupo, ajustes) {
   return Object.values(stats).sort(compararConDescalificados);
 }
 
-async function calcularTodasLasTablas(campeonatoId, serie) {
+async function calcularTodasLasTablas(campeonatoId, serie, hastaFecha = null) {
   // Los grupos se descubren desde los equipos ya cargados (no de una lista
   // fija): la composición de grupos la define el sorteo de cada campeonato,
   // no este módulo.
@@ -122,7 +128,7 @@ async function calcularTodasLasTablas(campeonatoId, serie) {
   const ajustes = await ajustesVigentes(campeonatoId, serie);
   const resultado = {};
   for (const { grupo } of filas) {
-    resultado[grupo] = await calcularTabla(campeonatoId, serie, grupo, ajustes);
+    resultado[grupo] = await calcularTabla(campeonatoId, serie, grupo, ajustes, hastaFecha);
   }
   return resultado;
 }
