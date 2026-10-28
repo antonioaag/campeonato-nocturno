@@ -34,10 +34,18 @@ router.get('/', authOpcional, campeonatoDeLaPeticion, asyncHandler(async (req, r
   const params = [req.campeonato.id];
   if (serie) { condiciones.push('e.serie = ?'); params.push(serie); }
   if (equipoId) { condiciones.push('j.equipo_id = ?'); params.push(Number(equipoId)); }
-  if (revisar) condiciones.push('j.revisar = 1');
+  const esAdmin = !!(req.usuario && req.usuario.rol === 'admin');
+  if (revisar && esAdmin) condiciones.push('j.revisar = 1');
   const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
   const jugadores = await db.all(`${SELECT_JUGADORES} ${where} ORDER BY e.nombre, j.nombre`, params);
-  res.json(jugadores);
+  if (esAdmin) return res.json(jugadores);
+  // El campeonato es público, pero la lista trae RUT y fecha de nacimiento
+  // (muchos son menores de edad) y los avisos internos de revisión. Quien no
+  // es admin ve solo quién juega en cada equipo. El filtro es del servidor:
+  // ocultar las columnas en la página no basta, la API las entregaría igual.
+  res.json(jugadores.map(j => ({
+    id: j.id, equipoId: j.equipoId, equipo: j.equipo, serie: j.serie, grupo: j.grupo, nombre: j.nombre,
+  })));
 }));
 
 function validarJugador({ nombre, rut, fechaNacimiento }) {

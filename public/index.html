@@ -421,8 +421,8 @@
                     <thead>
                         <tr class="bg-noc-purple text-noc-goldlight text-sm uppercase tracking-wider">
                             <th class="p-3 font-semibold">Nombre</th>
-                            <th class="p-3 font-semibold">RUT</th>
-                            <th class="p-3 font-semibold">Fecha Nacimiento</th>
+                            <th id="jugadores-th-rut" class="p-3 font-semibold">RUT</th>
+                            <th id="jugadores-th-nacimiento" class="p-3 font-semibold">Fecha Nacimiento</th>
                             <th id="jugadores-th-ingreso" class="p-3 font-semibold hidden">Ingreso lista</th>
                             <th id="jugadores-th-equipo" class="p-3 font-semibold hidden">Equipo</th>
                             <th id="jugadores-th-acciones" class="p-3 font-semibold text-center hidden">Acciones</th>
@@ -488,7 +488,7 @@
                     <thead>
                         <tr class="bg-noc-purple text-noc-goldlight text-sm uppercase tracking-wider">
                             <th class="p-3 font-semibold">Nombre</th>
-                            <th class="p-3 font-semibold">RUT</th>
+                            <th id="castigos-th-rut" class="p-3 font-semibold">RUT</th>
                             <th class="p-3 font-semibold">Equipo</th>
                             <th class="p-3 font-semibold">Infracción</th>
                             <th class="p-3 font-semibold">Castigo</th>
@@ -2679,6 +2679,10 @@
             document.getElementById('jugadores-admin-form').classList.toggle('hidden', !esAdmin());
             document.getElementById('jugadores-th-acciones').classList.toggle('hidden', !esAdmin());
             document.getElementById('jugadores-th-ingreso').classList.toggle('hidden', !esAdmin());
+            // RUT y fecha de nacimiento son solo para el admin: el servidor ni
+            // siquiera los manda al público (muchos jugadores son menores).
+            document.getElementById('jugadores-th-rut').classList.toggle('hidden', !esAdmin());
+            document.getElementById('jugadores-th-nacimiento').classList.toggle('hidden', !esAdmin());
             document.getElementById('jugadores-th-equipo').classList.toggle('hidden', !!equipoId);
             document.getElementById('jugadores-filtro-revisar-box').classList.toggle('hidden', !esAdmin());
             if (esAdmin()) mostrarCargaFotosSiHayLector();
@@ -2698,13 +2702,13 @@
                         ${j.revisar && editable ? `<div class="mt-1 text-xs text-amber-300">⚠ A revisar: ${escapeHtml(j.motivoRevision || '')}
                             <button onclick="darPorRevisado(${j.id})" class="ml-2 underline text-white/60 hover:text-white">Dar por revisado</button></div>` : ''}
                     </td>
-                    <td class="p-2">
-                        <input type="text" value="${escapeHtml(j.rut)}" ${editable ? '' : 'disabled'}
+                    <td class="p-2 ${editable ? '' : 'hidden'}">
+                        <input type="text" value="${escapeHtml(j.rut || '')}" ${editable ? '' : 'disabled'}
                                onchange="actualizarJugador(${j.id}, 'rut', this.value, ${j.revisar ? 1 : 0})"
                                class="border border-noc-purple2 p-1 rounded bg-noc-black/50 text-white w-32 ${editable ? '' : 'text-white/70 border-transparent bg-transparent'}">
                     </td>
-                    <td class="p-2">
-                        <input type="${/^\d{4}-\d{2}-\d{2}$/.test(j.fechaNacimiento) ? 'date' : 'text'}" value="${escapeHtml(j.fechaNacimiento)}" ${editable ? '' : 'disabled'}
+                    <td class="p-2 ${editable ? '' : 'hidden'}">
+                        <input type="${/^\d{4}-\d{2}-\d{2}$/.test(j.fechaNacimiento) ? 'date' : 'text'}" value="${escapeHtml(j.fechaNacimiento || '')}" ${editable ? '' : 'disabled'}
                                onchange="actualizarJugador(${j.id}, 'fechaNacimiento', this.value, ${j.revisar ? 1 : 0})"
                                class="border border-noc-purple2 p-1 rounded bg-noc-black/50 text-white ${editable ? '' : 'text-white/70 border-transparent bg-transparent'}">
                     </td>
@@ -3100,6 +3104,7 @@
             const adminForm = document.getElementById('castigos-admin-form');
             adminForm.classList.toggle('hidden', !esAdmin());
             document.getElementById('castigos-th-acciones').classList.toggle('hidden', !esAdmin());
+            document.getElementById('castigos-th-rut').classList.toggle('hidden', !esAdmin());
             if (esAdmin()) await poblarSelectEquipos(document.getElementById('nc-equipo'), false);
 
             const params = new URLSearchParams({ serie: serieActual });
@@ -3112,7 +3117,7 @@
             tbody.innerHTML = castigos.map(c => `
                 <tr class="${c.estado === 'vigente' ? 'fila-mejor-tercero' : 'bg-noc-dark/60'} border-b border-noc-purple2 hover:bg-noc-purple2/40 transition">
                     <td class="p-3 font-semibold">${escapeHtml(c.nombre)}</td>
-                    <td class="p-3">${escapeHtml(c.rut)}</td>
+                    <td class="p-3 ${admin ? '' : 'hidden'}">${escapeHtml(c.rut || '')}</td>
                     <td class="p-3">${escapeHtml(c.equipo)}</td>
                     <td class="p-3">${escapeHtml(c.infraccion)}</td>
                     <td class="p-3">${escapeHtml(c.castigo)}</td>
