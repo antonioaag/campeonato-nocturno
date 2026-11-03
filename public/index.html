@@ -447,70 +447,104 @@
             </div>
         </section>
 
-        <!-- Pestaña: Castigados -->
+        <!-- Pestaña: Castigados (registro de la asociación, no de un campeonato) -->
         <section id="tab-castigados" class="hidden bg-noc-dark/80 p-6 rounded-lg shadow-md border border-noc-purple2">
-            <h3 class="text-2xl font-bold mb-4 border-b border-noc-purple2 pb-2 text-noc-goldlight">Jugadores Castigados</h3>
+            <h3 class="text-2xl font-bold mb-2 border-b border-noc-purple2 pb-2 text-noc-goldlight">Jugadores Castigados</h3>
+            <p id="castigos-ayuda" class="text-sm text-white/60 mb-4">Jugadores de la Asociación Liga Dávila que hoy no pueden jugar en ninguna serie. Las sanciones en fechas se cuentan por fechas de competencia.</p>
 
             <div class="flex flex-wrap items-end gap-3 mb-4">
                 <div>
-                    <label class="block text-xs font-semibold text-white/50 mb-1">Equipo</label>
-                    <select id="castigos-filtro-equipo" onchange="renderCastigados()" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded"></select>
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Club</label>
+                    <select id="castigos-filtro-club" onchange="pintarCastigados()" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded"></select>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-white/50 mb-1">Estado</label>
-                    <select id="castigos-filtro-estado" onchange="renderCastigados()" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded">
-                        <option value="">Todos</option>
-                        <option value="vigente">Vigente</option>
-                        <option value="cumplido">Cumplido</option>
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Buscar</label>
+                    <input id="castigos-buscar" oninput="pintarCastigados()" type="text" placeholder="Nombre o RUT" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded">
+                </div>
+                <div id="castigos-filtro-estado-box" class="hidden">
+                    <label class="block text-xs font-semibold text-white/50 mb-1">Mostrar</label>
+                    <select id="castigos-filtro-estado" onchange="pintarCastigados()" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded">
+                        <option value="inhabilitados">No habilitados</option>
+                        <option value="falta_pago">Cumplidos con multa pendiente</option>
+                        <option value="todos">Todos</option>
                     </select>
                 </div>
             </div>
 
             <div id="castigos-admin-form" class="hidden mb-6 border border-noc-purple2 rounded p-4">
-                <h4 class="font-bold text-noc-gold mb-3">Agregar castigo</h4>
-                <form onsubmit="crearCastigo(event)" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-                    <div>
-                        <label class="block text-xs font-semibold text-white/50 mb-1">Equipo</label>
-                        <select required id="nc-equipo" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full"></select>
-                    </div>
+                <h4 id="nc-titulo" class="font-bold text-noc-gold mb-3">Agregar castigo</h4>
+                <form id="nc-form" onsubmit="guardarCastigo(event)" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                    <input type="hidden" id="nc-id">
                     <div>
                         <label class="block text-xs font-semibold text-white/50 mb-1">Nombre</label>
                         <input required id="nc-nombre" type="text" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-white/50 mb-1">RUT</label>
-                        <input required id="nc-rut" type="text" placeholder="12345678-9" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                        <label class="block text-xs font-semibold text-white/50 mb-1">RUT (opcional)</label>
+                        <input id="nc-rut" type="text" placeholder="12345678-9" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Club</label>
+                        <input required id="nc-club" list="nc-clubes" type="text" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                        <datalist id="nc-clubes"></datalist>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Serie</label>
+                        <select id="nc-serie" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                            <option>Sub-13</option><option>Sub-15</option><option>Sub-17</option><option>Seniors</option><option>Segunda</option><option>Primera</option><option>Adulto</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Sanción</label>
+                        <input required id="nc-sancion" type="text" placeholder="3 fechas · 4 meses · 2 años · Expulsado liga" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Inicio del castigo</label>
+                        <input required id="nc-inicio" type="date" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block text-xs font-semibold text-white/50 mb-1">Infracción</label>
-                        <input required id="nc-infraccion" type="text" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Artículo</label>
+                        <input id="nc-articulo" type="text" placeholder="Art. 211 letra p)" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-white/50 mb-1">Castigo</label>
-                        <input required id="nc-castigo" type="text" placeholder="Ej: 3 fechas" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Partido / campeonato</label>
+                        <input id="nc-origen" type="text" placeholder="Fecha 1 clausura 2026" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-white/50 mb-1">Fecha Castigo</label>
-                        <input required id="nc-fecha" type="date" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Multa</label>
+                        <select id="nc-multa" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                            <option value="pendiente">Pendiente de pago</option>
+                            <option value="pagada">Pagada</option>
+                            <option value="no_aplica">Sin multa</option>
+                        </select>
                     </div>
-                    <button type="submit" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition h-10 whitespace-nowrap">Agregar</button>
+                    <div>
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Fechas ya cumplidas antes</label>
+                        <input id="nc-previas" type="number" min="0" value="0" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Cumplimiento</label>
+                        <select id="nc-manual" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                            <option value="">Automático</option>
+                            <option value="vigente">Forzar vigente</option>
+                            <option value="cumplido">Forzar cumplido</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-white/50 mb-1">Observación (solo admin)</label>
+                        <input id="nc-observacion" type="text" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="submit" id="nc-guardar" class="bg-noc-gold text-noc-black font-semibold px-4 py-2 rounded shadow hover:bg-noc-goldlight transition h-10 whitespace-nowrap">Agregar</button>
+                        <button type="button" id="nc-cancelar" onclick="limpiarFormCastigo()" class="hidden rep-btn sec">Cancelar</button>
+                    </div>
                 </form>
             </div>
 
+            <p id="castigos-resumen" class="text-sm text-white/60 mb-2"></p>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse min-w-[800px]">
-                    <thead>
-                        <tr class="bg-noc-purple text-noc-goldlight text-sm uppercase tracking-wider">
-                            <th class="p-3 font-semibold">Nombre</th>
-                            <th id="castigos-th-rut" class="p-3 font-semibold">RUT</th>
-                            <th class="p-3 font-semibold">Equipo</th>
-                            <th class="p-3 font-semibold">Infracción</th>
-                            <th class="p-3 font-semibold">Castigo</th>
-                            <th class="p-3 font-semibold">Fecha</th>
-                            <th class="p-3 font-semibold text-center">Estado</th>
-                            <th id="castigos-th-acciones" class="p-3 font-semibold text-center hidden">Acciones</th>
-                        </tr>
-                    </thead>
+                    <thead id="castigos-thead"></thead>
                     <tbody id="tabla-castigos" class="text-sm"></tbody>
                 </table>
             </div>
@@ -3412,72 +3446,127 @@
         }
 
         // --- 7. CASTIGADOS ---
+        // Registro de la asociación: el servidor calcula si cada castigo está
+        // cumplido (fechas de competencia, meses, expulsión) y si falta la multa.
+        // El público recibe solo a quienes hoy no pueden jugar, sin RUT ni detalle.
+        const CASTIGOS = { lista: [] };
+        const ESTADO_CASTIGO = {
+            vigente: ['badge-aplazado', 'Suspendido'],
+            falta_pago: ['badge-programado', 'Cumplido · falta multa'],
+            pendiente_habilitacion: ['badge-programado', 'Pendiente de habilitación'],
+            cumplido: ['badge-jugado', 'Habilitado'],
+        };
+        const TEXTO_MULTA = { pendiente: 'Pendiente', pagada: 'Pagada', no_aplica: 'Sin multa' };
+
         async function renderCastigados() {
-            const filtroEquipo = document.getElementById('castigos-filtro-equipo');
-            await poblarSelectEquipos(filtroEquipo, true);
-            const equipoId = filtroEquipo.value;
-            const estado = document.getElementById('castigos-filtro-estado').value;
-
-            const adminForm = document.getElementById('castigos-admin-form');
-            adminForm.classList.toggle('hidden', !esAdmin());
-            document.getElementById('castigos-th-acciones').classList.toggle('hidden', !esAdmin());
-            document.getElementById('castigos-th-rut').classList.toggle('hidden', !esAdmin());
-            if (esAdmin()) await poblarSelectEquipos(document.getElementById('nc-equipo'), false);
-
-            const params = new URLSearchParams({ serie: serieActual });
-            if (equipoId) params.set('equipoId', equipoId);
-            if (estado) params.set('estado', estado);
-            const castigos = await api('/castigos?' + params.toString());
-
-            const tbody = document.getElementById('tabla-castigos');
             const admin = esAdmin();
-            tbody.innerHTML = castigos.map(c => `
-                <tr class="${c.estado === 'vigente' ? 'fila-mejor-tercero' : 'bg-noc-dark/60'} border-b border-noc-purple2 hover:bg-noc-purple2/40 transition">
-                    <td class="p-3 font-semibold">${escapeHtml(c.nombre)}</td>
-                    <td class="p-3 ${admin ? '' : 'hidden'}">${escapeHtml(c.rut || '')}</td>
-                    <td class="p-3">${escapeHtml(c.equipo)}</td>
-                    <td class="p-3">${escapeHtml(c.infraccion)}</td>
-                    <td class="p-3">${escapeHtml(c.castigo)}</td>
-                    <td class="p-3">${c.fechaCastigo}</td>
-                    <td class="p-3 text-center">
-                        ${admin
-                            ? `<select onchange="actualizarCastigo(${c.id}, 'estado', this.value)" class="border border-noc-purple2 bg-noc-black/50 text-white text-xs p-1 rounded">
-                                <option value="vigente" ${c.estado === 'vigente' ? 'selected' : ''}>Vigente</option>
-                                <option value="cumplido" ${c.estado === 'cumplido' ? 'selected' : ''}>Cumplido</option>
-                               </select>`
-                            : `<span class="badge ${c.estado === 'vigente' ? 'badge-aplazado' : 'badge-jugado'}">${c.estado === 'vigente' ? 'Vigente' : 'Cumplido'}</span>`}
-                    </td>
-                    <td class="p-3 text-center ${admin ? '' : 'hidden'}">
-                        <button onclick="eliminarCastigo(${c.id})" class="text-xs bg-red-900/40 text-red-300 px-3 py-1 rounded hover:bg-red-900/60">Eliminar</button>
-                    </td>
-                </tr>
-            `).join('') || `<tr><td colspan="8" class="p-4 text-center text-white/40 italic">No hay castigos registrados.</td></tr>`;
+            document.getElementById('castigos-admin-form').classList.toggle('hidden', !admin);
+            document.getElementById('castigos-filtro-estado-box').classList.toggle('hidden', !admin);
+            try {
+                CASTIGOS.lista = await api('/castigos');
+            } catch (e) {
+                document.getElementById('tabla-castigos').innerHTML = `<tr><td class="p-4 text-red-400">${escapeHtml(e.message)}</td></tr>`;
+                return;
+            }
+            const clubes = [...new Set(CASTIGOS.lista.map(c => c.club))].sort();
+            const filtro = document.getElementById('castigos-filtro-club');
+            const elegido = filtro.value;
+            filtro.innerHTML = '<option value="">Todos los clubes</option>' + clubes.map(c => `<option ${c === elegido ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('');
+            if (admin) document.getElementById('nc-clubes').innerHTML = clubes.map(c => `<option value="${escapeHtml(c)}">`).join('');
+            pintarCastigados();
         }
 
-        async function crearCastigo(ev) {
+        function pintarCastigados() {
+            const admin = esAdmin();
+            const club = document.getElementById('castigos-filtro-club').value;
+            const buscar = document.getElementById('castigos-buscar').value.trim().toLowerCase();
+            const mostrar = admin ? document.getElementById('castigos-filtro-estado').value : 'inhabilitados';
+            const lista = CASTIGOS.lista.filter(c =>
+                (!club || c.club === club)
+                && (!buscar || c.nombre.toLowerCase().includes(buscar) || (c.rut || '').toLowerCase().includes(buscar))
+                && (mostrar === 'todos' || (mostrar === 'falta_pago' ? c.estado === 'falta_pago' : !(c.habilitado ?? false))));
+
+            const suspendidos = CASTIGOS.lista.filter(c => c.estado === 'vigente').length;
+            document.getElementById('castigos-resumen').textContent = admin
+                ? `${suspendidos} suspendidos · ${CASTIGOS.lista.filter(c => c.estado === 'falta_pago').length} con la sanción cumplida pero multa pendiente · ${CASTIGOS.lista.length} castigos registrados.`
+                : `${CASTIGOS.lista.length} jugadores no habilitados.`;
+
+            const th = t => `<th class="p-3 font-semibold">${t}</th>`;
+            document.getElementById('castigos-thead').innerHTML = `<tr class="bg-noc-purple text-noc-goldlight text-sm uppercase tracking-wider">
+                ${th('Jugador')}${admin ? th('RUT') : ''}${th('Club')}${th('Serie')}${th('Sanción')}${th('Artículo')}${th('Cumplimiento')}${th('Estado')}
+                ${admin ? th('Multa') + th('') : ''}</tr>`;
+
+            document.getElementById('tabla-castigos').innerHTML = lista.map(c => {
+                const [clase, etiqueta] = ESTADO_CASTIGO[c.estado] || ['badge-programado', c.estado];
+                return `
+                <tr class="${c.estado === 'vigente' ? 'fila-mejor-tercero' : 'bg-noc-dark/60'} border-b border-noc-purple2">
+                    <td class="p-3 font-semibold">${escapeHtml(c.nombre)}${admin && c.observacion ? `<p class="text-xs text-white/50 font-normal mt-1">${escapeHtml(c.observacion)}</p>` : ''}</td>
+                    ${admin ? `<td class="p-3 whitespace-nowrap">${escapeHtml(c.rut || '—')}</td>` : ''}
+                    <td class="p-3">${escapeHtml(nombreClub(c.club))}</td>
+                    <td class="p-3">${escapeHtml(c.serie || '')}</td>
+                    <td class="p-3 whitespace-nowrap">${escapeHtml(c.sancion)}<p class="text-xs text-white/50">desde ${escapeHtml(formatearDia(c.fechaInicio))}</p></td>
+                    <td class="p-3 text-xs">${escapeHtml(c.articulo || '')}</td>
+                    <td class="p-3 whitespace-nowrap">${escapeHtml(c.avance)}${admin && c.estadoManual ? '<p class="text-xs text-white/50">(fijado a mano)</p>' : ''}</td>
+                    <td class="p-3"><span class="badge ${clase}">${escapeHtml(etiqueta)}</span></td>
+                    ${admin ? `
+                    <td class="p-3">
+                        <select onchange="cambiarCastigo(${c.id}, { multa: this.value })" class="border border-noc-purple2 bg-noc-black/50 text-white text-xs p-1 rounded">
+                            ${Object.entries(TEXTO_MULTA).map(([v, t]) => `<option value="${v}" ${c.multa === v ? 'selected' : ''}>${t}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td class="p-3 whitespace-nowrap">
+                        <button onclick="editarCastigo(${c.id})" class="text-xs bg-noc-purple2 text-white px-3 py-1 rounded">Editar</button>
+                        <button onclick="eliminarCastigo(${c.id})" class="text-xs bg-red-900/40 text-red-300 px-3 py-1 rounded hover:bg-red-900/60">Eliminar</button>
+                    </td>` : ''}
+                </tr>`;
+            }).join('') || `<tr><td colspan="10" class="p-4 text-center text-white/40 italic">${admin ? 'No hay castigos con este filtro.' : 'No hay jugadores castigados.'}</td></tr>`;
+        }
+
+        const CAMPOS_CASTIGO = { nombre: 'nc-nombre', rut: 'nc-rut', club: 'nc-club', serie: 'nc-serie', sancion: 'nc-sancion', fechaInicio: 'nc-inicio',
+            articulo: 'nc-articulo', origen: 'nc-origen', multa: 'nc-multa', fechasPrevias: 'nc-previas', estadoManual: 'nc-manual', observacion: 'nc-observacion' };
+
+        function editarCastigo(id) {
+            const c = CASTIGOS.lista.find(x => x.id === id);
+            if (!c) return;
+            document.getElementById('nc-id').value = id;
+            Object.entries(CAMPOS_CASTIGO).forEach(([campo, el]) => { document.getElementById(el).value = c[campo] ?? ''; });
+            document.getElementById('nc-titulo').textContent = `Editar castigo de ${c.nombre}`;
+            document.getElementById('nc-guardar').textContent = 'Guardar cambios';
+            document.getElementById('nc-cancelar').classList.remove('hidden');
+            document.getElementById('castigos-admin-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function limpiarFormCastigo() {
+            document.getElementById('nc-form').reset();
+            document.getElementById('nc-id').value = '';
+            document.getElementById('nc-titulo').textContent = 'Agregar castigo';
+            document.getElementById('nc-guardar').textContent = 'Agregar';
+            document.getElementById('nc-cancelar').classList.add('hidden');
+        }
+
+        async function guardarCastigo(ev) {
             ev.preventDefault();
-            const equipoId = document.getElementById('nc-equipo').value;
-            const nombre = document.getElementById('nc-nombre').value.trim();
-            const rut = document.getElementById('nc-rut').value.trim();
-            const infraccion = document.getElementById('nc-infraccion').value.trim();
-            const castigo = document.getElementById('nc-castigo').value.trim();
-            const fechaCastigo = document.getElementById('nc-fecha').value;
+            const id = document.getElementById('nc-id').value;
+            const datos = {};
+            Object.entries(CAMPOS_CASTIGO).forEach(([campo, el]) => { datos[campo] = document.getElementById(el).value.trim(); });
+            datos.fechasPrevias = Number(datos.fechasPrevias || 0);
             try {
-                await api('/castigos', { method: 'POST', body: JSON.stringify({ equipoId, nombre, rut, infraccion, castigo, fechaCastigo }) });
-                ev.target.reset();
+                await api(id ? '/castigos/' + id : '/castigos', { method: id ? 'PATCH' : 'POST', body: JSON.stringify(datos) });
+                mostrarToast(id ? 'Castigo actualizado.' : 'Castigo agregado.', 'success');
+                limpiarFormCastigo();
                 renderCastigados();
             } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
-        async function actualizarCastigo(id, campo, valor) {
+        async function cambiarCastigo(id, cambios) {
             try {
-                await api('/castigos/' + id, { method: 'PATCH', body: JSON.stringify({ [campo]: valor }) });
+                await api('/castigos/' + id, { method: 'PATCH', body: JSON.stringify(cambios) });
                 renderCastigados();
             } catch (e) { mostrarToast(e.message, 'error'); renderCastigados(); }
         }
 
         async function eliminarCastigo(id) {
-            if (!(await confirmarAccion('¿Eliminar este castigo?'))) return;
+            if (!(await confirmarAccion('¿Eliminar este castigo? Si ya se cumplió, basta con dejarlo: queda como historial.'))) return;
             try {
                 await api('/castigos/' + id, { method: 'DELETE' });
                 renderCastigados();

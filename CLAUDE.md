@@ -174,6 +174,22 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
   `GET /jugadores/repetidos` arma el informe (mismo RUT en otro club u otra
   serie, y mismo nombre con distinto RUT).
 
+## Castigados (registro de la asociación)
+
+- Tabla `castigados`, **no** por campeonato: un castigo largo cruza
+  campeonatos y alcanza a clubes que ya no juegan. La tabla vieja `castigos`
+  (por campeonato) queda intacta; sus filas se copiaron una vez al registro.
+- Reglas de la asociación (`server/castigados.js`): el castigado no juega en
+  ninguna serie; las sanciones en fechas se cuentan por **fechas de
+  competencia** (cada fin de semana con partidos de la asociación desde el
+  inicio, aunque su club quede libre); las de meses/años vencen por
+  calendario; "Expulsado liga" no vence. Con multa pendiente sigue
+  inhabilitado aunque haya cumplido. El admin puede forzar el estado y
+  cargar "fechas ya cumplidas" de antes del sistema.
+- El público ve solo a los no habilitados, sin RUT, observación ni multa.
+- El informe del comité se carga con `node cargar-castigados.js <xlsx>`
+  (simula) y `--aplicar`. No duplica si se vuelve a correr.
+
 ## Principio de diseño: el resultado de cancha es intocable
 
 Las sanciones del tribunal (descuentos de puntos, partidos ganados por

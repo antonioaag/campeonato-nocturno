@@ -444,6 +444,7 @@ function init() {
       await migrarSeriesNuevas();
       await migrarFormatoYVisibilidad();
       await migrarRevisionJugadores();
+      await migrarCastigados();
     })();
   }
   return readyPromise;
@@ -652,6 +653,54 @@ async function migrarRevisionJugadores() {
     columnas.push('ALTER TABLE jugadores ADD COLUMN fecha_ingreso TEXT');
   }
   if (columnas.length) await exec(columnas.join(';'));
+}
+
+// Registro de castigados de la asociación. Vive aparte de 'castigos' (que es
+// por campeonato y exige un equipo inscrito) porque un castigo de 2 años
+// cruza campeonatos y alcanza a jugadores de clubes que ya no participan.
+// tipo: 'fechas' (cantidad = fechas), 'tiempo' (cantidad = meses),
+// 'expulsion' (no vence) u 'otro' (sin cálculo: lo decide estado_manual).
+// multa: 'no_aplica', 'pendiente' o 'pagada'; con multa pendiente el jugador
+// sigue inhabilitado aunque haya cumplido la sanción.
+async function migrarCastigados() {
+  await exec(`
+    CREATE TABLE IF NOT EXISTS castigados (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      rut TEXT,
+      nombre TEXT NOT NULL,
+      club TEXT NOT NULL,
+      serie TEXT,
+      articulo TEXT,
+      sancion TEXT NOT NULL,
+      tipo TEXT NOT NULL CHECK(tipo IN ('fechas','tiempo','expulsion','otro')),
+      cantidad INTEGER,
+      fecha_inicio TEXT NOT NULL,
+      origen TEXT,
+      fechas_previas INTEGER NOT NULL DEFAULT 0,
+      multa TEXT NOT NULL DEFAULT 'no_aplica' CHECK(multa IN ('no_aplica','pendiente','pagada')),
+      estado_manual TEXT CHECK(estado_manual IN ('vigente','cumplido')),
+      observacion TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT
+    )
+  `);
+  // Los castigos cargados antes por campeonato se copian una sola vez al
+  // registro nuevo; la tabla vieja queda intacta como respaldo.
+  const hecho = await get("SELECT valor FROM configuracion WHERE clave = 'castigados_migrados'");
+  if (hecho) return;
+  const viejos = await all(`
+    SELECT c.*, e.nombre AS club, e.serie FROM castigos c JOIN equipos e ON e.id = c.equipo_id ORDER BY c.id
+  `);
+  const { parsearSancion } = require('./castigados');
+  for (const c of viejos) {
+    const { tipo, cantidad } = parsearSancion(c.castigo);
+    await run(`
+      INSERT INTO castigados (rut, nombre, club, serie, articulo, sancion, tipo, cantidad, fecha_inicio, estado_manual, observacion)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [c.rut, c.nombre, c.club, c.serie, null, c.castigo, tipo, cantidad, c.fecha_castigo,
+        c.estado === 'cumplido' ? 'cumplido' : (tipo === 'otro' ? 'vigente' : null), c.infraccion]);
+  }
+  await run("INSERT INTO configuracion (clave, valor) VALUES ('castigados_migrados', ?)", [String(viejos.length)]);
 }
 
 module.exports = { get, all, run, exec, batch, init };
