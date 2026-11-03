@@ -8,14 +8,34 @@ const asyncHandler = require('../asyncHandler');
 const { esRutValido, formatearRut } = require('../rut');
 const { normalizarFecha } = require('../csv');
 const { parsearSancion, normalizarSerie, diasDeCompetencia, evaluar, hoyEnChile } = require('../castigados');
+const { leerBooleano, escribir } = require('../configuracion');
 
 const router = express.Router();
 const MULTAS = ['no_aplica', 'pendiente', 'pagada'];
 
+// La lista nace oculta y el admin la publica cuando quiere (pedido de la
+// asociación, para evitar problemas). Es una sola para toda la asociación,
+// así que el interruptor también: no va por campeonato ni por serie.
+const CLAVE_PUBLICOS = 'castigados_publicos';
+
+router.get('/estado', authOpcional, asyncHandler(async (req, res) => {
+  const publico = await leerBooleano(CLAVE_PUBLICOS, false);
+  const esAdmin = !!(req.usuario && req.usuario.rol === 'admin');
+  res.json({ publico, visible: publico || esAdmin });
+}));
+
+router.post('/publicar', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const publico = !!(req.body && req.body.publico);
+  await escribir(CLAVE_PUBLICOS, publico ? '1' : '0');
+  res.json({ publico, visible: true });
+}));
+
 function aRespuesta(c, ev) {
   return {
     id: c.id, rut: c.rut, nombre: c.nombre, club: c.club, serie: c.serie, articulo: c.articulo,
-    sancion: c.sancion, tipo: c.tipo, cantidad: c.cantidad, fechaInicio: c.fecha_inicio, origen: c.origen,
+    // La asociación lo llama "expulsado de la asociación", aunque el informe
+    // diga "Expulsado Liga": se muestra igual en todos.
+    sancion: c.tipo === 'expulsion' ? 'Expulsado de la asociación' : c.sancion, tipo: c.tipo, cantidad: c.cantidad, fechaInicio: c.fecha_inicio, origen: c.origen,
     fechasPrevias: c.fechas_previas, multa: c.multa, estadoManual: c.estado_manual, observacion: c.observacion,
     ...ev,
   };
@@ -31,8 +51,9 @@ router.get('/', authOpcional, asyncHandler(async (req, res) => {
   const hoy = hoyEnChile();
   const todos = filas.map(c => aRespuesta(c, evaluar(c, dias, hoy)));
   if (esAdmin) return res.json(todos);
+  if (!(await leerBooleano(CLAVE_PUBLICOS, false))) return res.json([]);
   res.json(todos.filter(c => !c.habilitado).map(c => ({
-    id: c.id, nombre: c.nombre, club: c.club, serie: c.serie, articulo: c.articulo, sancion: c.sancion,
+    id: c.id, nombre: c.nombre, club: c.club, serie: c.serie, articulo: c.articulo, sancion: c.sancion, tipo: c.tipo,
     fechaInicio: c.fechaInicio, avance: c.avance, estado: c.estado === 'falta_pago' ? 'pendiente_habilitacion' : c.estado,
   })));
 }));

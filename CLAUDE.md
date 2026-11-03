@@ -186,7 +186,11 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
   calendario; "Expulsado liga" no vence. Con multa pendiente sigue
   inhabilitado aunque haya cumplido. El admin puede forzar el estado y
   cargar "fechas ya cumplidas" de antes del sistema.
-- El público ve solo a los no habilitados, sin RUT, observación ni multa.
+- **Nace oculta** (`castigados_publicos` en `configuracion`, uno para toda la
+  asociación): el admin la publica desde la pestaña. Publicada, el público ve
+  solo a los no habilitados, sin RUT, observación ni multa.
+- La expulsión se muestra como "Expulsado de la asociación" (así lo pidió la
+  asociación), aunque el informe diga "Expulsado Liga".
 - El informe del comité se carga con `node cargar-castigados.js <xlsx>`
   (simula) y `--aplicar`. No duplica si se vuelve a correr.
 

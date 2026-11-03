@@ -451,6 +451,7 @@
         <section id="tab-castigados" class="hidden bg-noc-dark/80 p-6 rounded-lg shadow-md border border-noc-purple2">
             <h3 class="text-2xl font-bold mb-2 border-b border-noc-purple2 pb-2 text-noc-goldlight">Jugadores Castigados</h3>
             <p id="castigos-ayuda" class="text-sm text-white/60 mb-4">Jugadores de la Asociación Liga Dávila que hoy no pueden jugar en ninguna serie. Las sanciones en fechas se cuentan por fechas de competencia.</p>
+            <div id="castigos-publicar"></div>
 
             <div class="flex flex-wrap items-end gap-3 mb-4">
                 <div>
@@ -496,7 +497,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-white/50 mb-1">Sanción</label>
-                        <input required id="nc-sancion" type="text" placeholder="3 fechas · 4 meses · 2 años · Expulsado liga" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
+                        <input required id="nc-sancion" type="text" placeholder="3 fechas · 4 meses · 2 años · Expulsado de la asociación" class="border border-noc-purple2 bg-noc-black/50 text-white p-2 rounded w-full">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-white/50 mb-1">Inicio del castigo</label>
@@ -2503,6 +2504,7 @@
         const PESTANAS_PUBLICABLES = [
             { boton: 'btn-eliminatorias', tab: 'tab-eliminatorias', estado: '/playoffs/estado' },
             { boton: 'btn-resoluciones', tab: 'tab-resoluciones', estado: '/resoluciones/estado' },
+            { boton: 'btn-castigados', tab: 'tab-castigados', estado: '/castigos/estado' },
         ];
 
         async function actualizarVisibilidadPestanas() {
@@ -3452,6 +3454,7 @@
         const CASTIGOS = { lista: [] };
         const ESTADO_CASTIGO = {
             vigente: ['badge-aplazado', 'Suspendido'],
+            expulsado: ['badge-aplazado', 'Expulsado'],
             falta_pago: ['badge-programado', 'Cumplido · falta multa'],
             pendiente_habilitacion: ['badge-programado', 'Pendiente de habilitación'],
             cumplido: ['badge-jugado', 'Habilitado'],
@@ -3462,6 +3465,7 @@
             const admin = esAdmin();
             document.getElementById('castigos-admin-form').classList.toggle('hidden', !admin);
             document.getElementById('castigos-filtro-estado-box').classList.toggle('hidden', !admin);
+            document.getElementById('castigos-publicar').innerHTML = admin ? await pintarInterruptorCastigados() : '';
             try {
                 CASTIGOS.lista = await api('/castigos');
             } catch (e) {
@@ -3474,6 +3478,32 @@
             filtro.innerHTML = '<option value="">Todos los clubes</option>' + clubes.map(c => `<option ${c === elegido ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('');
             if (admin) document.getElementById('nc-clubes').innerHTML = clubes.map(c => `<option value="${escapeHtml(c)}">`).join('');
             pintarCastigados();
+        }
+
+        async function pintarInterruptorCastigados() {
+            let publico = false;
+            try { publico = (await api('/castigos/estado')).publico; } catch (e) { /* queda como oculto */ }
+            return `
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4 p-3 rounded border ${publico ? 'border-green-700/60 bg-green-900/20' : 'border-noc-gold/40 bg-noc-gold/10'}">
+                    <div class="min-w-0">
+                        <p class="font-semibold ${publico ? 'text-green-300' : 'text-noc-goldlight'}">
+                            ${publico ? '● Lista visible para todo el público' : '○ Lista oculta: solo la ves tú'}
+                        </p>
+                        <p class="text-xs text-white/50 mt-0.5">
+                            ${publico ? 'Los visitantes ven a los no habilitados, sin RUT, observación ni multa. Vale para todos los campeonatos.' : 'La pestaña Castigados no aparece para los visitantes en ningún campeonato.'}
+                        </p>
+                    </div>
+                    <button onclick="publicarCastigados(${!publico})" class="rep-btn ${publico ? 'sec' : ''}">${publico ? 'Ocultar' : 'Publicar'}</button>
+                </div>`;
+        }
+
+        async function publicarCastigados(publico) {
+            if (publico && !(await confirmarAccion('¿Publicar la lista de castigados? La verán todos los visitantes, en todos los campeonatos.'))) return;
+            try {
+                await api('/castigos/publicar', { method: 'POST', body: JSON.stringify({ publico }) });
+                mostrarToast(publico ? 'Lista de castigados publicada.' : 'Lista de castigados oculta.', 'success');
+                renderCastigados();
+            } catch (e) { mostrarToast(e.message, 'error'); }
         }
 
         function pintarCastigados() {
@@ -3497,7 +3527,7 @@
                 ${admin ? th('Multa') + th('') : ''}</tr>`;
 
             document.getElementById('tabla-castigos').innerHTML = lista.map(c => {
-                const [clase, etiqueta] = ESTADO_CASTIGO[c.estado] || ['badge-programado', c.estado];
+                const [clase, etiqueta] = ESTADO_CASTIGO[c.tipo === 'expulsion' && c.estado === 'vigente' ? 'expulsado' : c.estado] || ['badge-programado', c.estado];
                 return `
                 <tr class="${c.estado === 'vigente' ? 'fila-mejor-tercero' : 'bg-noc-dark/60'} border-b border-noc-purple2">
                     <td class="p-3 font-semibold">${escapeHtml(c.nombre)}${admin && c.observacion ? `<p class="text-xs text-white/50 font-normal mt-1">${escapeHtml(c.observacion)}</p>` : ''}</td>

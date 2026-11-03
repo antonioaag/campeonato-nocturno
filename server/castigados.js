@@ -88,7 +88,7 @@ function fechasCumplidasDesde(inicio, dias, hoy) {
 function evaluar(c, dias, hoy = hoyEnChile()) {
   let cumplida = false, hasta = null, avance = '';
   if (c.tipo === 'expulsion') {
-    avance = 'Permanente';
+    avance = 'Expulsado de la asociación';
   } else if (c.tipo === 'tiempo') {
     hasta = sumarMesesIso(c.fecha_inicio, c.cantidad);
     cumplida = hoy >= hasta;
