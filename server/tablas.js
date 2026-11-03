@@ -4,6 +4,7 @@
 // el cuadro de cuartos de final).
 const db = require('./db');
 const { ajustesVigentes } = require('./resoluciones');
+const { jornadasPorDia, jornadaDe } = require('./jornadas');
 
 // Orden estándar de desempate: puntos, diferencia de gol, goles a favor,
 // goles en contra (menos es mejor), y por último alfabético.
@@ -30,7 +31,13 @@ function compararConDescalificados(a, b) {
 // datos guardados: un partido homologado conserva su marcador de cancha en la
 // base y se computa con el homologado; un descuento de puntos se resta al
 // final y queda anotado en el equipo para poder mostrarlo aparte.
-async function calcularTabla(campeonatoId, serie, grupo, ajustes) {
+//
+// Con hastaFecha se calcula la tabla como quedó al cerrar esa fecha (para la
+// hoja de resultados de cada fecha): los partidos que se juegan después no
+// cuentan, aunque ya tengan resultado. Se cuenta por el fin de semana en que
+// se jugó (jornada), así un adelantado entra en la tabla de cuando se jugó.
+// Las sanciones se aplican igual: la hoja muestra la situación vigente.
+async function calcularTabla(campeonatoId, serie, grupo, ajustes, hastaFecha = null, porDia = null) {
   const equipos = await db.all(
     'SELECT * FROM equipos WHERE campeonato_id = ? AND serie = ? AND grupo = ? ORDER BY orden',
     [campeonatoId, serie, grupo]
@@ -47,11 +54,11 @@ async function calcularTabla(campeonatoId, serie, grupo, ajustes) {
   // Se traen todos los partidos del grupo, no solo los jugados: uno homologado
   // por no presentarse nunca llegó a jugarse y aun así tiene que computar.
   // Los partidos no guardan el campeonato: se sabe por el equipo local.
-  const partidos = await db.all(
+  const partidos = (await db.all(
     `SELECT p.* FROM partidos p JOIN equipos l ON l.id = p.local_id
      WHERE l.campeonato_id = ? AND p.serie = ? AND p.grupo = ? AND p.fase = 'grupos'`,
     [campeonatoId, serie, grupo]
-  );
+  )).filter(p => !hastaFecha || jornadaDe(p, porDia || {}) <= hastaFecha);
 
   partidos.forEach(p => {
     // Un WO puede dejar sin efecto los partidos del infractor: no computan
@@ -111,7 +118,7 @@ async function calcularTabla(campeonatoId, serie, grupo, ajustes) {
   return Object.values(stats).sort(compararConDescalificados);
 }
 
-async function calcularTodasLasTablas(campeonatoId, serie) {
+async function calcularTodasLasTablas(campeonatoId, serie, hastaFecha = null) {
   // Los grupos se descubren desde los equipos ya cargados (no de una lista
   // fija): la composición de grupos la define el sorteo de cada campeonato,
   // no este módulo.
@@ -120,9 +127,10 @@ async function calcularTodasLasTablas(campeonatoId, serie) {
     [campeonatoId, serie]
   );
   const ajustes = await ajustesVigentes(campeonatoId, serie);
+  const porDia = hastaFecha ? await jornadasPorDia(campeonatoId) : null;
   const resultado = {};
   for (const { grupo } of filas) {
-    resultado[grupo] = await calcularTabla(campeonatoId, serie, grupo, ajustes);
+    resultado[grupo] = await calcularTabla(campeonatoId, serie, grupo, ajustes, hastaFecha, porDia);
   }
   return resultado;
 }

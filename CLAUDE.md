@@ -105,6 +105,18 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
   público el fixture (vacío = todas). El filtro es del servidor en `/partidos`
   y `/partidos/libres`; el admin ve siempre todo. Se publica semana a semana
   desde el selector de la pestaña Partidos.
+- Pestaña Partidos (solo admin): "Resultados para redes y respaldo". Genera
+  las imágenes de una fecha (resultados de todas las series + tabla de cada
+  serie al cierre de esa fecha, 1080×1920) dibujándolas en `<canvas>` en el
+  navegador, y descarga el respaldo del campeonato (Excel y JSON). Datos en
+  `server/routes/reportes.js`. Las sanciones solo salen en la imagen si su
+  registro está publicado.
+- Un partido es de su fecha del fixture (`partidos.fecha`) pero se puede jugar
+  en el fin de semana de otra (adelantado). La "jornada" de cada partido sale
+  del día en que se juega (`server/jornadas.js`: cada día pertenece a la fecha
+  que más partidos juega ese día) y es la que usan las fechas publicadas,
+  "Esta fecha", la hoja de resultados y la tabla al cierre de una fecha. En
+  `clausura-2026-horarios.json` se marca con `seJuegaEnFecha`.
 
 ### Clausura 2026 (formato `semis`)
 

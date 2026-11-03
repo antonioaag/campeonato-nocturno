@@ -16,6 +16,11 @@
  * quedan como aplazados y sin día ni hora, para que nadie los lea como
  * programados en el horario que tenían. Al reprogramarlos se les quita la
  * marca en el archivo y se vuelven a 'programado' desde la web.
+ *
+ * Un partido con "seJuegaEnFecha" (adelantado o postergado) sigue siendo de
+ * su fecha en el fixture; solo el día se calcula con la fecha en que se juega.
+ * "turno" es el club que hace el turno: se guarda solo si viene en el archivo,
+ * para no borrar uno cargado a mano.
  * Si algún partido del archivo no existe en la base (por ejemplo, porque
  * todavía está cargado el fixture anterior), no guarda nada.
  */
@@ -68,9 +73,13 @@ async function main() {
       console.log(`  PENDIENTE         ${p.serie.padEnd(15)} ${p.local} vs ${p.visita}  (era ${p.dia.toLowerCase()} ${p.hora})`);
       continue;
     }
-    const dia = sumarDias(PRIMER_VIERNES, (p.fecha - 1) * 7 + DESDE_VIERNES[p.dia]);
-    sentencias.push({ sql: 'UPDATE partidos SET fecha_partido = ?, hora = ? WHERE id = ?', args: [dia, p.hora, enLaBase.id] });
-    console.log(`  ${dia} ${p.hora}  ${p.serie.padEnd(15)} ${p.local} vs ${p.visita}`);
+    const semana = p.seJuegaEnFecha || p.fecha;
+    const dia = sumarDias(PRIMER_VIERNES, (semana - 1) * 7 + DESDE_VIERNES[p.dia]);
+    sentencias.push(p.turno
+      ? { sql: 'UPDATE partidos SET fecha_partido = ?, hora = ?, turno = ? WHERE id = ?', args: [dia, p.hora, p.turno, enLaBase.id] }
+      : { sql: 'UPDATE partidos SET fecha_partido = ?, hora = ? WHERE id = ?', args: [dia, p.hora, enLaBase.id] });
+    const nota = [p.seJuegaEnFecha ? `se juega con la fecha ${p.seJuegaEnFecha}` : '', p.turno ? `turno ${p.turno}` : ''].filter(Boolean).join(', ');
+    console.log(`  ${dia} ${p.hora}  ${p.serie.padEnd(15)} ${p.local} vs ${p.visita}${nota ? `  (${nota})` : ''}`);
   }
   const pendientes = partidos.filter(p => p.pendiente && porClave.get(clave(p.serie, p.fecha, p.local, p.visita)).estado !== 'jugado').length;
   console.log(`\n${sentencias.length - pendientes} partidos a programar${pendientes ? `, ${pendientes} pendientes quedan aplazados sin día` : ''}${jugados ? `, ${jugados} ya jugados quedan como están` : ''}.`);
