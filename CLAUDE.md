@@ -139,6 +139,41 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
   además de los 5 inscritos por serie, se pueden reponer los jugadores que
   suban a adultos.
 
+## Jugadores: carga de listas (pegada o desde foto)
+
+- **Forma principal (gratis):** el admin pega la lista en la pestaña Jugadores
+  (`Nombre;RUT;Fecha`, o columnas de Excel; una línea `Equipo: PLATENSE
+  Sub-13` elige el equipo). El usuario prefiere no pagar la API: las fotos se
+  transcriben en el chat con Claude Code y él pega el texto. `POST
+  /jugadores/validar` calcula los avisos antes de guardar.
+- **Carga por script (cuando el usuario pide "ingresar" las fotos):** se
+  transcriben a `data/listas/<club>-<año>.json` (no versionado: trae RUT) y se
+  corre `node cargar-listas.js <archivo>` (simula) y luego con `--aplicar`
+  (escribe en producción; antes `node backup-bd.js`). Reglas acordadas: un
+  jugador una sola vez por club, gana la lista de fecha de ingreso más
+  reciente; planillas marcadas 2026 → 14/04/2026, 2025 o sin año → 01/10/2025;
+  filas tapadas con corrector o en dos series con la misma fecha se cargan
+  marcadas "a revisar". El informe queda en `data/listas/<club>-<año>-informe.txt`.
+  La validación es la misma de la API (`server/inscripcion.js`).
+- **Opcional, de pago:** si hay `ANTHROPIC_API_KEY`, aparece además "Leer
+  fotos". El admin sube fotos de las planillas impresas. El
+  servidor las lee con Claude (`server/lectorPlanillas.js`, modelo
+  `claude-opus-5-5`) y devuelve una vista previa editable: no se guarda nada
+  hasta que el admin confirma club, serie y filas (`POST /jugadores/lote`).
+- Requiere la variable de entorno `ANTHROPIC_API_KEY` en Render. Sin ella la
+  ruta `/jugadores/leer-foto` responde 503 y el resto de la app sigue igual.
+- RUT inválido, fecha ilegible, edad fuera de la serie o lectura dudosa **no
+  rechazan la fila**: se guarda con `jugadores.revisar = 1` y el motivo en
+  `motivo_revision`, para corregirla después. El alta manual y el CSV siguen
+  rechazando como antes.
+- Quien sube la lista escribe su **fecha de ingreso** (obligatoria, no futura),
+  que queda en `jugadores.fecha_ingreso` y es la base del control de pases.
+  Volver a subir una lista no pisa la fecha de un jugador que ya la tenía; se
+  corrige a mano desde la tabla (solo admin).
+- Un mismo RUT puede estar en varios equipos (acuerdo de la asociación);
+  `GET /jugadores/repetidos` arma el informe (mismo RUT en otro club u otra
+  serie, y mismo nombre con distinto RUT).
+
 ## Principio de diseño: el resultado de cancha es intocable
 
 Las sanciones del tribunal (descuentos de puntos, partidos ganados por

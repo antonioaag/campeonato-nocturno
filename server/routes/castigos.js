@@ -26,7 +26,10 @@ router.get('/', authOpcional, campeonatoDeLaPeticion, asyncHandler(async (req, r
   if (estado) { condiciones.push('c.estado = ?'); params.push(estado); }
   const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
   const castigos = await db.all(`${SELECT_CASTIGOS} ${where} ORDER BY c.fecha_castigo DESC, c.id DESC`, params);
-  res.json(castigos);
+  // El castigo es público; el RUT del jugador, no (mismo criterio que la lista
+  // de jugadores). El admin lo sigue viendo para identificarlo.
+  if (req.usuario && req.usuario.rol === 'admin') return res.json(castigos);
+  res.json(castigos.map(({ rut, ...resto }) => resto));
 }));
 
 function validarCastigo({ nombre, rut, infraccion, castigo, fechaCastigo }) {
