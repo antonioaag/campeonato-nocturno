@@ -4,6 +4,7 @@
 // el cuadro de cuartos de final).
 const db = require('./db');
 const { ajustesVigentes } = require('./resoluciones');
+const { jornadasPorDia, jornadaDe } = require('./jornadas');
 
 // Orden estándar de desempate: puntos, diferencia de gol, goles a favor,
 // goles en contra (menos es mejor), y por último alfabético.
@@ -32,10 +33,11 @@ function compararConDescalificados(a, b) {
 // final y queda anotado en el equipo para poder mostrarlo aparte.
 //
 // Con hastaFecha se calcula la tabla como quedó al cerrar esa fecha (para la
-// hoja de resultados de cada fecha): los partidos de fechas posteriores no
-// cuentan, aunque ya tengan resultado. Las sanciones se aplican igual, porque
-// la hoja muestra la situación vigente del equipo.
-async function calcularTabla(campeonatoId, serie, grupo, ajustes, hastaFecha = null) {
+// hoja de resultados de cada fecha): los partidos que se juegan después no
+// cuentan, aunque ya tengan resultado. Se cuenta por el fin de semana en que
+// se jugó (jornada), así un adelantado entra en la tabla de cuando se jugó.
+// Las sanciones se aplican igual: la hoja muestra la situación vigente.
+async function calcularTabla(campeonatoId, serie, grupo, ajustes, hastaFecha = null, porDia = null) {
   const equipos = await db.all(
     'SELECT * FROM equipos WHERE campeonato_id = ? AND serie = ? AND grupo = ? ORDER BY orden',
     [campeonatoId, serie, grupo]
@@ -52,12 +54,11 @@ async function calcularTabla(campeonatoId, serie, grupo, ajustes, hastaFecha = n
   // Se traen todos los partidos del grupo, no solo los jugados: uno homologado
   // por no presentarse nunca llegó a jugarse y aun así tiene que computar.
   // Los partidos no guardan el campeonato: se sabe por el equipo local.
-  const partidos = await db.all(
+  const partidos = (await db.all(
     `SELECT p.* FROM partidos p JOIN equipos l ON l.id = p.local_id
-     WHERE l.campeonato_id = ? AND p.serie = ? AND p.grupo = ? AND p.fase = 'grupos'
-       ${hastaFecha ? 'AND p.fecha <= ?' : ''}`,
-    hastaFecha ? [campeonatoId, serie, grupo, hastaFecha] : [campeonatoId, serie, grupo]
-  );
+     WHERE l.campeonato_id = ? AND p.serie = ? AND p.grupo = ? AND p.fase = 'grupos'`,
+    [campeonatoId, serie, grupo]
+  )).filter(p => !hastaFecha || jornadaDe(p, porDia || {}) <= hastaFecha);
 
   partidos.forEach(p => {
     // Un WO puede dejar sin efecto los partidos del infractor: no computan
@@ -126,9 +127,10 @@ async function calcularTodasLasTablas(campeonatoId, serie, hastaFecha = null) {
     [campeonatoId, serie]
   );
   const ajustes = await ajustesVigentes(campeonatoId, serie);
+  const porDia = hastaFecha ? await jornadasPorDia(campeonatoId) : null;
   const resultado = {};
   for (const { grupo } of filas) {
-    resultado[grupo] = await calcularTabla(campeonatoId, serie, grupo, ajustes, hastaFecha);
+    resultado[grupo] = await calcularTabla(campeonatoId, serie, grupo, ajustes, hastaFecha, porDia);
   }
   return resultado;
 }

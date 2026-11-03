@@ -8,6 +8,7 @@ const { ajustesVigentes, listar: listarResoluciones } = require('../resoluciones
 const { calcularTodasLasTablas, marcarClasificados } = require('../tablas');
 const { leerBooleano, claveResolucionesPublicas } = require('../configuracion');
 const { campeonatoDeLaPeticion, DEL_CAMPEONATO } = require('../campeonatos');
+const { jornadasPorDia, jornadaDe } = require('../jornadas');
 
 const router = express.Router();
 router.use(requireAuth, requireAdmin, campeonatoDeLaPeticion);
@@ -29,17 +30,20 @@ router.get('/fecha/:n', asyncHandler(async (req, res) => {
   const n = Number(req.params.n);
   if (!Number.isInteger(n) || n < 1) return res.status(400).json({ error: 'fecha inválida' });
   const c = req.campeonato;
+  const porDia = await jornadasPorDia(c.id);
 
   const series = [];
   for (const serie of seriesDe(c)) {
     const ajustes = await ajustesVigentes(c.id, serie);
     const conAjustes = p => ({ ...p, homologacion: ajustes.porPartido[p.id] || null, anulacion: ajustes.anulados[p.id] || null });
 
+    // Por el fin de semana en que se juega: un adelantado de la fecha
+    // siguiente sale con esta, que es cuando se juega y cuando se publica.
     const partidos = (await db.all(
-      `${SELECT_PARTIDOS} WHERE l.campeonato_id = ? AND p.serie = ? AND p.fase = 'grupos' AND p.fecha = ?
+      `${SELECT_PARTIDOS} WHERE l.campeonato_id = ? AND p.serie = ? AND p.fase = 'grupos'
        ORDER BY p.fecha_partido IS NULL, p.fecha_partido, p.hora, p.id`,
-      [c.id, serie, n]
-    )).map(conAjustes);
+      [c.id, serie]
+    )).filter(p => jornadaDe(p, porDia) === n).map(conAjustes);
     if (!partidos.length) continue;
 
     // Los aplazados de fechas anteriores siguen debiéndose: van en la hoja
@@ -50,11 +54,13 @@ router.get('/fecha/:n', asyncHandler(async (req, res) => {
       [c.id, serie, n]
     )).filter(p => !ajustes.porPartido[p.id] && !ajustes.anulados[p.id]);
 
+    // Quien quedó libre por fixture pero juega un adelantado esta jornada no está libre.
+    const juegan = new Set(partidos.flatMap(p => [p.local, p.visita]));
     const libres = (await db.all(
       `SELECT e.nombre FROM byes b JOIN equipos e ON e.id = b.equipo_id
        WHERE e.campeonato_id = ? AND b.serie = ? AND b.fecha = ? ORDER BY e.nombre`,
       [c.id, serie, n]
-    )).map(x => x.nombre);
+    )).map(x => x.nombre).filter(nombre => !juegan.has(nombre));
 
     // Las sanciones salen solo si su registro está publicado: la imagen va a
     // redes y no puede adelantar lo que la pestaña Resoluciones todavía oculta.

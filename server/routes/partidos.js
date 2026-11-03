@@ -5,6 +5,7 @@ const asyncHandler = require('../asyncHandler');
 const { esSerieValida } = require('../series');
 const { ajustesVigentes } = require('../resoluciones');
 const campeonatos = require('../campeonatos');
+const { jornadasPorDia, jornadaDe } = require('../jornadas');
 
 const router = express.Router();
 
@@ -21,6 +22,17 @@ const SELECT_PARTIDOS = `
   JOIN equipos v ON v.id = p.visita_id
 `;
 
+// Fechas publicadas: se cuentan por el fin de semana en que se juega cada
+// partido (ver server/jornadas.js), para que un adelantado de la fecha 4 que
+// se juega con la 3 se vea en cuanto se publica la 3. Cada partido lleva su
+// jornada para que el front lo agrupe igual.
+async function visibles(req, partidos) {
+  const porDia = await jornadasPorDia(req.campeonato.id);
+  partidos.forEach(p => { p.jornada = jornadaDe(p, porDia); });
+  const hasta = campeonatos.fechaMaximaVisible(req.campeonato, req.usuario);
+  return hasta ? partidos.filter(p => p.jornada <= hasta) : partidos;
+}
+
 router.get('/', authOpcional, campeonatos.campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
   const { grupo, fecha } = req.query;
   const serie = req.query.serie || 'ADULTO';
@@ -32,10 +44,8 @@ router.get('/', authOpcional, campeonatos.campeonatoDeLaPeticion, asyncHandler(a
   const params = [req.campeonato.id, serie];
   if (grupo) { condiciones.push('p.grupo = ?'); params.push(grupo); }
   if (fecha) { condiciones.push('p.fecha = ?'); params.push(Number(fecha)); }
-  const hasta = campeonatos.fechaMaximaVisible(req.campeonato, req.usuario);
-  if (hasta) { condiciones.push('p.fecha <= ?'); params.push(hasta); }
   const where = `WHERE ${condiciones.join(' AND ')}`;
-  const partidos = await db.all(`${SELECT_PARTIDOS} ${where} ORDER BY p.grupo, p.fecha, p.id`, params);
+  const partidos = await visibles(req, await db.all(`${SELECT_PARTIDOS} ${where} ORDER BY p.grupo, p.fecha, p.id`, params));
 
   // Se adjunta la homologación vigente, si la hay. El marcador de cancha viaja
   // intacto en golesLocal/golesVisita; el resuelto por el tribunal va aparte,
@@ -55,14 +65,11 @@ router.get('/', authOpcional, campeonatos.campeonatoDeLaPeticion, asyncHandler(a
 // en Liga Dávila un club juega varias series el mismo fin de semana y el
 // público lo busca por fecha, no por serie. Respeta las fechas publicadas.
 router.get('/jornada', authOpcional, campeonatos.campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
-  const condiciones = ['l.campeonato_id = ?', "p.fase = 'grupos'"];
-  const params = [req.campeonato.id];
   const hasta = campeonatos.fechaMaximaVisible(req.campeonato, req.usuario);
-  if (hasta) { condiciones.push('p.fecha <= ?'); params.push(hasta); }
-  const partidos = await db.all(
-    `${SELECT_PARTIDOS} WHERE ${condiciones.join(' AND ')} ORDER BY p.fecha, p.fecha_partido, p.hora, p.id`,
-    params
-  );
+  const partidos = await visibles(req, await db.all(
+    `${SELECT_PARTIDOS} WHERE l.campeonato_id = ? AND p.fase = 'grupos' ORDER BY p.fecha, p.fecha_partido, p.hora, p.id`,
+    [req.campeonato.id]
+  ));
 
   const condLibres = ['e.campeonato_id = ?'];
   const paramsLibres = [req.campeonato.id];

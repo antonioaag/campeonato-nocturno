@@ -111,6 +111,12 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
   navegador, y descarga el respaldo del campeonato (Excel y JSON). Datos en
   `server/routes/reportes.js`. Las sanciones solo salen en la imagen si su
   registro está publicado.
+- Un partido es de su fecha del fixture (`partidos.fecha`) pero se puede jugar
+  en el fin de semana de otra (adelantado). La "jornada" de cada partido sale
+  del día en que se juega (`server/jornadas.js`: cada día pertenece a la fecha
+  que más partidos juega ese día) y es la que usan las fechas publicadas,
+  "Esta fecha", la hoja de resultados y la tabla al cierre de una fecha. En
+  `clausura-2026-horarios.json` se marca con `seJuegaEnFecha`.
 
 ### Clausura 2026 (formato `semis`)
 

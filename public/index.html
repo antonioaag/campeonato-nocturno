@@ -1101,13 +1101,16 @@
         const ordenPartido = (a, b) => (!a.fechaPartido) - (!b.fechaPartido)
             || `${a.fechaPartido || ''} ${a.hora || ''}`.localeCompare(`${b.fechaPartido || ''} ${b.hora || ''}`);
         const juega = (p, club) => p.local === club || p.visita === club;
+        // Fin de semana en que se juega (lo calcula el servidor): un adelantado
+        // de la fecha 4 que se juega con la 3 aparece en la 3.
+        const jornada = p => p.jornada || p.fecha;
 
         // La fecha "actual" es la primera que todavía tiene partidos por jugar;
         // si ya se jugó todo, la última. Un aplazado no cuenta: si no, la
         // portada quedaría pegada en esa fecha hasta que se reprograme.
         function fechaActual(partidos) {
-            const fechas = [...new Set(partidos.map(p => p.fecha))].sort((a, b) => a - b);
-            const pendiente = fechas.find(f => partidos.some(p => p.fecha === f && p.estado === 'programado'));
+            const fechas = [...new Set(partidos.map(jornada))].sort((a, b) => a - b);
+            const pendiente = fechas.find(f => partidos.some(p => jornada(p) === f && p.estado === 'programado'));
             return pendiente || fechas[fechas.length - 1];
         }
 
@@ -1125,13 +1128,13 @@
                 cont.innerHTML = '<p class="text-white/50 italic">Todavía no hay partidos programados.</p>';
                 return;
             }
-            const fechas = [...new Set(partidos.map(p => p.fecha))];
+            const fechas = [...new Set(partidos.map(jornada))];
             if (!fechas.includes(INICIO.fecha)) INICIO.fecha = fechaActual(partidos);
             pintarInicio();
         }
 
         function cambiarFechaInicio(delta) {
-            const fechas = [...new Set(INICIO.datos.partidos.map(p => p.fecha))].sort((a, b) => a - b);
+            const fechas = [...new Set(INICIO.datos.partidos.map(jornada))].sort((a, b) => a - b);
             const i = fechas.indexOf(INICIO.fecha) + delta;
             if (i < 0 || i >= fechas.length) return;
             INICIO.fecha = fechas[i];
@@ -1149,8 +1152,8 @@
         function pintarInicio() {
             const { partidos, libres } = INICIO.datos;
             const f = INICIO.fecha;
-            const fechas = [...new Set(partidos.map(p => p.fecha))].sort((a, b) => a - b);
-            const deLaFecha = partidos.filter(p => p.fecha === f).sort(ordenPartido);
+            const fechas = [...new Set(partidos.map(jornada))].sort((a, b) => a - b);
+            const deLaFecha = partidos.filter(p => jornada(p) === f).sort(ordenPartido);
             const dias = [...new Set(deLaFecha.map(p => p.fechaPartido).filter(Boolean))].sort();
             const rango = dias.length ? (dias.length === 1 ? diaLegible(dias[0]).largo : `${diaLegible(dias[0]).largo} al ${diaLegible(dias[dias.length - 1]).largo}`) : '';
             const clubes = [...new Set(partidos.flatMap(p => [p.local, p.visita]))].sort((a, b) => a.localeCompare(b));
@@ -1172,7 +1175,7 @@
             document.getElementById('inicio-container').innerHTML = cabecera
                 + `<div class="ef-top">${pintarProximo(partidos)}${pintarTuClub(clubes, deLaFecha, libres.filter(l => l.fecha === f))}</div>`
                 + pintarDuelos(deLaFecha)
-                + pintarLibresFecha(libres.filter(l => l.fecha === f))
+                + pintarLibresFecha(libres.filter(l => l.fecha === f && !deLaFecha.some(p => p.serie === l.serie && juega(p, l.nombre))))
                 + (CAMPEONATO.fechasVisibles && !esAdmin()
                     ? `<p class="text-xs text-white/40 mt-4">Programación publicada hasta la Fecha ${CAMPEONATO.fechasVisibles}. Las siguientes se publican semana a semana.</p>`
                     : '');
@@ -1269,6 +1272,7 @@
                             <ul class="ef-series">${lista.map(p => `
                                 <li>
                                     <span class="ef-hora">${escapeHtml((p.hora || '--:--').slice(0, 5))}</span>${chipSerie(p.serie)}
+                                    ${p.fecha !== jornada(p) ? `<span class="text-xs text-white/50">Fecha ${p.fecha} adelantada</span>` : ''}
                                     ${p.estado === 'jugado'
                                         ? `<span class="ef-marcador">${p.local === a ? `${p.golesLocal} - ${p.golesVisita}` : `${p.golesVisita} - ${p.golesLocal}`}</span>`
                                         : (p.estado === 'aplazado' ? '<span class="ef-marcador text-red-300 text-xs">Aplazado</span>' : '')}
@@ -1592,10 +1596,10 @@
         // imágenes. Si no caben todas, se reparten en las que hagan falta.
         function imagenesResultados(datos, img) {
             const FILA = 74, CAB_SERIE = 76, ESPACIO = 26, NOTA = 34;
-            const altoFila = p => FILA + (p.homologacion || p.anulacion ? NOTA : 0);
+            const altoFila = p => FILA + (p.homologacion || p.anulacion || p.fecha !== datos.fecha ? NOTA : 0);
             const bloques = datos.series.map(s => {
                 const anteriores = s.pendientes.filter(p => p.fecha < datos.fecha);
-                const extra = (s.libres.length ? 1 : 0) + (anteriores.length ? 1 : 0);
+                const extra = (s.libres.length ? 1 : 0) + anteriores.length;
                 return { s, anteriores, alto: CAB_SERIE + s.partidos.reduce((a, p) => a + altoFila(p), 0) + extra * 40 + ESPACIO };
             });
             const paginas = [[]];
@@ -1612,11 +1616,11 @@
                 let y = cabeceraImagen(x, datos, img, `FECHA ${datos.fecha}`, `RESULTADOS${parte} · ${rangoDias(todos)}`);
                 bloques.forEach(({ s, anteriores }) => {
                     chipImagen(x, s.serie, REP_MARGEN, y + 8); y += CAB_SERIE;
-                    s.partidos.forEach(p => { filaResultado(x, img, p, y); y += altoFila(p); });
-                    if (anteriores.length) {
-                        texto(x, `Pendientes de fechas anteriores: ${anteriores.map(p => `${nombreClub(p.local)} vs ${nombreClub(p.visita)} (F${p.fecha})`).join(' · ')}`, REP_MARGEN, y + 18, { size: 24, peso: 600, color: '#f87171', max: REP_ANCHO - 2 * REP_MARGEN });
+                    s.partidos.forEach(p => { filaResultado(x, img, p, y, datos.fecha); y += altoFila(p); });
+                    anteriores.forEach(p => {
+                        texto(x, `Pendiente de la Fecha ${p.fecha}: ${nombreClub(p.local)} vs ${nombreClub(p.visita)}`, REP_MARGEN, y + 18, { size: 24, peso: 600, color: '#f87171', max: REP_ANCHO - 2 * REP_MARGEN });
                         y += 40;
-                    }
+                    });
                     if (s.libres.length) {
                         texto(x, `Libre: ${s.libres.map(nombreClub).join(', ')}`, REP_MARGEN, y + 18, { size: 24, peso: 500, color: 'rgba(255,255,255,.6)', max: REP_ANCHO - 2 * REP_MARGEN });
                         y += 40;
@@ -1628,7 +1632,7 @@
             });
         }
 
-        function filaResultado(x, img, p, y) {
+        function filaResultado(x, img, p, y, fecha) {
             const ancho = REP_ANCHO - 2 * REP_MARGEN, centro = REP_ANCHO / 2, TAM = 54;
             rect(x, REP_MARGEN, y, ancho, 64, 14, 'rgba(255,255,255,.06)');
             const yc = y + 32;
@@ -1650,7 +1654,8 @@
             // El marcador de cancha queda tal cual; la resolución va aparte, como en la web.
             const nota = p.homologacion
                 ? `Homologado ${p.homologacion.golesLocal}-${p.homologacion.golesVisita}${p.homologacion.articulo ? ` · ${p.homologacion.articulo}` : ''}`
-                : (anulado ? `Sin efecto por WO${p.anulacion.articulo ? ` · ${p.anulacion.articulo}` : ''}` : '');
+                : (anulado ? `Sin efecto por WO${p.anulacion.articulo ? ` · ${p.anulacion.articulo}` : ''}`
+                    : (p.fecha !== fecha ? `Partido de la Fecha ${p.fecha}, adelantado` : ''));
             if (nota) texto(x, nota, centro, y + 64 + 17, { size: 22, peso: 700, color: '#f0d285', alinear: 'center', max: ancho });
         }
 
