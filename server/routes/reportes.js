@@ -91,6 +91,8 @@ router.get('/respaldo', asyncHandler(async (req, res) => {
     resoluciones: await db.all('SELECT * FROM resoluciones WHERE campeonato_id = ? ORDER BY id', [id]),
     reclamos: await db.all('SELECT r.* FROM reclamos r JOIN equipos e ON e.id = r.club_id WHERE e.campeonato_id = ? ORDER BY r.id', [id]),
     castigos: await db.all('SELECT * FROM castigos WHERE campeonato_id = ? ORDER BY id', [id]),
+    // Los castigados son de la asociación y no de un campeonato: van completos.
+    castigados: await db.all('SELECT * FROM castigados ORDER BY id'),
     configuracion: await db.all('SELECT * FROM configuracion WHERE clave LIKE ? ORDER BY clave', [`campeonato_${id}_%`]),
   };
   res.setHeader('Content-Disposition', `attachment; filename="${nombreArchivo(c, 'respaldo')}.json"`);
