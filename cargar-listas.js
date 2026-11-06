@@ -26,7 +26,7 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const db = require('./server/db');
-const { limpiarRut } = require('./server/rut');
+const { claveDocumento } = require('./server/rut');
 const { normalizarFecha } = require('./server/csv');
 const { problemasDelJugador, rutParaGuardar, fechaIngresoValida } = require('./server/inscripcion');
 
@@ -37,7 +37,7 @@ const NOMBRE_SERIE = {
 
 // Sin RUT legible no hay con qué comparar entre listas: se usa el nombre.
 function claveJugador(rut, nombre) {
-  const limpio = limpiarRut(rut);
+  const limpio = claveDocumento(rut);
   if (limpio.length >= 2) return 'rut:' + limpio;
   return 'nombre:' + String(nombre).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '');
 }

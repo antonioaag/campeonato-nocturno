@@ -4,7 +4,7 @@ const db = require('../db');
 const { requireAuth, requireAdmin, authOpcional } = require('../auth');
 const { campeonatoDeLaPeticion, exigirEditable, deEquipo } = require('../campeonatos');
 const asyncHandler = require('../asyncHandler');
-const { esRutValido, formatearRut, limpiarRut } = require('../rut');
+const { esDocumentoValido, claveDocumento } = require('../rut');
 const { csvAJugadores, normalizarFecha } = require('../csv');
 const { validarEdadParaSerie, problemasDelJugador, rutParaGuardar, fechaIngresoValida } = require('../inscripcion');
 const lector = require('../lectorPlanillas');
@@ -50,7 +50,7 @@ router.get('/', authOpcional, campeonatoDeLaPeticion, asyncHandler(async (req, r
 
 function validarJugador({ nombre, rut, fechaNacimiento }) {
   if (!nombre || !nombre.trim()) return 'El nombre es obligatorio';
-  if (!esRutValido(rut)) return `RUT inválido: ${rut}`;
+  if (!esDocumentoValido(rut)) return `RUT inválido: ${rut}`;
   if (!normalizarFecha(fechaNacimiento)) return `Fecha de nacimiento inválida: ${fechaNacimiento}`;
   return null;
 }
@@ -68,7 +68,7 @@ router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
 
   const info = await db.run(
     'INSERT INTO jugadores (equipo_id, nombre, rut, fecha_nacimiento) VALUES (?, ?, ?, ?)',
-    [Number(equipoId), nombre.trim(), formatearRut(rut), normalizarFecha(fechaNacimiento)]
+    [Number(equipoId), nombre.trim(), rutParaGuardar(rut), normalizarFecha(fechaNacimiento)]
   );
   const creado = await db.get(`${SELECT_JUGADORES} WHERE j.id = ?`, [info.lastInsertRowid]);
   res.status(201).json(creado);
@@ -154,7 +154,7 @@ router.post('/bulk', requireAuth, requireAdmin, upload.single('archivo'), asyncH
     const errorEdad = await validarEdadParaSerie(equipo.campeonatoId, equipo.serie, normalizarFecha(fila.fechaNacimiento));
     if (errorEdad) { resultado.errores.push(`Fila ${numeroFila}: ${errorEdad}`); continue; }
 
-    const rutFormateado = formatearRut(fila.rut);
+    const rutFormateado = rutParaGuardar(fila.rut);
     const existente = await db.get('SELECT id FROM jugadores WHERE equipo_id = ? AND rut = ?', [equipoId, rutFormateado]);
     if (existente) {
       await db.run(
@@ -309,7 +309,7 @@ router.get('/repetidos', requireAuth, requireAdmin, campeonatoDeLaPeticion, asyn
   const porRut = new Map();
   const porNombre = new Map();
   for (const j of jugadores) {
-    const rut = limpiarRut(j.rut);
+    const rut = claveDocumento(j.rut);
     if (rut) { if (!porRut.has(rut)) porRut.set(rut, []); porRut.get(rut).push(j); }
     const nombre = normalizarNombre(j.nombre);
     if (nombre) { if (!porNombre.has(nombre)) porNombre.set(nombre, []); porNombre.get(nombre).push(j); }
@@ -327,7 +327,7 @@ router.get('/repetidos', requireAuth, requireAdmin, campeonatoDeLaPeticion, asyn
 
   const mismoNombre = [];
   for (const grupo of porNombre.values()) {
-    if (new Set(grupo.map(j => limpiarRut(j.rut))).size > 1) mismoNombre.push({ nombre: grupo[0].nombre, jugadores: grupo });
+    if (new Set(grupo.map(j => claveDocumento(j.rut))).size > 1) mismoNombre.push({ nombre: grupo[0].nombre, jugadores: grupo });
   }
 
   res.json({ mismoRut, mismoNombre, totalJugadores: jugadores.length });

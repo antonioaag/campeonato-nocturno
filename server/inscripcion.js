@@ -2,7 +2,7 @@
 // por los scripts de carga de listas (cargar-listas.js), para que una lista
 // cargada por cualquiera de los dos caminos quede validada igual.
 
-const { esRutValido, formatearRut, limpiarRut } = require('./rut');
+const { esDocumentoValido, esDocumentoExtranjero, formatearRut, limpiarRut } = require('./rut');
 const { normalizarFecha } = require('./csv');
 const { esSerieJuvenil, CORTE_EDAD_REFERENCIA, EDAD_ADULTO_MIN, EDAD_SENIOR_MIN } = require('./series');
 const { leer, claveCorteEdad } = require('./configuracion');
@@ -43,7 +43,7 @@ async function validarEdadParaSerie(campeonatoId, serie, fechaNacimiento) {
 // corrija, porque perder la fila entera es peor que tenerla pendiente.
 async function problemasDelJugador({ rut, fechaNacimiento }, equipo) {
   const problemas = [];
-  if (!esRutValido(rut)) problemas.push(`RUT inválido: ${rut || '(vacío)'}`);
+  if (!esDocumentoValido(rut)) problemas.push(`RUT inválido: ${rut || '(vacío)'}`);
   const fecha = normalizarFecha(fechaNacimiento);
   if (!fecha) {
     problemas.push(`Fecha de nacimiento inválida: ${fechaNacimiento || '(vacía)'}`);
@@ -58,6 +58,7 @@ async function problemasDelJugador({ rut, fechaNacimiento }, equipo) {
 // formato canónico cuando se puede, para que el informe de repetidos lo
 // compare contra los demás.
 function rutParaGuardar(rut) {
+  if (esDocumentoExtranjero(rut)) return String(rut).trim().toUpperCase();
   return limpiarRut(rut).length >= 2 ? formatearRut(rut) : String(rut || '').trim();
 }
 
