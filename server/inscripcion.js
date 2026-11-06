@@ -4,14 +4,16 @@
 
 const { esDocumentoValido, esDocumentoExtranjero, formatearRut, limpiarRut } = require('./rut');
 const { normalizarFecha } = require('./csv');
-const { esSerieJuvenil, CORTE_EDAD_REFERENCIA, EDAD_ADULTO_MIN, EDAD_SENIOR_MIN } = require('./series');
+const { esSerieJuvenil, CORTE_EDAD_REFERENCIA, EDAD_ADULTO_MIN, EDAD_SENIOR_MIN, EDAD_MAX_JUVENIL, edadEn, cumpleanios } = require('./series');
 const { leer, claveCorteEdad } = require('./configuracion');
 
 // Edad contra la serie del equipo (reglamento Liga Dávila, art. 13). Las
 // series del campeonato anterior (ADULTO/SENIOR, sin prefijo) ya están
 // cerradas y no reciben inscripciones nuevas, así que no se validan acá.
-async function validarEdadParaSerie(campeonatoId, serie, fechaNacimiento) {
+async function validarEdadParaSerie(campeonatoId, serie, fechaNacimiento, hoy = new Date().toISOString().slice(0, 10)) {
   const anioNacimiento = Number(String(fechaNacimiento).slice(0, 4));
+  const edad = edadEn(fechaNacimiento, hoy);
+  const fechaCl = iso => iso.split('-').reverse().join('/');
 
   if (esSerieJuvenil(serie)) {
     const corteConfigurado = await leer(claveCorteEdad(campeonatoId, serie));
@@ -19,11 +21,11 @@ async function validarEdadParaSerie(campeonatoId, serie, fechaNacimiento) {
     if (anioNacimiento < corte) {
       return `Para ${serie} el jugador debe haber nacido en ${corte} o después (nació en ${anioNacimiento})`;
     }
+    if (serie === 'SUB17' && edad >= EDAD_MAX_JUVENIL) {
+      return `Cumplió ${EDAD_MAX_JUVENIL} años el ${fechaCl(cumpleanios(fechaNacimiento, EDAD_MAX_JUVENIL))}: debe pasar a adultos con oficio del club`;
+    }
     return null;
   }
-
-  const hoy = new Date();
-  const edad = hoy.getUTCFullYear() - anioNacimiento;
 
   if (serie === 'SENIOR') {
     if (edad < EDAD_SENIOR_MIN) return `Para Senior el jugador debe tener al menos ${EDAD_SENIOR_MIN} años (tiene ${edad})`;

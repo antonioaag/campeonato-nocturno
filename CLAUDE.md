@@ -135,6 +135,12 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
 - WO: el reglamento de la liga no descalifica (art. 57: 2 seguidos o 3 por
   rueda bajan de serie; pendiente). Mientras tanto el WO automático está
   bloqueado en este formato y el partido se homologa a mano.
+- Edades 2026 (confirmadas por la asociación, `server/series.js`): Sub-13
+  nacidos en 2013 o después; Sub-15 en 2011 o después; Sub-17 en 2008 o
+  después **y solo hasta cumplir 18**: desde ese día pasa a adultos con oficio
+  del club. Adultos desde 18; Seniors desde 40 años **cumplidos** (edad exacta,
+  no por año); el paso de adultos a Seniors también se informa por oficio.
+  `informe-jugadores.js` lista ambos cambios en la hoja "Oficios de cambio".
 - Acuerdos de asamblea: carnet vencido se acepta hasta 1 año; en Sub-17,
   además de los 5 inscritos por serie, se pueden reponer los jugadores que
   suban a adultos.
