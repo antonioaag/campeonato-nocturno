@@ -182,6 +182,9 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
   largo sin guion) son válidos para la asociación: no se marcan como RUT
   inválido y se guardan tal cual (`esDocumentoExtranjero` en `server/rut.js`;
   antes `limpiarRut` les borraba las letras).
+- `node buscar-jugador.js <nombre o RUT>` (solo lee) busca en todos los
+  campeonatos por nombre aproximado (Caldera ~ Calderón) o por RUT: para
+  ubicar a un jugador mal escrito en un informe arbitral.
 - `node informe-jugadores.js` (solo lee) arma `informes/jugadores-<fecha>.xlsx`
   (no versionado): mismo documento en otro club o en otra serie, mismo nombre
   con distinto documento, RUT inválido, extranjeros, observaciones de la
