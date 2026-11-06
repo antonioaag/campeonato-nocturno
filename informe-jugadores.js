@@ -17,8 +17,13 @@
  * - RUT inválido: el dígito verificador no cuadra. Pasaportes y documentos
  *   extranjeros NO cuentan como inválidos (acuerdo de la asociación).
  * - Extranjeros: pasaportes y documentos extranjeros, solo para conocimiento.
- * - A revisar: lo que la carga dejó marcado (edad fuera de serie, fecha
- *   ilegible, notas de la transcripción).
+ * - Edad y serie: la edad revisada hoy contra la serie (cortes 2026: Sub-13
+ *   desde 2013, Sub-15 desde 2011, Sub-17 desde 2008 y hasta cumplir 18;
+ *   adultos desde 18; Seniors desde 40 cumplidos).
+ * - Oficios de cambio: Sub-17 que ya cumplieron 18 (pasan a adultos con
+ *   oficio del club) o los cumplen este año, y adultos con 40 cumplidos que
+ *   pueden subir a Seniors (también con oficio).
+ * - A revisar: notas que dejó la carga (fecha ilegible, transcripción).
  * - Club sancionado: si hay registros en data/listas/*-registro.json, sus
  *   jugadores que aparecen inscritos en otro club (ANFA art. 203).
  * - Todos: la lista completa.
@@ -29,6 +34,8 @@ const path = require('path');
 const ExcelJS = require('exceljs');
 const db = require('./server/db');
 const { esRutValido, esDocumentoExtranjero, claveDocumento, limpiarRut } = require('./server/rut');
+const { validarEdadParaSerie } = require('./server/inscripcion');
+const { edadEn, cumpleanios, EDAD_MAX_JUVENIL, EDAD_SENIOR_MIN } = require('./server/series');
 
 const SERIES = { SUB13: 'Sub-13', SUB15: 'Sub-15', SUB17: 'Sub-17', SENIOR: 'Seniors', SEGUNDA_ADULTO: 'Segunda', PRIMERA_ADULTO: 'Primera', ADULTO: 'Adulto' };
 const ORDEN = Object.keys(SERIES);
@@ -128,9 +135,27 @@ async function main() {
     return [...ficha(j), obs];
   });
   const extranjeros = jugadores.filter(j => j.extranjero).map(ficha);
-  // Lo de RUT ya tiene su hoja: acá queda lo demás que dejó marcado la carga.
+  // La edad se revisa de nuevo con la fecha de hoy: lo que guardó la carga
+  // puede venir con los cortes de otra temporada.
+  const hoy = new Date().toISOString().slice(0, 10);
+  const anioFin = `${hoy.slice(0, 4)}-12-31`;
+  const edadSerie = [], oficios = [];
+  for (const j of jugadores) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(j.nacimiento || '')) continue;
+    const edad = edadEn(j.nacimiento, hoy);
+    const problema = await validarEdadParaSerie(campeonato.id, j.serie, j.nacimiento, hoy);
+    if (problema) edadSerie.push([...ficha(j), edad, problema]);
+    if (j.serie === 'SUB17') {
+      const cumple = cumpleanios(j.nacimiento, EDAD_MAX_JUVENIL);
+      if (cumple <= anioFin) oficios.push(['Sub-17 → Adultos', ...ficha(j), edad, fechaCl(cumple), cumple <= hoy ? 'Ya cumplió 18: enviar oficio' : 'Cumple 18 este año']);
+    }
+    if ((j.serie === 'PRIMERA_ADULTO' || j.serie === 'SEGUNDA_ADULTO') && edad >= EDAD_SENIOR_MIN) {
+      oficios.push(['Adultos → Seniors', ...ficha(j), edad, fechaCl(cumpleanios(j.nacimiento, EDAD_SENIOR_MIN)), 'Puede subir a Seniors con oficio']);
+    }
+  }
+  // RUT y edad ya tienen su hoja: acá queda lo demás que dejó marcado la carga.
   const aRevisar = jugadores.filter(j => j.revisar).map(j => {
-    const sinRut = String(j.motivo || '').split(' · ').filter(m => m && !/^RUT inválido/.test(m));
+    const sinRut = String(j.motivo || '').split(' · ').filter(m => m && !/^RUT inválido/.test(m) && !/^Para /.test(m) && !/^Cumplió /.test(m));
     return sinRut.length ? [...ficha(j), sinRut.join(' · ')] : null;
   }).filter(Boolean);
 
@@ -164,13 +189,15 @@ async function main() {
     ['Mismo nombre con distinto documento', mismoNombre.length ? new Set(mismoNombre.map(f => f[0])).size : 0],
     ['RUT inválido', invalidos.length],
     ['Pasaporte / documento extranjero (válido)', extranjeros.length],
-    ['Otras observaciones (edad, fecha, notas)', aRevisar.length],
+    ['Edad no corresponde a la serie', edadSerie.length],
+    ['Oficios de cambio (Sub-17 a adultos, adultos a Seniors)', oficios.length],
+    ['Otras observaciones de la carga', aRevisar.length],
     ['Jugadores de club sancionado en otro club', sancionados.length],
   ];
   let r = resumen.length + 6;
   ws.getRow(r - 1).values = ['Casos', 'Cantidad'];
   ws.getRow(r - 1).font = { bold: true };
-  casos.forEach(([t, n], i) => { ws.getRow(r + i).values = [t, n]; if (n && i !== 5) ws.getRow(r + i).getCell(2).font = { bold: true, color: { argb: 'FFC00000' } }; });
+  casos.forEach(([t, n], i) => { ws.getRow(r + i).values = [t, n]; if (n && i !== 5 && i !== 7) ws.getRow(r + i).getCell(2).font = { bold: true, color: { argb: 'FFC00000' } }; });
 
   const colGrupo = [['Caso', 6], ...colFicha];
   const alterno = (v) => (v[0] % 2 ? AMARILLO : null);
@@ -184,6 +211,10 @@ async function main() {
   hoja(wb, 'RUT inválido', 'RUT con dígito verificador que no cuadra', [...colFicha, ['Observación', 60]], invalidos,
     { relleno: () => ROJO, nota: 'Pasaportes y documentos extranjeros no se incluyen acá: son válidos.' });
   hoja(wb, 'Extranjeros', 'Pasaportes y documentos extranjeros (válidos)', colFicha, extranjeros);
+  hoja(wb, 'Edad y serie', 'Edad que no corresponde a la serie (revisada hoy)', [...colFicha, ['Edad', 6], ['Problema', 60]], edadSerie,
+    { relleno: () => ROJO, nota: 'Cortes 2026: Sub-13 nacidos en 2013 o después; Sub-15 en 2011 o después; Sub-17 en 2008 o después y hasta cumplir 18; adultos desde 18 años; Seniors desde 40 años cumplidos.' });
+  hoja(wb, 'Oficios de cambio', 'Jugadores que deben o pueden cambiar de serie con oficio', [['Cambio', 18], ...colFicha, ['Edad', 6], ['Cumple', 12], ['Estado', 32]], oficios,
+    { relleno: v => (/Ya cumplió/.test(v[9]) ? AMARILLO : null), nota: 'Sub-17 juega hasta cumplir 18; desde ese día el club debe enviar oficio de cambio a adultos. Los adultos con 40 cumplidos pueden subir a Seniors, informándolo también por oficio.' });
   hoja(wb, 'A revisar', 'Otras observaciones de la carga', [...colFicha, ['Observación', 60]], aRevisar);
   hoja(wb, 'Club sancionado', 'Jugadores de un club sancionado inscritos en otro club', [['Club sancionado', 16], ['Nombre en su registro', 30], ['Documento', 15], ['Planilla', 30], ['Inscrito en', 16], ['Serie', 10], ['Como', 30]], sancionados,
     { relleno: () => ROJO, nota: registros.length ? `Registros revisados: ${registros.join(', ')}. ANFA art. 203: inscribirlo en otro club requiere autorización del directorio.` : 'No hay registros de clubes sancionados en data/listas/.' });
