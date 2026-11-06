@@ -170,6 +170,14 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
   que queda en `jugadores.fecha_ingreso` y es la base del control de pases.
   Volver a subir una lista no pisa la fecha de un jugador que ya la tenía; se
   corrige a mano desde la tabla (solo admin).
+- **Documentos extranjeros** (pasaporte, DNI: llevan letras o son un número
+  largo sin guion) son válidos para la asociación: no se marcan como RUT
+  inválido y se guardan tal cual (`esDocumentoExtranjero` en `server/rut.js`;
+  antes `limpiarRut` les borraba las letras).
+- `node informe-jugadores.js` (solo lee) arma `informes/jugadores-<fecha>.xlsx`
+  (no versionado): mismo documento en otro club o en otra serie, mismo nombre
+  con distinto documento, RUT inválido, extranjeros, observaciones de la
+  carga y jugadores de clubes sancionados inscritos en otro club.
 - **Club sancionado** (José Pistono, hasta agosto 2027): sus listas no se
   inscriben. Se transcriben a `data/listas/<club>-registro.json` con
   `"registroSinInscripcion": true` (cargar-listas.js las rechaza) y se cruzan

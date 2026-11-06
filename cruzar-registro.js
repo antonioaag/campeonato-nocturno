@@ -19,7 +19,7 @@
 require('dotenv').config();
 const fs = require('fs');
 const db = require('./server/db');
-const { limpiarRut } = require('./server/rut');
+const { claveDocumento: limpiarRut } = require('./server/rut');
 
 const sinTildes = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
 

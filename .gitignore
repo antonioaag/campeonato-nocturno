@@ -4,3 +4,4 @@ data/
 .env
 .claude/launch.json
 backups/
+informes/
