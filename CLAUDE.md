@@ -170,6 +170,12 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
   que queda en `jugadores.fecha_ingreso` y es la base del control de pases.
   Volver a subir una lista no pisa la fecha de un jugador que ya la tenía; se
   corrige a mano desde la tabla (solo admin).
+- **Club sancionado** (José Pistono, hasta agosto 2027): sus listas no se
+  inscriben. Se transcriben a `data/listas/<club>-registro.json` con
+  `"registroSinInscripcion": true` (cargar-listas.js las rechaza) y se cruzan
+  con `node cruzar-registro.js <archivo>` (solo lee) para detectar si alguno
+  se inscribe en otro club: según ANFA art. 203 eso requiere autorización del
+  directorio.
 - Un mismo RUT puede estar en varios equipos (acuerdo de la asociación);
   `GET /jugadores/repetidos` arma el informe (mismo RUT en otro club u otra
   serie, y mismo nombre con distinto RUT).

@@ -13,7 +13,10 @@ const fs = require('fs');
 const path = require('path');
 const db = require('./server/db');
 
+// campeonatos va primero: equipos y resoluciones apuntan a él. castigados es
+// el registro de la asociación (la tabla vieja 'castigos' sigue por si acaso).
 const TABLAS = [
+  'campeonatos',
   'usuarios',
   'equipos',
   'partidos',
@@ -24,6 +27,7 @@ const TABLAS = [
   'reclamos',
   'configuracion',
   'castigos',
+  'castigados',
 ];
 
 async function main() {
