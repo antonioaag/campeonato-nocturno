@@ -21,6 +21,10 @@
  * - Si ya estaba cargado en el club con una fecha más reciente, no se toca.
  * - Lo que no cumple (RUT inválido, edad, nota de la transcripción) se guarda
  *   igual, marcado "a revisar", como en la carga desde la página.
+ * - Excepción: una lista con "inscripcionAdicional": true inscribe a sus
+ *   jugadores en esa serie ADEMÁS de la suya (por ejemplo, un Senior que
+ *   también se inscribe en Segunda para poder jugar en adultos). No los saca
+ *   de su otra serie.
  */
 require('dotenv').config();
 const fs = require('fs');
@@ -94,8 +98,10 @@ async function main() {
     if (!fechaIngreso) throw new Error(`Fecha de ingreso inválida en "${lista.origen}": ${lista.fechaIngreso}`);
     if (!equipos[lista.serie]) continue;
     for (const [nombre, rut, fechaNacimiento, nota] of lista.jugadores) {
-      const clave = claveJugador(rut, nombre);
-      const fila = { nombre, rut, fechaNacimiento, notas: nota ? [nota] : [], serie: lista.serie, fechaIngreso, origen: lista.origen };
+      const adicional = !!lista.inscripcionAdicional;
+      // La inscripción adicional se lleva aparte: no compite con la de su serie.
+      const clave = claveJugador(rut, nombre) + (adicional ? `|${lista.serie}` : '');
+      const fila = { nombre, rut, fechaNacimiento, notas: nota ? [nota] : [], serie: lista.serie, fechaIngreso, origen: lista.origen, adicional };
       const previo = elegidos.get(clave);
       if (!previo) { elegidos.set(clave, fila); continue; }
       if (previo.serie === fila.serie && previo.fechaIngreso === fila.fechaIngreso) continue; // repetido en la misma lista
@@ -112,13 +118,19 @@ async function main() {
     }
   }
 
-  // Lo que ya está cargado del club en este campeonato.
+  // Lo que ya está cargado del club en este campeonato. Se busca primero en
+  // la misma serie: con inscripciones adicionales, un jugador puede tener más
+  // de una fila en el club.
   const existentes = new Map();
+  const existentesPorSerie = new Map();
   for (const j of await db.all(
     `SELECT j.id, j.nombre, j.rut, j.fecha_ingreso AS fechaIngreso, e.serie
      FROM jugadores j JOIN equipos e ON e.id = j.equipo_id
      WHERE e.campeonato_id = ? AND e.nombre = ?`, [campeonato.id, club]
-  )) existentes.set(claveJugador(j.rut, j.nombre), j);
+  )) {
+    existentes.set(claveJugador(j.rut, j.nombre), j);
+    existentesPorSerie.set(`${claveJugador(j.rut, j.nombre)}|${j.serie}`, j);
+  }
 
   const porSerie = {};
   const marcados = [];
@@ -132,7 +144,8 @@ async function main() {
       normalizarFecha(f.fechaNacimiento) || String(f.fechaNacimiento || '').trim(),
       problemas.length ? 1 : 0, problemas.length ? problemas.join(' · ') : null, f.fechaIngreso,
     ];
-    const previo = existentes.get(clave);
+    const base = claveJugador(f.rut, f.nombre);
+    const previo = existentesPorSerie.get(`${base}|${f.serie}`) || (f.adicional ? null : existentes.get(base));
     if (previo && previo.fechaIngreso && previo.fechaIngreso > f.fechaIngreso) {
       sinCambio.push(`${f.nombre}: ya estaba en ${NOMBRE_SERIE[previo.serie]} con ingreso ${previo.fechaIngreso}, más reciente`);
       continue;
