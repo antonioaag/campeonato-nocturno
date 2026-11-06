@@ -47,6 +47,11 @@ async function main() {
   const aplicar = process.argv.includes('--aplicar');
   if (!archivo) throw new Error('Uso: node cargar-listas.js <archivo.json> [--aplicar]');
   const datos = JSON.parse(fs.readFileSync(archivo, 'utf8'));
+  // El registro de un club sancionado se guarda solo para cruzar RUT
+  // (cruzar-registro.js): cargarlo lo inscribiría en un campeonato que no juega.
+  if (datos.registroSinInscripcion) {
+    throw new Error(`${datos.club} es un registro sin inscripción (club sancionado): no se carga. Usa node cruzar-registro.js ${archivo}`);
+  }
   const club = datos.club;
   await db.init();
 
