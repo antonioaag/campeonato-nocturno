@@ -160,8 +160,8 @@ async function faseDeGruposTerminada(campeonatoId, serie) {
     [campeonatoId, serie]
   );
   if (sinJugar.length === 0) return true;
-  const { porPartido, anulados } = await ajustesVigentes(campeonatoId, serie);
-  return sinJugar.every(p => porPartido[p.id] || anulados[p.id]);
+  const { porPartido, anulados, mutuos } = await ajustesVigentes(campeonatoId, serie);
+  return sinJugar.every(p => porPartido[p.id] || anulados[p.id] || mutuos[p.id]);
 }
 
 // Genera la fase pedida. La primera (cuartos o semifinal, según el formato)

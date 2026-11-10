@@ -1661,7 +1661,7 @@
         // imágenes. Si no caben todas, se reparten en las que hagan falta.
         function imagenesResultados(datos, img) {
             const FILA = 74, CAB_SERIE = 76, ESPACIO = 26, NOTA = 34;
-            const altoFila = p => FILA + (p.homologacion || p.anulacion || p.fecha !== datos.fecha ? NOTA : 0);
+            const altoFila = p => FILA + (p.homologacion || p.anulacion || p.woMutuo || p.fecha !== datos.fecha ? NOTA : 0);
             const bloques = datos.series.map(s => {
                 const anteriores = s.pendientes.filter(p => p.fecha < datos.fecha);
                 const extra = (s.libres.length ? 1 : 0) + anteriores.length;
@@ -1717,7 +1717,8 @@
                 texto(x, 'vs', centro, yc, { size: 30, peso: 800, color: 'rgba(255,255,255,.5)', alinear: 'center' });
             }
             // El marcador de cancha queda tal cual; la resolución va aparte, como en la web.
-            const nota = p.homologacion
+            const nota = p.woMutuo ? `WO mutuo: perdido para ambos${p.woMutuo.articulo ? ` · ${p.woMutuo.articulo}` : ''}`
+                : p.homologacion
                 ? `Homologado ${p.homologacion.golesLocal}-${p.homologacion.golesVisita}${p.homologacion.articulo ? ` · ${p.homologacion.articulo}` : ''}`
                 : (anulado ? `Sin efecto por WO${p.anulacion.articulo ? ` · ${p.anulacion.articulo}` : ''}`
                     : (p.fecha !== fecha ? `Partido de la Fecha ${p.fecha}, adelantado` : ''));
@@ -1767,6 +1768,7 @@
         function textoSancion(r) {
             const art = r.articulo ? ` · ${r.articulo}` : '';
             if (r.tipo === 'descuento_puntos') return `${nombreClub(r.equipo)}: ${r.puntosAjuste} pts${art} · ${r.motivo}`;
+            if (r.tipo === 'wo_mutuo') return `${nombreClub(r.partidoLocal)} vs ${nombreClub(r.partidoVisita)}: WO mutuo, perdido para ambos${art}`;
             if (r.tipo === 'partido_homologado') return `${nombreClub(r.partidoLocal)} vs ${nombreClub(r.partidoVisita)} homologado ${r.golesLocalHom}-${r.golesVisitaHom}${art}`;
             return `${nombreClub(r.equipo)}: descalificado por WO${art}`;
         }
@@ -1921,6 +1923,10 @@
                         ${p.homologacion ? `
                             <span class="block mt-1 text-[10px] text-noc-gold" title="${escapeHtml(p.homologacion.articulo + ': ' + p.homologacion.motivo)}">
                                 ⚖ Homologado ${p.homologacion.golesLocal}-${p.homologacion.golesVisita}${p.homologacion.walkover ? (p.homologacion.walkover.motivo === 'wo' ? ' por WO' : ' (rival descalificado)') : ''}
+                            </span>` : ''}
+                        ${p.woMutuo ? `
+                            <span class="block mt-1 text-[10px] text-red-300" title="${escapeHtml(p.woMutuo.articulo + ': ' + p.woMutuo.motivo)}">
+                                ⚖ WO mutuo: perdido para ambos, sin puntos
                             </span>` : ''}
                         ${p.anulacion ? `
                             <span class="block mt-1 text-[10px] text-red-300" title="${escapeHtml(p.anulacion.articulo + ': ' + p.anulacion.motivo)}">
@@ -2122,6 +2128,7 @@
                                 <select id="res-tipo" onchange="cambiarTipoResolucion()" class="${CLASE_INPUT}">
                                     <option value="descuento_puntos">Descuento de puntos</option>
                                     <option value="partido_homologado">Partido ganado por secretaría</option>
+                                    <option value="wo_mutuo">WO mutuo — no se presentó ninguno (perdido para ambos)</option>
                                     ${CAMPEONATO.formato === 'cuartos' ? '<option value="walkover">WO — no se presentó (descalifica del torneo)</option>' : ''}
                                 </select>
                             </div>
@@ -2151,7 +2158,7 @@
                                 <label class="${CLASE_LABEL}">Partido</label>
                                 <select id="res-partido" class="${CLASE_INPUT}">${opcionesPartidos(partidos)}</select>
                             </div>
-                            <div class="grid grid-cols-2 gap-3">
+                            <div id="res-goles-hom" class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="${CLASE_LABEL}">Goles local (homologado)</label>
                                     <input id="res-gl" type="number" min="0" value="0" class="${CLASE_INPUT}">
@@ -2161,7 +2168,8 @@
                                     <input id="res-gv" type="number" min="0" value="3" class="${CLASE_INPUT}">
                                 </div>
                             </div>
-                            <p class="text-[10px] text-white/40">El marcador de cancha no se borra: queda visible junto al homologado.</p>
+                            <p id="res-nota-hom" class="text-[10px] text-white/40">El marcador de cancha no se borra: queda visible junto al homologado.</p>
+                            <p id="res-nota-mutuo" class="hidden text-[10px] text-white/40">Ninguno suma puntos: el partido queda como jugado y perdido para los dos, sin goles. Cuenta como resuelto para poder generar las eliminatorias.</p>
                         </div>
 
                         <div id="res-campos-wo" class="hidden space-y-3">
@@ -2231,7 +2239,10 @@
         function alternarCamposResolucion() {
             const tipo = document.getElementById('res-tipo').value;
             document.getElementById('res-campos-descuento').classList.toggle('hidden', tipo !== 'descuento_puntos');
-            document.getElementById('res-campos-partido').classList.toggle('hidden', tipo !== 'partido_homologado');
+            document.getElementById('res-campos-partido').classList.toggle('hidden', tipo !== 'partido_homologado' && tipo !== 'wo_mutuo');
+            document.getElementById('res-goles-hom').classList.toggle('hidden', tipo !== 'partido_homologado');
+            document.getElementById('res-nota-hom').classList.toggle('hidden', tipo !== 'partido_homologado');
+            document.getElementById('res-nota-mutuo').classList.toggle('hidden', tipo !== 'wo_mutuo');
             document.getElementById('res-campos-wo').classList.toggle('hidden', tipo !== 'walkover');
             if (tipo === 'walkover') poblarEquiposDelWalkover();
         }
@@ -2300,6 +2311,8 @@
                 cuerpo.equipoId = Number(document.getElementById('res-wo-equipo').value);
                 const equipo = document.getElementById('res-wo-equipo').selectedOptions[0];
                 if (!(await confirmarAccion(`${equipo ? equipo.textContent : 'El equipo'} quedará DESCALIFICADO del campeonato y saldrá de la lista de clasificados. Revisa el detalle del efecto antes de continuar. ¿Registrar el WO?`))) return;
+            } else if (tipo === 'wo_mutuo') {
+                cuerpo.partidoId = Number(document.getElementById('res-partido').value);
             } else {
                 cuerpo.partidoId = Number(document.getElementById('res-partido').value);
                 cuerpo.golesLocalHom = Number(document.getElementById('res-gl').value);
@@ -2320,15 +2333,18 @@
                 const revocada = r.estado === 'revocada';
                 const esDescuento = r.tipo === 'descuento_puntos';
                 const esWalkover = r.tipo === 'walkover';
+                const esMutuo = r.tipo === 'wo_mutuo';
                 let titulo;
                 if (esDescuento) {
                     titulo = `${escapeHtml(r.equipo)} · <span class="text-noc-gold">${r.puntosAjuste} puntos</span>`;
                 } else if (esWalkover) {
                     titulo = `${escapeHtml(r.equipo || '?')} · <span class="text-red-300">WO y descalificación</span>`;
+                } else if (esMutuo) {
+                    titulo = `${escapeHtml(r.partidoLocal || '?')} vs ${escapeHtml(r.partidoVisita || '?')} · <span class="text-red-300">WO mutuo: perdido para ambos</span>`;
                 } else {
                     titulo = `${escapeHtml(r.partidoLocal || '?')} vs ${escapeHtml(r.partidoVisita || '?')} · <span class="text-noc-gold">homologado ${r.golesLocalHom}-${r.golesVisitaHom}</span>`;
                 }
-                const cancha = (!esDescuento && !esWalkover && r.golesLocalCancha !== null && r.golesLocalCancha !== undefined)
+                const cancha = (!esDescuento && !esWalkover && !esMutuo && r.golesLocalCancha !== null && r.golesLocalCancha !== undefined)
                     ? `<p class="text-xs text-white/50 mt-1">En cancha terminó ${r.golesLocalCancha}-${r.golesVisitaCancha}. El resultado deportivo se conserva; la tabla computa el homologado.</p>`
                     : '';
                 // El alcance del WO se explica siempre: sin esto, un tercero que

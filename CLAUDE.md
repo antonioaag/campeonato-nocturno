@@ -248,6 +248,12 @@ significando lo mismo (una fila sin `wo_corte` cae a la mitad hacia arriba, que
 era el criterio vigente cuando se emitió). Por lo mismo, una vez descalificado un equipo, sus partidos ya no
 aceptan resultados.
 
+**WO mutuo** (`tipo = 'wo_mutuo'`): ninguno de los dos se presentó. El partido
+queda perdido para ambos (1 PJ y 1 PP a cada uno, 0 puntos, sin goles) y cuenta
+como resuelto para generar las eliminatorias. Tampoco edita el partido ni
+descalifica a nadie; las multas o el art. 57 se manejan aparte. Un partido
+admite una sola resolución que lo resuelva (homologación o WO mutuo).
+
 ## Pestañas que se publican
 
 `Eliminatorias` y `Resoluciones` nacen ocultas y el admin las publica cuando

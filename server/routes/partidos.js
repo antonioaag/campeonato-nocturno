@@ -52,10 +52,11 @@ router.get('/', authOpcional, campeonatos.campeonatoDeLaPeticion, asyncHandler(a
   // para que la interfaz pueda mostrar los dos y explicar la diferencia.
   // Un WO además puede dejar partidos sin efecto para todos: se marcan, para
   // que el fixture no muestre un resultado que ya no le suma a nadie.
-  const { porPartido, anulados } = await ajustesVigentes(req.campeonato.id, serie);
+  const { porPartido, anulados, mutuos } = await ajustesVigentes(req.campeonato.id, serie);
   partidos.forEach(p => {
     p.homologacion = porPartido[p.id] || null;
     p.anulacion = anulados[p.id] || null;
+    p.woMutuo = mutuos[p.id] || null;
   });
 
   res.json(partidos);

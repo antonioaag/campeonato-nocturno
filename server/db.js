@@ -373,7 +373,7 @@ function init() {
         CREATE TABLE IF NOT EXISTS resoluciones (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           serie TEXT NOT NULL,
-          tipo TEXT NOT NULL CHECK(tipo IN ('descuento_puntos','partido_homologado','walkover')),
+          tipo TEXT NOT NULL CHECK(tipo IN ('descuento_puntos','partido_homologado','walkover','wo_mutuo')),
           origen TEXT NOT NULL CHECK(origen IN ('oficio','reclamo')),
           equipo_id INTEGER REFERENCES equipos(id),
           partido_id INTEGER REFERENCES partidos(id),
@@ -445,6 +445,7 @@ function init() {
       await migrarFormatoYVisibilidad();
       await migrarRevisionJugadores();
       await migrarCastigados();
+      await migrarWoMutuo();
     })();
   }
   return readyPromise;
@@ -653,6 +654,29 @@ async function migrarRevisionJugadores() {
     columnas.push('ALTER TABLE jugadores ADD COLUMN fecha_ingreso TEXT');
   }
   if (columnas.length) await exec(columnas.join(';'));
+}
+
+// Agrega el tipo 'wo_mutuo' (ninguno de los dos equipos se presentó). El CHECK
+// de SQLite no se puede alterar, así que se reconstruye la tabla con el mismo
+// esquema que tiene hoy (incluidas las columnas agregadas después, como
+// campeonato_id) y se copian todas las filas tal cual. Idempotente.
+async function migrarWoMutuo() {
+  const tabla = await get("SELECT sql FROM sqlite_master WHERE type='table' AND name='resoluciones'");
+  if (!tabla || /wo_mutuo/.test(tabla.sql)) return;
+  const nuevo = tabla.sql
+    .replace("'walkover')", "'walkover','wo_mutuo')")
+    .replace(/CREATE TABLE\s+"?resoluciones"?/i, 'CREATE TABLE resoluciones_new');
+  if (!/wo_mutuo/.test(nuevo)) throw new Error('migrarWoMutuo: no se encontró el CHECK de tipo en resoluciones');
+  const columnas = (await all('PRAGMA table_info(resoluciones)')).map(c => c.name).join(', ');
+  await exec('PRAGMA foreign_keys = OFF');
+  await batch([
+    { sql: nuevo, args: [] },
+    { sql: `INSERT INTO resoluciones_new (${columnas}) SELECT ${columnas} FROM resoluciones`, args: [] },
+    { sql: 'DROP TABLE resoluciones', args: [] },
+    { sql: 'ALTER TABLE resoluciones_new RENAME TO resoluciones', args: [] },
+  ]);
+  await exec('PRAGMA foreign_keys = ON');
+  console.log('\u2713 resoluciones acepta ahora el tipo wo_mutuo');
 }
 
 // Registro de castigados de la asociación. Vive aparte de 'castigos' (que es

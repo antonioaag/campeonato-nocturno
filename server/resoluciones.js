@@ -8,7 +8,7 @@
 const db = require('./db');
 const { efectosDeWalkover, explicarAlcance } = require('./walkover');
 
-const TIPOS = ['descuento_puntos', 'partido_homologado', 'walkover'];
+const TIPOS = ['descuento_puntos', 'partido_homologado', 'walkover', 'wo_mutuo'];
 const ORIGENES = ['oficio', 'reclamo'];
 
 const SELECT_RESOLUCIONES = `
@@ -62,6 +62,9 @@ async function ajustesVigentes(campeonatoId, serie) {
   const porPartido = {};
   const descalificados = {};
   const anulados = {};
+  // WO mutuo: ninguno de los dos se presentó. El partido queda perdido para
+  // ambos (cuenta como jugado y perdido, sin puntos ni goles) y no descalifica.
+  const mutuos = {};
 
   // Primero los descuentos y las homologaciones puntuales. Van antes que los WO
   // a propósito: una homologación escrita a mano es una decisión específica del
@@ -80,6 +83,13 @@ async function ajustesVigentes(campeonatoId, serie) {
         fechaResolucion: r.fechaResolucion,
         origen: r.origen,
       });
+    }
+
+    if (r.tipo === 'wo_mutuo' && r.partidoId && !mutuos[r.partidoId]) {
+      mutuos[r.partidoId] = {
+        id: r.id, articulo: r.articulo, motivo: r.motivo,
+        numeroActa: r.numeroActa, fechaResolucion: r.fechaResolucion, origen: r.origen,
+      };
     }
 
     if (r.tipo === 'partido_homologado' && r.partidoId) {
@@ -162,7 +172,7 @@ async function ajustesVigentes(campeonatoId, serie) {
     porPartido[h.partidoId] = desdeWalkover(h);
   });
 
-  return { porEquipo, porPartido, descalificados, anulados };
+  return { porEquipo, porPartido, descalificados, anulados, mutuos };
 }
 
 // Valida los datos de una resolución nueva. Devuelve un mensaje de error o
@@ -189,6 +199,8 @@ function validar({ tipo, origen, equipoId, partidoId, puntosAjuste, golesLocalHo
     if (!partidoId) return 'Hay que indicar en qué partido se produjo el WO';
     if (!equipoId) return 'Hay que indicar qué equipo no se presentó';
   }
+
+  if (tipo === 'wo_mutuo' && !partidoId) return 'Hay que indicar en qué partido no se presentó ninguno de los dos';
 
   if (tipo === 'partido_homologado') {
     if (!partidoId) return 'Hay que indicar qué partido se homologa';
