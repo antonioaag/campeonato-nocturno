@@ -626,7 +626,7 @@
    "visita": "PLATENSE",
    "dia": "SABADO",
    "hora": "20:00",
-   "turno": "J. OVALLE"
+   "turno": "ESTOCOLMO"
   },
   {
    "fecha": 4,
@@ -635,7 +635,7 @@
    "visita": "PLATENSE",
    "dia": "SABADO",
    "hora": "21:00",
-   "turno": "J. OVALLE"
+   "turno": "ESTOCOLMO"
   },
   {
    "fecha": 4,
@@ -789,7 +789,7 @@
    "visita": "VECINAL",
    "dia": "DOMINGO",
    "hora": "16:00",
-   "turno": "ESTOCOLMO"
+   "turno": "J. OVALLE"
   },
   {
    "fecha": 4,
@@ -798,7 +798,7 @@
    "visita": "PICHANGA",
    "dia": "DOMINGO",
    "hora": "17:00",
-   "turno": "ESTOCOLMO"
+   "turno": "J. OVALLE"
   },
   {
    "fecha": 4,
@@ -807,7 +807,7 @@
    "visita": "PICHANGA",
    "dia": "DOMINGO",
    "hora": "18:00",
-   "turno": "ESTOCOLMO"
+   "turno": "LIGA"
   },
   {
    "fecha": 4,
