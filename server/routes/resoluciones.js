@@ -167,7 +167,7 @@ router.post('/', requireAuth, requireAdmin, campeonatoDeLaPeticion, asyncHandler
   }
 
   let partido = null;
-  if (tipo === 'partido_homologado') {
+  if (tipo === 'partido_homologado' || tipo === 'wo_mutuo') {
     partido = await db.get(`
       SELECT p.id, p.serie, l.campeonato_id AS campeonatoId
       FROM partidos p JOIN equipos l ON l.id = p.local_id WHERE p.id = ?
@@ -176,13 +176,15 @@ router.post('/', requireAuth, requireAdmin, campeonatoDeLaPeticion, asyncHandler
     if (partido.campeonatoId !== campeonato.id) return res.status(400).json({ error: 'El partido no pertenece a este campeonato' });
     if (partido.serie !== serie) return res.status(400).json({ error: 'El partido no pertenece a esa serie' });
 
-    const yaHomologado = await db.get(
-      "SELECT id FROM resoluciones WHERE partido_id = ? AND tipo = 'partido_homologado' AND estado = 'vigente'",
+    // Un partido se resuelve una sola vez: homologado o WO mutuo, no los dos.
+    const yaResuelto = await db.get(
+      "SELECT id, tipo FROM resoluciones WHERE partido_id = ? AND tipo IN ('partido_homologado','wo_mutuo') AND estado = 'vigente'",
       [Number(partidoId)]
     );
-    if (yaHomologado) {
+    if (yaResuelto) {
+      const que = yaResuelto.tipo === 'wo_mutuo' ? 'un WO mutuo' : 'una homologación';
       return res.status(409).json({
-        error: `Ese partido ya tiene una homologación vigente (resolución N°${yaHomologado.id}). Revócala antes de emitir otra.`,
+        error: `Ese partido ya tiene ${que} vigente (resolución N°${yaResuelto.id}). Revócala antes de emitir otra.`,
       });
     }
   }
@@ -196,7 +198,7 @@ router.post('/', requireAuth, requireAdmin, campeonatoDeLaPeticion, asyncHandler
   `, [
     campeonato.id, serie, tipo, origen,
     tipo === 'descuento_puntos' || tipo === 'walkover' ? Number(equipoId) : null,
-    tipo === 'partido_homologado' || tipo === 'walkover' ? Number(partidoId) : null,
+    tipo === 'partido_homologado' || tipo === 'walkover' || tipo === 'wo_mutuo' ? Number(partidoId) : null,
     tipo === 'descuento_puntos' ? Number(puntosAjuste) : null,
     tipo === 'partido_homologado' ? Number(golesLocalHom) : null,
     tipo === 'partido_homologado' ? Number(golesVisitaHom) : null,

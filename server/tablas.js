@@ -65,6 +65,16 @@ async function calcularTabla(campeonatoId, serie, grupo, ajustes, hastaFecha = n
     // para nadie, ni siquiera para el rival que se los ganó en la cancha.
     if (ajustes.anulados[p.id]) return;
 
+    // WO mutuo: perdido para los dos, sin puntos ni goles. Cuenta como jugado
+    // para que ambos queden con la misma cantidad de partidos que el resto.
+    if (ajustes.mutuos && ajustes.mutuos[p.id]) {
+      const L = stats[p.local_id];
+      const V = stats[p.visita_id];
+      if (L) { L.pj++; L.pp++; }
+      if (V) { V.pj++; V.pp++; }
+      return;
+    }
+
     const homologado = ajustes.porPartido[p.id];
     const cuenta = homologado || p.estado === 'jugado';
     if (!cuenta) return;
@@ -90,7 +100,7 @@ async function calcularTabla(campeonatoId, serie, grupo, ajustes, hastaFecha = n
   // Partidos aplazados pendientes de reprogramar (informativo). Uno homologado
   // ya quedó resuelto, así que deja de contar como pendiente.
   partidos
-    .filter(p => p.estado === 'aplazado' && !ajustes.porPartido[p.id] && !ajustes.anulados[p.id])
+    .filter(p => p.estado === 'aplazado' && !ajustes.porPartido[p.id] && !ajustes.anulados[p.id] && !(ajustes.mutuos && ajustes.mutuos[p.id]))
     .forEach(p => {
       if (stats[p.local_id]) stats[p.local_id].pa = (stats[p.local_id].pa || 0) + 1;
       if (stats[p.visita_id]) stats[p.visita_id].pa = (stats[p.visita_id].pa || 0) + 1;

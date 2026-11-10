@@ -35,7 +35,7 @@ router.get('/fecha/:n', asyncHandler(async (req, res) => {
   const series = [];
   for (const serie of seriesDe(c)) {
     const ajustes = await ajustesVigentes(c.id, serie);
-    const conAjustes = p => ({ ...p, homologacion: ajustes.porPartido[p.id] || null, anulacion: ajustes.anulados[p.id] || null });
+    const conAjustes = p => ({ ...p, homologacion: ajustes.porPartido[p.id] || null, anulacion: ajustes.anulados[p.id] || null, woMutuo: ajustes.mutuos[p.id] || null });
 
     // Por el fin de semana en que se juega: un adelantado de la fecha
     // siguiente sale con esta, que es cuando se juega y cuando se publica.
@@ -52,7 +52,7 @@ router.get('/fecha/:n', asyncHandler(async (req, res) => {
       `${SELECT_PARTIDOS} WHERE l.campeonato_id = ? AND p.serie = ? AND p.fase = 'grupos'
          AND p.fecha <= ? AND p.estado = 'aplazado' ORDER BY p.fecha, p.id`,
       [c.id, serie, n]
-    )).filter(p => !ajustes.porPartido[p.id] && !ajustes.anulados[p.id]);
+    )).filter(p => !ajustes.porPartido[p.id] && !ajustes.anulados[p.id] && !ajustes.mutuos[p.id]);
 
     // Quien quedó libre por fixture pero juega un adelantado esta jornada no está libre.
     const juegan = new Set(partidos.flatMap(p => [p.local, p.visita]));
@@ -134,6 +134,7 @@ router.get('/respaldo.xlsx', asyncHandler(async (req, res) => {
         p.penalesLocal != null ? `Penales ${p.penalesLocal}-${p.penalesVisita}` : '',
         h ? `Homologado ${h.golesLocal}-${h.golesVisita}${h.articulo ? `, ${h.articulo}` : ''}` : '',
         a ? 'Sin efecto por WO' : '',
+        ajustes.mutuos[p.id] ? `WO mutuo: perdido para ambos${ajustes.mutuos[p.id].articulo ? `, ${ajustes.mutuos[p.id].articulo}` : ''}` : '',
       ].filter(Boolean).join(' · ');
       res1.addRow([p.fase, p.fecha, serie, p.fechaPartido || '', p.hora || '', p.local,
         jugado ? p.golesLocal : '', jugado ? p.golesVisita : '', p.visita, p.estado,
