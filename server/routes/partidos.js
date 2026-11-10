@@ -27,6 +27,8 @@ const SELECT_PARTIDOS = `
 // se juega con la 3 se vea en cuanto se publica la 3. Cada partido lleva su
 // jornada para que el front lo agrupe igual.
 async function visibles(req, partidos) {
+  // El turno (club que hace de mesa) es un dato interno de la asociación.
+  if (!(req.usuario && req.usuario.rol === 'admin')) partidos.forEach(p => { delete p.turno; });
   const porDia = await jornadasPorDia(req.campeonato.id);
   partidos.forEach(p => { p.jornada = jornadaDe(p, porDia); });
   const hasta = campeonatos.fechaMaximaVisible(req.campeonato, req.usuario);
