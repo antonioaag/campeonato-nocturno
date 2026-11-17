@@ -1,5 +1,5 @@
 {
- "comentario": "Día y hora de cada partido de la fase de grupos de Clausura 2026, según el patrón de la asociación: viernes Sub-17, Segunda y Primera del mismo par; sábado Sub-15 y Sub-17 en la mañana, Seniors de 15 a 19 h y Segunda y Primera a las 20 y 21; domingo Sub-13 en la mañana (más Sub-15/Sub-17 que no caben el sábado) y Segunda y Primera seguidas por par en la tarde. Jornada continua, sin horarios vacíos entre partidos. Se cargan con programar-horarios-clausura-2026.js. La fecha 1 incluye los ajustes de la asociación, la fecha 2 también y en la fecha 3 se intercambiaron dos horarios del Sub-13 para que nadie repita horario con la fecha 2. Los marcados \"pendiente\" se suspendieron (problemas municipales en la fecha 2: dos de Seniors el sábado, y el Sub-13 10 de Marzo-Chayaihue la Segunda 10 de Marzo-Estocolmo y la Primera 10 de Marzo-Flamengo el domingo): conservan el horario que tenían como referencia, pero se cargan como aplazados y sin día ni hora hasta que la asociación los reprograme. \"turno\" es el club que hace el turno de ese partido. \"seJuegaEnFecha\" marca un partido que se juega en el fin de semana de otra fecha (adelantado o postergado): sigue siendo de su fecha en el fixture, pero el día se calcula con la fecha en que se juega. En la fecha 3, cuatro partidos del domingo 08/11 quedan pendientes por calor extremo. En la fecha 4, Chayaihue-Independiente (Sub-17, Segunda y Primera) pasa al viernes e intercambia horarios con J. Ovalle-Platense, que pasa al sábado. La fecha 4 lleva los horarios y turnos que armó la asociación.",
+ "comentario": "Día y hora de cada partido de la fase de grupos de Clausura 2026, según el patrón de la asociación: viernes Sub-17, Segunda y Primera del mismo par; sábado Sub-15 y Sub-17 en la mañana, Seniors de 15 a 19 h y Segunda y Primera a las 20 y 21; domingo Sub-13 en la mañana (más Sub-15/Sub-17 que no caben el sábado) y Segunda y Primera seguidas por par en la tarde. Jornada continua, sin horarios vacíos entre partidos. Se cargan con programar-horarios-clausura-2026.js. La fecha 1 incluye los ajustes de la asociación, la fecha 2 también y en la fecha 3 se intercambiaron dos horarios del Sub-13 para que nadie repita horario con la fecha 2. Los marcados \"pendiente\" se suspendieron (problemas municipales en la fecha 2: dos de Seniors el sábado, y el Sub-13 10 de Marzo-Chayaihue la Segunda 10 de Marzo-Estocolmo y la Primera 10 de Marzo-Flamengo el domingo): conservan el horario que tenían como referencia, pero se cargan como aplazados y sin día ni hora hasta que la asociación los reprograme. \"turno\" es el club que hace el turno de ese partido. \"seJuegaEnFecha\" marca un partido que se juega en el fin de semana de otra fecha (adelantado o postergado): sigue siendo de su fecha en el fixture, pero el día se calcula con la fecha en que se juega. En la fecha 3, cuatro partidos del domingo 08/11 quedan pendientes por calor extremo. En la fecha 4, Chayaihue-Independiente (Sub-17, Segunda y Primera) pasa al viernes e intercambia horarios con J. Ovalle-Platense, que pasa al sábado. La fecha 4 lleva los horarios y turnos que armó la asociación. En la fecha 5 Boroa juega el viernes o el domingo salvo Seniors (pedido de la asociación): Sub-15 10 de Marzo-Boroa pasa al domingo 14:10, seguido del Sub-13 del mismo par; el Sub-13 Independiente-Platense pasa a las 15:00, antes de su Segunda y Primera; y la Segunda y Primera Boroa-Flamengo pasan al domingo a las 20:00 y 21:00. El sábado parte a las 10:50 (Sub-17 Chayaihue-J. Ovalle) para que no quede un horario vacío.",
  "partidos": [
   {
    "fecha": 1,
@@ -857,15 +857,15 @@
    "local": "CHAYAIHUE",
    "visita": "J. OVALLE",
    "dia": "SABADO",
-   "hora": "10:00"
+   "hora": "10:50"
   },
   {
    "fecha": 5,
    "serie": "SUB15",
    "local": "10 DE MARZO",
    "visita": "BOROA",
-   "dia": "SABADO",
-   "hora": "10:50"
+   "dia": "DOMINGO",
+   "hora": "14:10"
   },
   {
    "fecha": 5,
@@ -944,7 +944,7 @@
    "serie": "SEGUNDA_ADULTO",
    "local": "BOROA",
    "visita": "FLAMENGO",
-   "dia": "SABADO",
+   "dia": "DOMINGO",
    "hora": "20:00"
   },
   {
@@ -952,7 +952,7 @@
    "serie": "PRIMERA_ADULTO",
    "local": "BOROA",
    "visita": "FLAMENGO",
-   "dia": "SABADO",
+   "dia": "DOMINGO",
    "hora": "21:00"
   },
   {
@@ -993,7 +993,7 @@
    "local": "INDEPENDIENTE",
    "visita": "PLATENSE",
    "dia": "DOMINGO",
-   "hora": "14:10"
+   "hora": "15:00"
   },
   {
    "fecha": 5,
