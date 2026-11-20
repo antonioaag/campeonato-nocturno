@@ -254,6 +254,13 @@ como resuelto para generar las eliminatorias. Tampoco edita el partido ni
 descalifica a nadie; las multas o el art. 57 se manejan aparte. Un partido
 admite una sola resolución que lo resuelva (homologación o WO mutuo).
 
+**Retiro de serie** (`tipo = 'retiro_serie'`): el tribunal saca a un equipo del
+campeonato por un hecho grave (por ejemplo, una batalla campal), en cualquier
+formato. Misma regla de la mitad que el WO (ANFA art. 183, Liga art. 221), con
+lo jugado congelado en `wo_jugados` / `wo_total` / `wo_corte`, pero sin 3-0. El
+partido del hecho (opcional, `partido_id`) no cuenta como jugado ni da 1-0: se
+resuelve con su propia resolución. Revocarlo deja todo como estaba.
+
 ## Pestañas que se publican
 
 `Eliminatorias` y `Resoluciones` nacen ocultas y el admin las publica cuando

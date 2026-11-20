@@ -373,7 +373,7 @@ function init() {
         CREATE TABLE IF NOT EXISTS resoluciones (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           serie TEXT NOT NULL,
-          tipo TEXT NOT NULL CHECK(tipo IN ('descuento_puntos','partido_homologado','walkover','wo_mutuo')),
+          tipo TEXT NOT NULL CHECK(tipo IN ('descuento_puntos','partido_homologado','walkover','wo_mutuo','retiro_serie')),
           origen TEXT NOT NULL CHECK(origen IN ('oficio','reclamo')),
           equipo_id INTEGER REFERENCES equipos(id),
           partido_id INTEGER REFERENCES partidos(id),
@@ -446,6 +446,7 @@ function init() {
       await migrarRevisionJugadores();
       await migrarCastigados();
       await migrarWoMutuo();
+      await migrarRetiroSerie();
     })();
   }
   return readyPromise;
@@ -677,6 +678,31 @@ async function migrarWoMutuo() {
   ]);
   await exec('PRAGMA foreign_keys = ON');
   console.log('\u2713 resoluciones acepta ahora el tipo wo_mutuo');
+}
+
+// Retiro de serie: el tribunal saca a un equipo del campeonato por un hecho
+// grave (no por WO), por ejemplo una batalla campal. Mismo procedimiento que el
+// WO mutuo: SQLite no deja cambiar un CHECK, así que se rehace la tabla
+// copiando todas las filas. Es aditiva: las resoluciones existentes no cambian.
+async function migrarRetiroSerie() {
+  const tabla = await get("SELECT sql FROM sqlite_master WHERE type='table' AND name='resoluciones'");
+  if (!tabla || /retiro_serie/.test(tabla.sql)) return;
+  const nuevo = tabla.sql
+    .replace("'wo_mutuo')", "'wo_mutuo','retiro_serie')")
+    .replace(/CREATE TABLE\s+"?resoluciones"?/i, 'CREATE TABLE resoluciones_new');
+  if (!/retiro_serie/.test(nuevo)) throw new Error('migrarRetiroSerie: no se encontró el CHECK de tipo en resoluciones');
+  const antes = await get('SELECT COUNT(*) AS n FROM resoluciones');
+  const columnas = (await all('PRAGMA table_info(resoluciones)')).map(c => c.name).join(', ');
+  await exec('PRAGMA foreign_keys = OFF');
+  await batch([
+    { sql: nuevo, args: [] },
+    { sql: `INSERT INTO resoluciones_new (${columnas}) SELECT ${columnas} FROM resoluciones`, args: [] },
+    { sql: 'DROP TABLE resoluciones', args: [] },
+    { sql: 'ALTER TABLE resoluciones_new RENAME TO resoluciones', args: [] },
+  ]);
+  await exec('PRAGMA foreign_keys = ON');
+  const despues = await get('SELECT COUNT(*) AS n FROM resoluciones');
+  console.log(`\u2713 resoluciones acepta ahora el tipo retiro_serie (${despues.n} de ${antes.n} filas copiadas)`);
 }
 
 // Registro de castigados de la asociación. Vive aparte de 'castigos' (que es
