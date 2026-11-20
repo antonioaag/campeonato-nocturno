@@ -6,9 +6,9 @@
 // y siempre se acompaña del motivo, el artículo y el acta. Cualquiera puede ver
 // el marcador real y el homologado uno al lado del otro.
 const db = require('./db');
-const { efectosDeWalkover, explicarAlcance } = require('./walkover');
+const { efectosDeWalkover, explicarAlcance, efectosDeRetiro, explicarAlcanceRetiro } = require('./walkover');
 
-const TIPOS = ['descuento_puntos', 'partido_homologado', 'walkover', 'wo_mutuo'];
+const TIPOS = ['descuento_puntos', 'partido_homologado', 'walkover', 'wo_mutuo', 'retiro_serie'];
 const ORIGENES = ['oficio', 'reclamo'];
 
 const SELECT_RESOLUCIONES = `
@@ -109,13 +109,17 @@ async function ajustesVigentes(campeonatoId, serie) {
     }
   });
 
-  // Ahora los WO. Cada uno descalifica a un equipo y además resuelve de una vez
-  // todos los partidos que ese equipo ya no jugará.
+  // Ahora los WO y los retiros de serie. Cada uno saca a un equipo del
+  // campeonato y además resuelve de una vez todos los partidos que ese equipo
+  // ya no jugará. El retiro no exige partido: el del hecho es opcional.
   const derivadas = [];
   const aAnular = new Map(); // partidoId -> resolución que lo anuló
 
-  for (const r of vigentes.filter(x => x.tipo === 'walkover' && x.equipoId && x.partidoId)) {
-    const efectos = await efectosDeWalkover(r);
+  const salidas = vigentes.filter(x => x.equipoId && (
+    (x.tipo === 'walkover' && x.partidoId) || x.tipo === 'retiro_serie'));
+  for (const r of salidas) {
+    const esRetiro = r.tipo === 'retiro_serie';
+    const efectos = esRetiro ? await efectosDeRetiro(r) : await efectosDeWalkover(r);
 
     descalificados[r.equipoId] = {
       id: r.id,
@@ -127,12 +131,15 @@ async function ajustesVigentes(campeonatoId, serie) {
       fechaResolucion: r.fechaResolucion,
       origen: r.origen,
       partidoId: r.partidoId,
-      rival: r.partidoLocalId === r.equipoId ? r.partidoVisita : r.partidoLocal,
+      retiro: esRetiro,
+      rival: esRetiro ? null : (r.partidoLocalId === r.equipoId ? r.partidoVisita : r.partidoLocal),
       jugados: r.woJugados,
       total: r.woTotal,
       corte: r.woCorte,
       resultadosValidos: efectos.validos,
-      alcance: explicarAlcance(r.woJugados, r.woTotal, r.woCorte),
+      alcance: esRetiro
+        ? explicarAlcanceRetiro(r.woJugados, r.woTotal, r.woCorte)
+        : explicarAlcance(r.woJugados, r.woTotal, r.woCorte),
     };
 
     efectos.homologaciones.forEach(h => derivadas.push({ ...h, resolucion: r }));
@@ -148,7 +155,7 @@ async function ajustesVigentes(campeonatoId, serie) {
     numeroActa: h.resolucion.numeroActa,
     fechaResolucion: h.resolucion.fechaResolucion,
     origen: h.resolucion.origen,
-    walkover: { equipo: h.resolucion.equipo, motivo: h.esElDelWo ? 'wo' : 'pendiente' },
+    walkover: { equipo: h.resolucion.equipo, motivo: h.esElDelWo ? 'wo' : 'pendiente', retiro: h.resolucion.tipo === 'retiro_serie' },
   });
 
   // El partido donde ocurrió el WO se homologa siempre: el 3-0 del equipo que
@@ -164,6 +171,7 @@ async function ajustesVigentes(campeonatoId, serie) {
     anulados[id] = {
       id: r.id, equipo: r.equipo, articulo: r.articulo, motivo: r.motivo,
       numeroActa: r.numeroActa, fechaResolucion: r.fechaResolucion,
+      retiro: r.tipo === 'retiro_serie',
     };
   });
 
@@ -199,6 +207,8 @@ function validar({ tipo, origen, equipoId, partidoId, puntosAjuste, golesLocalHo
     if (!partidoId) return 'Hay que indicar en qué partido se produjo el WO';
     if (!equipoId) return 'Hay que indicar qué equipo no se presentó';
   }
+
+  if (tipo === 'retiro_serie' && !equipoId) return 'Hay que indicar qué equipo se retira del campeonato';
 
   if (tipo === 'wo_mutuo' && !partidoId) return 'Hay que indicar en qué partido no se presentó ninguno de los dos';
 

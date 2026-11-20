@@ -1,5 +1,5 @@
 {
- "comentario": "Día y hora de cada partido de la fase de grupos de Clausura 2026, según el patrón de la asociación: viernes Sub-17, Segunda y Primera del mismo par; sábado Sub-15 y Sub-17 en la mañana, Seniors de 15 a 19 h y Segunda y Primera a las 20 y 21; domingo Sub-13 en la mañana (más Sub-15/Sub-17 que no caben el sábado) y Segunda y Primera seguidas por par en la tarde. Jornada continua, sin horarios vacíos entre partidos. Se cargan con programar-horarios-clausura-2026.js. La fecha 1 incluye los ajustes de la asociación, la fecha 2 también y en la fecha 3 se intercambiaron dos horarios del Sub-13 para que nadie repita horario con la fecha 2. Los marcados \"pendiente\" se suspendieron (problemas municipales en la fecha 2: dos de Seniors el sábado, y el Sub-13 10 de Marzo-Chayaihue la Segunda 10 de Marzo-Estocolmo y la Primera 10 de Marzo-Flamengo el domingo): conservan el horario que tenían como referencia, pero se cargan como aplazados y sin día ni hora hasta que la asociación los reprograme. \"turno\" es el club que hace el turno de ese partido. \"seJuegaEnFecha\" marca un partido que se juega en el fin de semana de otra fecha (adelantado o postergado): sigue siendo de su fecha en el fixture, pero el día se calcula con la fecha en que se juega. En la fecha 3, cuatro partidos del domingo 08/11 quedan pendientes por calor extremo. En la fecha 4, Chayaihue-Independiente (Sub-17, Segunda y Primera) pasa al viernes e intercambia horarios con J. Ovalle-Platense, que pasa al sábado. La fecha 4 lleva los horarios y turnos que armó la asociación. Los turnos de las fechas 1 y 2 son los que informó la asociación. La fecha 5 lleva los horarios que ajustó la asociación (Boroa juega viernes o domingo salvo Seniors) y turnos repartidos para emparejar el total de turnos por club en las fechas 1 a 5; ningún club hace turno en un partido propio.",
+ "comentario": "Día y hora de cada partido de la fase de grupos de Clausura 2026, según el patrón de la asociación: viernes Sub-17, Segunda y Primera del mismo par; sábado Sub-15 y Sub-17 en la mañana, Seniors de 15 a 19 h y Segunda y Primera a las 20 y 21; domingo Sub-13 en la mañana (más Sub-15/Sub-17 que no caben el sábado) y Segunda y Primera seguidas por par en la tarde. Jornada continua, sin horarios vacíos entre partidos. Se cargan con programar-horarios-clausura-2026.js. La fecha 1 incluye los ajustes de la asociación, la fecha 2 también y en la fecha 3 se intercambiaron dos horarios del Sub-13 para que nadie repita horario con la fecha 2. Los marcados \"pendiente\" se suspendieron (problemas municipales en la fecha 2: dos de Seniors el sábado, y el Sub-13 10 de Marzo-Chayaihue la Segunda 10 de Marzo-Estocolmo y la Primera 10 de Marzo-Flamengo el domingo): conservan el horario que tenían como referencia, pero se cargan como aplazados y sin día ni hora hasta que la asociación los reprograme. \"turno\" es el club que hace el turno de ese partido. \"seJuegaEnFecha\" marca un partido que se juega en el fin de semana de otra fecha (adelantado o postergado): sigue siendo de su fecha en el fixture, pero el día se calcula con la fecha en que se juega. En la fecha 3, cuatro partidos del domingo 08/11 quedan pendientes por calor extremo. En la fecha 4, Chayaihue-Independiente (Sub-17, Segunda y Primera) pasa al viernes e intercambia horarios con J. Ovalle-Platense, que pasa al sábado. La fecha 4 lleva los horarios y turnos que armó la asociación. Los turnos de las fechas 1 y 2 son los que informó la asociación. La fecha 5 lleva los horarios que ajustó la asociación (Boroa juega viernes o domingo salvo Seniors) y turnos repartidos para emparejar el total de turnos por club en las fechas 1 a 5; ningún club hace turno en un partido propio. En la fecha 5 el sábado en la mañana se juegan primero los partidos de Independiente (11:40 y 12:30) y después Estocolmo-Flamengo (13:20 y 14:10); Estocolmo hace turno de 10:50 a 12:30 y 10 de Marzo de 13:20 a 14:10, para que nadie haga turno en su propio partido. La Primera Independiente-Platense del domingo no se juega: el Comité de Ética suspendió la Primera de Platense por el resto del campeonato (queda sin día hasta registrar el retiro de la serie).",
  "partidos": [
   {
    "fecha": 1,
@@ -904,7 +904,7 @@
    "visita": "J. OVALLE",
    "dia": "SABADO",
    "hora": "10:50",
-   "turno": "10 DE MARZO"
+   "turno": "ESTOCOLMO"
   },
   {
    "fecha": 5,
@@ -921,7 +921,7 @@
    "local": "ESTOCOLMO",
    "visita": "FLAMENGO",
    "dia": "SABADO",
-   "hora": "11:40",
+   "hora": "13:20",
    "turno": "10 DE MARZO"
   },
   {
@@ -930,7 +930,7 @@
    "local": "ESTOCOLMO",
    "visita": "FLAMENGO",
    "dia": "SABADO",
-   "hora": "12:30",
+   "hora": "14:10",
    "turno": "10 DE MARZO"
   },
   {
@@ -939,7 +939,7 @@
    "local": "INDEPENDIENTE",
    "visita": "PICHANGA",
    "dia": "SABADO",
-   "hora": "13:20",
+   "hora": "11:40",
    "turno": "ESTOCOLMO"
   },
   {
@@ -948,7 +948,7 @@
    "local": "INDEPENDIENTE",
    "visita": "PLATENSE",
    "dia": "SABADO",
-   "hora": "14:10",
+   "hora": "12:30",
    "turno": "ESTOCOLMO"
   },
   {
@@ -1075,7 +1075,8 @@
    "visita": "PLATENSE",
    "dia": "DOMINGO",
    "hora": "19:00",
-   "turno": "SAO PAULO"
+   "turno": "SAO PAULO",
+   "pendiente": true
   },
   {
    "fecha": 5,

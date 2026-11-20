@@ -4,7 +4,10 @@ const { requireAuth, requireAdmin, authOpcional } = require('../auth');
 const asyncHandler = require('../asyncHandler');
 const { esSerieValida } = require('../series');
 const { listar, obtenerPorId, validar } = require('../resoluciones');
-const { contarPartidosDeGrupo, efectosDeWalkover, explicarAlcance } = require('../walkover');
+const {
+  contarPartidosDeGrupo, efectosDeWalkover, explicarAlcance,
+  contarPartidosParaRetiro, efectosDeRetiro, explicarAlcanceRetiro,
+} = require('../walkover');
 const { leerBooleano, escribir, claveResolucionesPublicas } = require('../configuracion');
 const { campeonatoDeLaPeticion, exigirEditable, obtenerPorId: campeonatoPorId } = require('../campeonatos');
 
@@ -87,6 +90,65 @@ router.get('/walkover/previsualizar', requireAuth, requireAdmin, campeonatoDeLaP
   });
 }));
 
+// Qué pasaría si se retira este equipo del campeonato. Igual que con el WO, el
+// admin tiene que poder leer el efecto partido por partido antes de confirmar.
+router.get('/retiro/previsualizar', requireAuth, requireAdmin, campeonatoDeLaPeticion, asyncHandler(async (req, res) => {
+  const serie = req.query.serie || 'ADULTO';
+  const equipoId = Number(req.query.equipoId);
+  const partidoId = req.query.partidoId ? Number(req.query.partidoId) : null;
+  if (!esSerieValida(serie)) return res.status(400).json({ error: `serie inválida: ${serie}` });
+
+  const problema = await revisarRetiro(req.campeonato, serie, equipoId, partidoId);
+  if (problema) return res.status(problema.status).json({ error: problema.error });
+
+  const { jugados, total, corte } = await contarPartidosParaRetiro(equipoId, partidoId);
+  const efectos = await efectosDeRetiro({ equipoId, partidoId, woJugados: jugados, woTotal: total, woCorte: corte });
+  const ids = [...efectos.homologaciones.map(h => h.partidoId), ...efectos.anulados];
+  const detalles = ids.length ? await db.all(`
+    SELECT p.id, p.fecha, l.nombre AS local, v.nombre AS visita, p.estado,
+           p.goles_local AS golesLocal, p.goles_visita AS golesVisita
+    FROM partidos p JOIN equipos l ON l.id = p.local_id JOIN equipos v ON v.id = p.visita_id
+    WHERE p.id IN (${ids.map(() => '?').join(',')})
+  `, ids) : [];
+  const porId = {};
+  detalles.forEach(d => { porId[d.id] = d; });
+
+  res.json({
+    jugados,
+    total,
+    umbral: corte,
+    resultadosValidos: efectos.validos,
+    alcance: explicarAlcanceRetiro(jugados, total, corte),
+    homologaciones: efectos.homologaciones.map(h => ({ ...h, partido: porId[h.partidoId] || null })),
+    anulados: efectos.anulados.map(id => porId[id] || { id }),
+  });
+}));
+
+// Comprobaciones comunes a previsualizar y registrar un retiro de serie.
+async function revisarRetiro(campeonato, serie, equipoId, partidoId) {
+  const equipo = await db.get('SELECT id, serie, campeonato_id AS campeonatoId FROM equipos WHERE id = ?', [equipoId]);
+  if (!equipo) return { status: 400, error: 'Equipo no encontrado' };
+  if (equipo.campeonatoId !== campeonato.id) return { status: 400, error: 'El equipo no pertenece a este campeonato' };
+  if (equipo.serie !== serie) return { status: 400, error: 'El equipo no pertenece a esa serie' };
+
+  if (partidoId) {
+    const partido = await db.get('SELECT id, serie, fase, local_id, visita_id FROM partidos WHERE id = ?', [partidoId]);
+    if (!partido) return { status: 400, error: 'Partido no encontrado' };
+    if (Number(partido.local_id) !== equipoId && Number(partido.visita_id) !== equipoId) {
+      return { status: 400, error: 'El partido del hecho tiene que ser uno del equipo que se retira' };
+    }
+  }
+
+  const yaFuera = await db.get(
+    "SELECT id FROM resoluciones WHERE tipo IN ('walkover','retiro_serie') AND equipo_id = ? AND estado = 'vigente'",
+    [equipoId]
+  );
+  if (yaFuera) {
+    return { status: 409, error: `Ese equipo ya está fuera del campeonato por la resolución N°${yaFuera.id}. Revócala antes de emitir otra.` };
+  }
+  return null;
+}
+
 // Comprobaciones comunes a previsualizar y registrar un WO. Devuelve null si
 // todo está en orden, o el error a responder.
 async function revisarWalkover(campeonato, serie, partidoId, equipoId) {
@@ -113,7 +175,7 @@ async function revisarWalkover(campeonato, serie, partidoId, equipoId) {
   }
 
   const yaFuera = await db.get(
-    "SELECT id FROM resoluciones WHERE tipo = 'walkover' AND equipo_id = ? AND estado = 'vigente'",
+    "SELECT id FROM resoluciones WHERE tipo IN ('walkover','retiro_serie') AND equipo_id = ? AND estado = 'vigente'",
     [equipoId]
   );
   if (yaFuera) {
@@ -165,6 +227,13 @@ router.post('/', requireAuth, requireAdmin, campeonatoDeLaPeticion, asyncHandler
     if (problema) return res.status(problema.status).json({ error: problema.error });
     conteoWo = await contarPartidosDeGrupo(Number(equipoId));
   }
+  // El retiro congela lo mismo, por el mismo motivo.
+  if (tipo === 'retiro_serie') {
+    const partidoDelHecho = partidoId ? Number(partidoId) : null;
+    const problema = await revisarRetiro(campeonato, serie, Number(equipoId), partidoDelHecho);
+    if (problema) return res.status(problema.status).json({ error: problema.error });
+    conteoWo = await contarPartidosParaRetiro(Number(equipoId), partidoDelHecho);
+  }
 
   let partido = null;
   if (tipo === 'partido_homologado' || tipo === 'wo_mutuo') {
@@ -197,8 +266,9 @@ router.post('/', requireAuth, requireAdmin, campeonatoDeLaPeticion, asyncHandler
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'vigente', ?, ?, ?, ?)
   `, [
     campeonato.id, serie, tipo, origen,
-    tipo === 'descuento_puntos' || tipo === 'walkover' ? Number(equipoId) : null,
-    tipo === 'partido_homologado' || tipo === 'walkover' || tipo === 'wo_mutuo' ? Number(partidoId) : null,
+    tipo === 'descuento_puntos' || tipo === 'walkover' || tipo === 'retiro_serie' ? Number(equipoId) : null,
+    tipo === 'partido_homologado' || tipo === 'walkover' || tipo === 'wo_mutuo' || (tipo === 'retiro_serie' && partidoId)
+      ? Number(partidoId) : null,
     tipo === 'descuento_puntos' ? Number(puntosAjuste) : null,
     tipo === 'partido_homologado' ? Number(golesLocalHom) : null,
     tipo === 'partido_homologado' ? Number(golesVisitaHom) : null,

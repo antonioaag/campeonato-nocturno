@@ -128,7 +128,71 @@ async function efectosDeWalkover(resolucion) {
   return { validos, homologaciones, anulados };
 }
 
+// Retiro de serie: el tribunal saca al equipo del campeonato por un hecho grave
+// (una batalla campal, por ejemplo), no por no presentarse. La regla de qué
+// pasa con sus partidos es la misma del WO (ANFA art. 183, Liga art. 221):
+// según cuántos alcanzó a jugar, lo jugado queda firme y los rivales que faltaban
+// ganan 1-0, o se anula todo. Lo que cambia es que no hay un 3-0 para nadie.
+//
+// El partido donde ocurrió el hecho no se cuenta como jugado (terminó antes de
+// tiempo) y no se le da 1-0 al rival: su resultado lo decide el tribunal con su
+// propia resolución. Si en cambio se anula todo, ese partido se anula también.
+async function contarPartidosParaRetiro(equipoId, partidoDelHecho) {
+  const equipo = await db.get('SELECT serie, grupo FROM equipos WHERE id = ?', [equipoId]);
+  const excluido = Number(partidoDelHecho) || 0;
+  const fila = await db.get(`
+    SELECT COUNT(*) AS total,
+           SUM(CASE WHEN estado = 'jugado' AND id != ? THEN 1 ELSE 0 END) AS jugados
+    FROM partidos
+    WHERE fase = 'grupos' AND (local_id = ? OR visita_id = ?)
+  `, [excluido, equipoId, equipoId]);
+  const total = Number(fila.total || 0);
+  return {
+    total,
+    jugados: Number(fila.jugados || 0),
+    corte: corteDelGrupo(equipo && equipo.serie, equipo && equipo.grupo, total),
+  };
+}
+
+function explicarAlcanceRetiro(jugados, total, corte) {
+  const validos = resultadosSiguenValidos(jugados, total, corte);
+  const umbral = corte === null || corte === undefined ? Math.ceil(Number(total || 0) / 2) : Number(corte);
+  return validos
+    ? `Se retira habiendo jugado ${jugados} de ${total} partidos (la mitad es ${umbral}): sus resultados quedan firmes y los equipos que aún no lo enfrentaban ganan ${GOLES_PENDIENTE}-0.`
+    : `Se retira habiendo jugado ${jugados} de ${total} partidos y la mitad es ${umbral}: se anulan todos sus partidos y nadie recibe puntos por haberlo enfrentado.`;
+}
+
+async function efectosDeRetiro(resolucion) {
+  const equipoId = Number(resolucion.equipoId);
+  const partidoDelHecho = Number(resolucion.partidoId) || 0;
+  const validos = resultadosSiguenValidos(resolucion.woJugados, resolucion.woTotal, resolucion.woCorte);
+
+  const partidos = await db.all(`
+    SELECT id, local_id, estado
+    FROM partidos
+    WHERE fase = 'grupos' AND (local_id = ? OR visita_id = ?)
+  `, [equipoId, equipoId]);
+
+  const homologaciones = [];
+  const anulados = [];
+  partidos.forEach(p => {
+    if (!validos) { anulados.push(Number(p.id)); return; }
+    if (Number(p.id) === partidoDelHecho || p.estado === 'jugado') return;
+    const retiradoEsLocal = Number(p.local_id) === equipoId;
+    homologaciones.push({
+      partidoId: Number(p.id),
+      golesLocal: retiradoEsLocal ? 0 : GOLES_PENDIENTE,
+      golesVisita: retiradoEsLocal ? GOLES_PENDIENTE : 0,
+      esElDelWo: false,
+    });
+  });
+  return { validos, homologaciones, anulados };
+}
+
 module.exports = {
+  contarPartidosParaRetiro,
+  explicarAlcanceRetiro,
+  efectosDeRetiro,
   GOLES_WO,
   GOLES_PENDIENTE,
   CORTE_POR_GRUPO,

@@ -122,11 +122,11 @@ router.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
   // cambiaría el efecto a la tabla meses después, sin que nadie lo note.
   const descalificado = await db.get(`
     SELECT e.nombre FROM resoluciones r JOIN equipos e ON e.id = r.equipo_id
-    WHERE r.tipo = 'walkover' AND r.estado = 'vigente' AND r.equipo_id IN (?, ?)
+    WHERE r.tipo IN ('walkover','retiro_serie') AND r.estado = 'vigente' AND r.equipo_id IN (?, ?)
   `, [partido.local_id, partido.visita_id]);
   if (descalificado) {
     return res.status(409).json({
-      error: `${descalificado.nombre} está descalificado por WO: sus partidos ya los resolvió el tribunal y no se cargan resultados. Si la descalificación fue un error, revoca la resolución.`,
+      error: `${descalificado.nombre} está fuera del campeonato (WO o retiro de serie): sus partidos ya los resolvió el tribunal y no se cargan resultados. Si la descalificación fue un error, revoca la resolución.`,
     });
   }
 
