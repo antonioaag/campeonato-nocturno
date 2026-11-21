@@ -27,6 +27,10 @@
  * - Club sancionado: si hay registros en data/listas/*-registro.json, sus
  *   jugadores que aparecen inscritos en otro club (ANFA art. 203).
  * - Todos: la lista completa.
+ * - Consultas por club: los mismos casos agrupados por club, con lo que hay
+ *   que preguntarle a cada uno. Además deja un Excel por club en
+ *   informes/consultas-<fecha>/, listo para enviar, con una columna para la
+ *   respuesta del club.
  */
 require('dotenv').config();
 const fs = require('fs');
@@ -174,6 +178,70 @@ async function main() {
     }
   }
 
+  // Consultas para los clubes: un caso por jugador y por problema, con lo
+  // que se le pide al club. Un documento repetido en dos clubes se pregunta a
+  // los dos, porque cada uno tiene que confirmar su parte.
+  const consultas = [];
+  const consulta = (j, problema, detalle, pedido) => consultas.push({ club: j.club, j, problema, detalle, pedido });
+  const donde = (o, j) => `${o.club} ${o.serieNombre}${sinTildes(o.nombre) !== sinTildes(j.nombre) ? ` (como ${o.nombre})` : ''}`;
+  // Los avisos de validación traen el código interno de la serie.
+  const legible = t => String(t).replace(/\b(SUB13|SUB15|SUB17|SENIOR|SEGUNDA_ADULTO|PRIMERA_ADULTO)\b/g, m => SERIES[m]);
+  for (const g of porDoc.values()) {
+    if (g.length < 2) continue;
+    const clubes = new Set(g.map(j => j.club));
+    for (const j of g) {
+      const otros = g.filter(o => o !== j);
+      if (clubes.size > 1) {
+        consulta(j, 'Inscrito en otro club', `Mismo documento también en ${otros.filter(o => o.club !== j.club).map(o => donde(o, j)).join('; ')}.`,
+          'Confirmar en qué club juega. Si viene de otro club, adjuntar el pase o la carta de libertad.');
+      } else if (new Set(g.map(o => o.serie)).size > 1) {
+        consulta(j, 'Inscrito en dos series', `También inscrito en ${otros.map(o => o.serieNombre).join(', ')} del mismo club.`,
+          'Confirmar en qué serie juega, o si corresponde la doble inscripción.');
+      } else {
+        consulta(j, 'Duplicado en el equipo', 'Figura dos veces en la misma lista.', 'Confirmar que es un solo jugador.');
+      }
+    }
+  }
+  for (const g of porNombre.values()) {
+    if (new Set(g.map(j => j.clave)).size < 2) continue;
+    for (const j of g) {
+      const otros = g.filter(o => o.clave !== j.clave);
+      consulta(j, 'Mismo nombre, otro documento', `El mismo nombre figura con ${otros.map(o => `${o.rut || 'sin documento'} en ${o.club} ${o.serieNombre}`).join('; ')}.`,
+        'Confirmar el RUT correcto (copia del carnet). Si es otra persona, indicarlo.');
+    }
+  }
+  for (const j of jugadores.filter(j => !j.rutValido)) {
+    const dv = dvEsperado(j.rut);
+    consulta(j, 'RUT inválido', !limpiarRut(j.rut) ? 'Sin documento en la lista.' : dv ? `El dígito verificador no cuadra (con ese número sería ${dv}).` : 'No tiene formato de RUT.',
+      'Enviar el RUT correcto (copia del carnet).');
+  }
+  for (const f of edadSerie) {
+    const j = jugadores.find(x => x.club === f[0] && x.serieNombre === f[1] && x.nombre === f[2] && x.rut === f[3]);
+    if (j) consulta(j, 'Edad no corresponde a la serie', `${f[6]} años. ${legible(f[7])}`, 'Confirmar la fecha de nacimiento o indicar la serie que corresponde.');
+  }
+  for (const f of oficios.filter(f => /Ya cumplió/.test(f[9]))) {
+    const j = jugadores.find(x => x.club === f[1] && x.serieNombre === f[2] && x.nombre === f[3] && x.rut === f[4]);
+    if (j) consulta(j, 'Cumplió 18 en Sub-17', `Cumplió 18 años el ${f[8]}.`, 'Enviar el oficio de cambio a adultos (indicar Primera o Segunda).');
+  }
+  for (const j of jugadores.filter(j => j.revisar)) {
+    for (const m of String(j.motivo || '').split(' · ')) {
+      if (!m || /^RUT inválido/.test(m) || /^Para /.test(m) || /^Cumplió /.test(m)) continue;
+      const nacimiento = /^Fecha de nacimiento/.test(m);
+      consulta(j, nacimiento ? 'Falta fecha de nacimiento' : 'Dato dudoso en la lista', legible(m.replace(/^Observación: /, '')),
+        nacimiento ? 'Enviar la fecha de nacimiento (copia del carnet).' : 'Confirmar o corregir el dato.');
+    }
+  }
+  // Un mismo jugador con la misma nota repetida (fecha inválida que además
+  // trae observación) se pregunta una vez.
+  const vistas = new Set();
+  const consultasUnicas = consultas.filter(c => {
+    const k = [c.club, c.j.id, c.problema, c.detalle].join('|');
+    return vistas.has(k) ? false : vistas.add(k);
+  }).sort((a, b) => a.club.localeCompare(b.club) || ORDEN.indexOf(a.j.serie) - ORDEN.indexOf(b.j.serie) || a.j.nombre.localeCompare(b.j.nombre));
+  const filaConsulta = (c, i) => [i + 1, c.j.serieNombre, c.j.nombre, c.j.rut, fechaCl(c.j.nacimiento), c.problema, c.detalle, c.pedido, ''];
+  const colConsulta = [['N°', 5], ['Serie', 10], ['Nombre', 32], ['Documento', 14], ['Nacimiento', 12], ['Problema', 24], ['Detalle', 50], ['Qué se pide al club', 46], ['Respuesta del club', 40]];
+  const ajustarTexto = ws => ws.eachRow((row, n) => { if (n > 2) row.alignment = { vertical: 'top', wrapText: true }; });
+
   const wb = new ExcelJS.Workbook();
   // Resumen primero: es lo que se mira antes de bajar al detalle.
   const clubes = [...new Set(jugadores.map(j => j.club))].sort();
@@ -221,13 +289,34 @@ async function main() {
   hoja(wb, 'Todos', 'Todos los jugadores inscritos', [...colFicha, ['Documento OK', 12], ['Observación de la carga', 50]],
     jugadores.map(j => [...ficha(j), j.extranjero ? 'Extranjero' : (j.rutValido ? 'Sí' : 'NO'), j.motivo || '']));
 
+  const clubesConsulta = [...new Set(consultasUnicas.map(c => c.club))];
+  const general = hoja(wb, 'Consultas por club', 'Consultas a los clubes', [['Club', 16], ...colConsulta.slice(1)],
+    consultasUnicas.map((c, i) => [c.club, ...filaConsulta(c, i).slice(1)]),
+    { relleno: v => (clubesConsulta.indexOf(v[0]) % 2 ? AMARILLO : null), nota: 'Un caso por jugador y por problema. El mismo detalle va en un Excel por club en la carpeta consultas, listo para enviar.' });
+  ajustarTexto(general);
+
   const dir = path.join(__dirname, 'informes');
   fs.mkdirSync(dir, { recursive: true });
   const salida = path.join(dir, `jugadores-${new Date().toISOString().slice(0, 10)}.xlsx`);
   await wb.xlsx.writeFile(salida);
+  // Un Excel por club: lo que se le envía a cada uno, sin datos de otros
+  // clubes más allá de dónde aparece repetido su jugador.
+  const dirConsultas = path.join(dir, `consultas-${new Date().toISOString().slice(0, 10)}`);
+  fs.mkdirSync(dirConsultas, { recursive: true });
+  for (const club of clubesConsulta) {
+    const delClub = consultasUnicas.filter(c => c.club === club);
+    const libro = new ExcelJS.Workbook();
+    const hojaClub = hoja(libro, 'Consultas', `${campeonato.nombre} — consultas al club ${club}`, colConsulta, delClub.map(filaConsulta),
+      { nota: `Asociación Liga Dávila. Revisión de las listas de inscripción al ${new Date().toLocaleDateString('es-CL')}. Responder en la última columna y devolver con los documentos que se piden.` });
+    ajustarTexto(hojaClub);
+    hojaClub.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
+    await libro.xlsx.writeFile(path.join(dirConsultas, `consultas-${club.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.xlsx`));
+  }
   console.log(`${campeonato.nombre}: ${jugadores.length} jugadores.`);
   casos.forEach(([t, n]) => console.log(`  ${String(n).padStart(4)}  ${t}`));
   console.log(`\n✅ Informe guardado en ${salida}`);
+  console.log(`✅ ${consultasUnicas.length} consultas para ${clubesConsulta.length} clubes, un Excel por club en ${dirConsultas}`);
+  clubesConsulta.forEach(c => console.log(`  ${String(consultasUnicas.filter(x => x.club === c).length).padStart(4)}  ${c}`));
 }
 
 main()

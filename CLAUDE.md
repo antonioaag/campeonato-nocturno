@@ -188,7 +188,9 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
 - `node informe-jugadores.js` (solo lee) arma `informes/jugadores-<fecha>.xlsx`
   (no versionado): mismo documento en otro club o en otra serie, mismo nombre
   con distinto documento, RUT inválido, extranjeros, observaciones de la
-  carga y jugadores de clubes sancionados inscritos en otro club.
+  carga y jugadores de clubes sancionados inscritos en otro club. También deja
+  `informes/consultas-<fecha>/`: un Excel por club con cada caso, lo que se
+  le pide al club y una columna para su respuesta.
 - **Club sancionado** (José Pistono, hasta agosto 2027): sus listas no se
   inscriben. Se transcriben a `data/listas/<club>-registro.json` con
   `"registroSinInscripcion": true` (cargar-listas.js las rechaza) y se cruzan
