@@ -132,6 +132,10 @@ campeonato**: SENIOR existe en el Nocturno 2026 y en Clausura 2026.
   Primera, Sub-15 y Sub-17) y que ningún club tenga libres en fechas seguidas.
 - Los 4 primeros van a semifinales (1º-4º, 2º-3º) y después la final, a
   partido único con penales. Mismo puntaje y desempate que arriba.
+  `node analisis-clasificacion.js` (solo lee) dice por serie quién ya está
+  clasificado, eliminado o en carrera, recorriendo todos los resultados
+  posibles de lo que falta; `--retirados "SERIE:CLUB;..."` simula retiros
+  aún no registrados con la regla de la mitad.
 - WO: el reglamento de la liga no descalifica (art. 57: 2 seguidos o 3 por
   rueda bajan de serie; pendiente). Mientras tanto el WO automático está
   bloqueado en este formato y el partido se homologa a mano.
